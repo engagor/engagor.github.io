@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc></loc>
+    <lastmod>2017-01-25</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+    <url>
+    <loc>/blog/2017/01/24/some-tips-for-a-better-git-history</loc>
+    <lastmod>2017-01-24T15:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+    <url>
+    <loc>/blog/2017/01/07/distributed-processing-via-rabbit-mq</loc>
+    <lastmod>2017-01-07T08:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+    <url>
+    <loc>/blog/2017/01/01/vim-ide-setting-up</loc>
+    <lastmod>2017-01-01T08:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  </urlset>

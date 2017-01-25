@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/tags/IDE.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2017-01-25T15:14:53+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Vim As A PHP IDE - Setting Up]]></title>
+            <link href="/blog/2017/01/01/vim-ide-setting-up"/>
+            <updated>2017-01-01T08:00:00+00:00</updated>
+            <id>/blog/2017/01/01/vim-ide-setting-up</id>
+            <content type="html"><![CDATA[<p>I always get a lot of critique and disbelief when I mention that I use Vim to do my daily work in our PHP codebase. Most people in PHP have become avid users of <a href="https://www.jetbrains.com/phpstorm/">PhpStorm</a>, a great PHP IDE made by JetBrains. I'm unsure about my own reasons to use Vim over PhpStorm but I guess these are some factors:</p>
+
+<ul>
+<li>I do not only write PHP</li>
+<li>I love the fact that using Vim is like speaking a language</li>
+<li>I live in my terminal</li>
+</ul>
+
+<p>I'm hereby starting a blog series about how I use Vim as my IDE of choice for PHP development. This is not a Vim tutorial, I'm assuming that you can look up the basics <a href="http://vimcasts.org/">anywhere else</a> and that you know about <code>:h :h</code>. However, I'll show you how I manage to do my work in Vim, how you can accomplish the same thing, and that I don't have a lot of missing features compared to users of other IDEs. This will be a blog series, and I'll list up episodes below as they come out. Let's start with setting up for a really basic PHP oriented workflow.</p>
+
+<h2 id="basic-%60.vimrc%60-setup">Basic <code>.vimrc</code> setup</h2>
+
+<p>First of all, never put things in your <code>.vimrc</code> that you don't understand. There's a huge amount of documentation in Vim's built-in help pages, which you can access like this: <code>:h &lt;keyword&gt;</code>. These are some simple things that I put in my <code>.vimrc</code> that I want at all times:</p>
+
+<pre><code class="vim">filetype plugin indent on " use the file type plugins
+syntax on                 " Syntax highlighting
+set number nu             " Line numbers
+set cursorline            " Color the cursorline
+set autoindent            " Auto indenting
+set smartindent           " Smart indenting
+</code></pre>
+
+<h2 id="basic-packages-i-use-all-the-time">Basic Packages I Use All The Time</h2>
+
+<h3 id="package-manager">Package Manager</h3>
+
+<p>To be able to easily install Vim plugins, I use <a href="https://github.com/tpope/vim-pathogen">Pathogen</a> or another Vim package manager, they make it so much easier to install the other packages.</p>
+
+<h3 id="multiple-cursors">Multiple Cursors</h3>
+
+<p>Even though it's really not Vim-like to use this, sometimes it comes in handy to have multiple cursors, even though we all know it can be done using find-and-replace or using Vim's macros. There are multiple packages for this, I use <a href="https://github.com/terryma/vim-multiple-cursors">this one</a>.</p>
+
+<h3 id="surroundings">Surroundings</h3>
+
+<p>Adding, removing and editing brackets around all Vim objects like "words", "paragraphs", "HTML-tags", etc has been made super easy with <a href="https://github.com/tpope/vim-surround">surround.vim</a>, which makes all these actions feel like they were in Vim all along.</p>
+
+<h3 id="sessions">Sessions</h3>
+
+<p>To manage my sessions, I usually don't use any plugins, since Vim has basic session management built in. You can save your current session using <code>:mksession! &lt;name&gt;</code>. Vim will save a file with the <code>&lt;name&gt;</code> you specified. If you then close vim, you can come back to the same session by starting vim like this: <code>vim -S &lt;name&gt;</code>.</p>
+
+<p>If you go with the aforementionned approach, your sessions won't be saved automatically. If you want to get more out of your sessions, you might want to try the <a href="https://github.com/tpope/vim-obsession">vim obsession</a> plugin.</p>
+
+<h3 id="snippets">Snippets</h3>
+
+<p>As a last general purpose plugin, I'll recommend some snippet managers. I myself don't use any of them, just because I started out with a very basic Vim setup and I didn't yet feel the need for one of them. But if you'd like one, check out <a href="https://github.com/sirver/UltiSnips">UltiSnips</a> or <a href="https://github.com/msanders/snipmate.vim">SnipMate</a>.</p>
+
+<h2 id="php-specific-things-for-your-%60.vimrc%60">PHP Specific things for your <code>.vimrc</code></h2>
+
+<p>Let's start looking at some PHP specific configurations. I created a specific <code>augroup</code> section in my <code>.vimrc</code>, to be able to define <code>autocmd</code>s that can be overwritten if I reload my <code>.vimrc</code>. I'll reference this <code>augroup</code> in the following episodes of this series, too. Let's use it to run the <code>php -l</code> linter after we save a PHP file. Here we go:</p>
+
+<pre><code class="vim">augroup PHP
+  autocmd! " Clear all autocmd's in this group before running them again
+
+  " Check for PHP syntax errors after saving a file
+  autocmd BufWritePost {*.php} echom system("php -l ".expand('%'))
+
+augroup END
+</code></pre>
+
+<p>Let's set some basic configuration for all PHP files that we'll open. Create a file called <code>~/.vim/ftplugin/php.vim</code> and put this in it:</p>
+
+<pre><code class="vim">" Some basic PSR code style rules
+set tabstop=4           " Tab width
+set softtabstop=4       " Soft tab width
+set shiftwidth=4        " Shift width
+set expandtab           " Use spaces instead of tabs
+</code></pre>
+
+<h2 id="what%27s-next%3F">What's next?</h2>
+
+<p>When I talk to people about their IDE of choice, which I don't do often, these are some topics which seem to be important:</p>
+
+<ul>
+<li>exploring the codebase</li>
+<li>quality control</li>
+<li>git integration</li>
+<li>testing integration</li>
+<li>refactoring</li>
+</ul>
+
+<p>In the upcoming posts, I'll talk about those in more detail!</p>
+]]></content>
+        </entry>
+    </feed>

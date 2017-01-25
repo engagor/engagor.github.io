@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Distributed Processing via RabbitMQ &mdash; CX Social Dev Blog &mdash; Development Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="robots" content="index, follow">
+        <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="CX Social Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+        <header>
+            <nav class="navbar navbar-inverse navbar-fixed-top">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" id="logo" href="http://developers.engagor.com">
+                            <img src="/images/logo_cxsocial.png" />
+                            <span class="dev-tagline">developers</span>
+                        </a>
+                    </div>
+                    <div id="navbar" class="collapse navbar-collapse">
+                        <ul class="nav navbar-nav">
+                            <li>
+                                <a href="https://developers.engagor.com/">
+                                    <span class="en-icon en-icon-document"></span> API Documentation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="http://engagor.github.io/" class="active">
+                                    <span class="en-icon en-icon-bubble-2"> Blog
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://developers.engagor.com/team">
+                                    <span class="en-icon en-icon-users"></span> Team
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <div class="mainContent container">
+            <div class="row-fluid">
+                <div class="span4 sidebar">
+                    <div class="well sidebar-nav">
+                        <ul class="dev-nav">
+                            <li>
+                                <a href="/blog">
+                                    <span class="en-icon en-icon-clock"></span> Posts Archive
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/blog/categories">
+                                    <span class="en-icon en-icon-folder-open"></span> Categories
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/blog/tags">
+                                    <span class="en-icon en-icon-tag"></span> Tags
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="hiring-block">
+                        <a href="http://cxsocial.clarabridge.com/jobs" target="blank" class="clearfix">
+                            <h2>we're</h2>
+                            <h1>Hiring!</h1>
+                            <span>Join The Team</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="span8 dev-content">
+                        <article>
+        <header class="page-header">
+            <h1>Distributed Processing via RabbitMQ</h1>
+        </header>
+
+        <div class="post-details">
+                        <div class="author-avatar">
+                <img src="https://www.gravatar.com/avatar/20ceb801d59faf3fc550d23f5618f387" alt="Jurriaan Persyn avatar" />
+            </div>
+                                    <div class="author-name">
+                Jurriaan Persyn
+            </div>
+                        <div class="post-publish-date">
+                on
+                <time class="post-publish-date" datetime="2017-01-07T08:00:00+00:00" pubdate>
+                    <span class='month'>Jan</span> <span class='day'>7th</span> <span class='year'>2017</span>
+                </time>
+            </div>
+        </div>
+
+        <div>
+            <p>Looking at <a href="https://stackshare.io/clarabridge-cx-social/web-application-stack">the tech stack of our CX Social product</a>, there's tens of components involved, and this post will go into detail about one of the most central components of our system: our RabbitMQ service.</p>
+
+<p>RabbitMQ, or at least the concept of "Message Brokers" it implements, is central to the way we capture and digest the hundreds of social media messages we track each second, but also in how we throw around workload and tasks. Actually, it's so central we often take it for granted. So, let's take a step back and see why we use it ...</p>
+
+<h2 id="what-is-a-queueing-system%3F">What is a Queueing System?</h2>
+
+<p>Almost too simple to explain, a queueing system is a service where you can pile up a bunch of things to do (tasks) or messages to process (social media tweets etc. in our case). Different processes put messages on the queue (publish) while multiple other processes (consumers), possibly on other servers, read from these queues to e.g. execute a certain process.</p>
+
+<p><center><img src="/images/2017-01-07-distributed-processing-via-rabbit-mq/queue.png" alt="What Is A Queue?" /></center></p>
+
+<p>At Clarabridge CX Social, we use <a href="https://www.rabbitmq.com/">RabbitMQ</a>, but there's also <a href="https://kafka.apache.org/">Apache Kafka</a> or <a href="https://aws.amazon.com/sqs/">Amazon SQS</a> as often used alternatives.</p>
+
+<p>Below is a screenshot of our RabbitMQ dashboard, showing a.o. about 3000 messages per second being processed.</p>
+
+<p><img src="/images/2017-01-07-distributed-processing-via-rabbit-mq/rabbitmq-dashboard.png" alt="RabbitMQ Dashboard" /></p>
+
+<h2 id="so%2C-what%27s-cool-about-queues%3F">So, What's Cool About Queues?</h2>
+
+<h3 id="1.-do-stuff-async-and-handle-peaks">1. Do Stuff Async and Handle Peaks</h3>
+
+<p>If at any point in our code we can procrastinate, we try to do so. If it's not super important to execute a certain function immediately, we push a message onto one of our RabbitMQ queues containing enough information to execute the function later, potentially by someone else. Easy. And lazy.</p>
+
+<p>An example where we do this, is in the processing of webhooks for Facebook. For every like or comment that happens on one of the Facebook Pages that our CX Social clients own, Facebook sends us a real-time update containing who commented/liked which post. This information needs to be added to our clients' inboxes as soon as possible, but it's not vital that that's done in the same webhook-request that Facebook sends us. So, this page just pushes whatever information it gets from Facebook onto a queue. And an army of consumers for this queue turns these messages in e.g. comment objects to add to our data cluster.<br />
+Whenever a Facebook post we monitor turns out to be hugely popular, and hundreds of post interactions per second is no exception, this queue serves both as a buffer (so we can handle these peak moments) and as a distributor (so multiple processes can massage and index the data).</p>
+
+<p>Other common use cases include emailing or notifying several people. Say you have an online shop, and you want to notify a whole bunch of subscribers as soon as you add a new item to the inventory. Instead of sending these notifications in the same web request that the admin adds a product in, you push the notification-job on a queue, and let a different process send the actual emails or push notifications. Your initial request ("Add product x") stays fast, while all necessary emails are sent in the background.</p>
+
+<h3 id="2.-split-up-complex-problems">2. Split up Complex Problems</h3>
+
+<p>Queues are also particularly handy to split up heavy tasks into smaller, more manageable chunks of work. By using queues as the glue between these steps, you create more visibility into this chain of events.</p>
+
+<p>One such chain that is vital to CX Social is the processing of a new incoming message (a tweet, an Instagram photo, etc.). Whenever a new messages is capture by our data crawling systems, there's several steps we need to do to get it to our clients, including:</p>
+
+<ol>
+<li>Checking which of our clients are interested in the message by matching it to the set-up of their accounts.<br />
+(E.g. does it contain any of the keywords they're monitoring? Is it from a social profile they own?)</li>
+<li>Resolving any of the urls in the post, as to get more details about the linked sites.</li>
+<li>Computing the language the post's text is in.</li>
+<li>Making an estimated guess of what the sentiment of the post could be.</li>
+<li>Predict any labels that the client uses often for this particular post.</li>
+<li>Indexing it to our main data cluster (ElasticSearch).</li>
+<li>Predicting a possible reply for the post, if actionable.</li>
+<li>Sending a notification to logged in users to their interfaces update with the new data.</li>
+</ol>
+
+<p>Each step of this process involves different services, of which some might be external, or slow, or down. By splitting this big chunk of work into smaller steps that are executed in sequence (each step generates an event that the next step listens to), we have better control over the execution of these steps. In addition, each step is simpler to monitor and thus debug (both in resource usage as speed).</p>
+
+<h3 id="3.-give-certain-jobs-priorities">3. Give Certain Jobs Priorities</h3>
+
+<p>By using different queues for different types of tasks, and by playing around with the amount of consumer-processes you have running for a certain queue, you have control over the priority of the tasks you push to this service, and different queues and types of tasks don't affect each other.</p>
+
+<h3 id="4.-cross-service-communication">4. Cross-Service Communication</h3>
+
+<p>We also use RabbitMQ in case different services need to talk to each other. At Clarabridge CX Social we have a service for real-time communication to a user's browser using websockets (via node.js/Socket.io). Every other service in our cluster can just send their messages there via RabbitMQ.
+If a certain php process needs to send a real-time notification to a certain logged in user, the php process publishes an event to a RabbitMQ queue. A node.js server will then consume the event, and passes it on the client via socket.io.<br />
+Using RabbitMQ as the intermediate we allow services written in a multitude of different languages to talk to each other.</p>
+
+<h3 id="5.-monitoring-made-easy">5. Monitoring Made Easy</h3>
+
+<p>A benefit of architecting your application this way, is that your Message Broker becomes an important and easy service to monitor, giving early indications when problems arise. As soon as a certain queue is growing beyond its expected volume, it's often an indication of a process that is slower than expected, or fully down.</p>
+
+<p>If you monitor ...</p>
+
+<ul>
+<li>the amount of messages on a queue at any time;</li>
+<li>the age of the oldest messages on a queue;</li>
+<li>the rate of publishing to a queue;</li>
+<li>the rate of consuming from a queue;</li>
+</ul>
+
+<p>... you have a very good indication of the health and performance of your application.</p>
+
+<p><img src="/images/2017-01-07-distributed-processing-via-rabbit-mq/serverdensity-dashboard.png" alt="ServerDensity Dashboard" /></p>
+
+        </div>
+
+        <hr />
+
+                            <p class="tags">
+                <strong>Tags:</strong>
+                                    <a href="/blog/tags/Distributed%20Processing" class="tag">Distributed Processing</a>                                    <a href="/blog/tags/RabbitMQ" class="tag">RabbitMQ</a>                                    <a href="/blog/tags/Message%20Broker" class="tag">Message Broker</a>                                    <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                            </p>
+        
+                    <nav class="article">
+                <ul>
+                                            <li>Next: <a class="next" href="/blog/2017/01/24/some-tips-for-a-better-git-history" title="Some tips for a better Git history"><span class="title">Some tips for a better Git history</span></a></li>
+                                                                <li>Previous: <a class="previous" href="/blog/2017/01/01/vim-ide-setting-up" title="Vim As A PHP IDE - Setting Up"><span class="title">Vim As A PHP IDE - Setting Up</span></a></li>
+                                    </ul>
+            </nav>
+            </article>
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'engagor-dev-blog'; // required: replace example with your forum shortname
+
+
+    
+    
+    
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the
+    <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+</noscript>
+
+                </div>
+            </div>
+        </div>
+        <footer class="container">
+            &copy; 2017 CX Social Dev Blog
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-13086022-2', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>

@@ -1,0 +1,361 @@
+
+/* General */
+
+body, p, li {
+    font-size: 16px;
+    line-height: 24px;
+    color: #394750;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-weight: 300;
+}
+p {
+    margin-bottom: 20px;
+}
+li, dd, dt {
+    margin-bottom: 10px;
+    ul {
+        margin-top: 10px;
+    }
+}
+.h1, .h2, .h3, h1, h2, h3 {
+    margin-top: 40px;
+    margin-bottom: 30px;
+}
+a {
+    color: #00b4d0;
+    text-decoration: none;
+}
+
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #d2dbe0;
+    margin-right: 1px;
+}
+::-webkit-scrollbar-track {
+    background-color: #e5e8ed;
+}
+
+/* Main content & containers */
+
+.mainContent, footer.container {
+    max-width: 1000px !important;
+}
+.mainContent {
+    padding-right: 0;
+    padding-left: 0;
+}
+.sidebar {
+    width: 180px;
+    float: left;
+}
+
+/* Navigation */
+
+.navbar {
+    background: #445460;
+    font-size: 14px;
+    z-index: 300;
+    border: none;
+    min-height: 44px;
+}
+.navbar-brand {
+    height: 44px;
+}
+.navbar .container {
+    max-width: 1000px;
+}
+.navbar-header {
+    height: 44px;
+}
+.navbar-nav {
+    margin-left: 20px;
+    font-weight: 400;
+}
+.navbar ul li {
+    margin-bottom: 0;
+}
+.navbar ul li a {
+    line-height: 44px;
+    font-size: 16px;
+    padding: 0 20px;
+    color: #fff !important;
+    font-weight: normal;
+    -webkit-transition: 0.25s linear;
+    -moz-transition: 0.25s linear;
+    -o-transition: 0.25s linear;
+    transition: 0.25s linear;
+}
+.navbar ul li a:hover {
+    color: #00b4d0 !important;
+}
+.navbar ul li a.active {
+    color: #00b4d0 !important;
+}
+
+.sidebar-nav {
+    padding:20px 0;
+}
+.sidebar-nav li {
+    margin: 0;
+}
+.sidebar-nav a {
+    padding: 0;
+    line-height: 44px;
+    color: #fff;
+}
+.dev-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-weight: 400;
+}
+.dev-nav ul {
+    margin: 0;
+}
+.dev-nav li {
+    list-style: none;
+    margin: 0;
+}
+.dev-nav li a {
+    color: #637c8c;
+    display: block;
+    padding: 8px 25px;
+    line-height: 22px;
+    font-size: 16px;
+    font-weight: normal;
+    -webkit-transition: 0.25s linear;
+    -moz-transition: 0.25s linear;
+    -o-transition: 0.25s linear;
+    transition: 0.25s linear;
+}
+.dev-nav .en-icon {
+    color: #abbac3;
+    -webkit-transition: 0.25s linear;
+    -moz-transition: 0.25s linear;
+    -o-transition: 0.25s linear;
+    transition: 0.25s linear;
+}
+.dev-nav a:hover {
+    background: #e5e8ed;
+    color: #637c8c;
+    text-decoration: none;
+}
+.dev-nav a:hover .en-icon {
+    color: #637c8c;
+}
+
+#logo {
+    padding: 0;
+}
+#logo img {
+    width: 147px;
+    height: 22px;
+    margin: 11px 0;
+    float: left;
+}
+.dev-tagline {
+    margin-left: 8px;
+    color: #fff;
+    font-size: 20px;
+    line-height: 44px;
+    letter-spacing: 2px;
+    font-weight: lighter;
+}
+
+/* Content */
+
+.dev-content {
+    margin-left: 220px;
+}
+
+ul, ol {
+    margin-bottom: 35px;
+}
+
+article {
+    padding: 40px;
+    border: 2px solid #e5e8ed;
+    margin: 40px 0;
+    border-radius: 8px;
+}
+code {
+    color: #7591a9;
+    background: #e4ebf1;
+}
+pre {
+    padding: 0;
+    border-radius: 3px;
+    border: 0;
+}
+.hljs {
+    padding: 20px !important;
+    line-height: 22px;
+}
+
+.post-details {
+    margin-bottom: 40px;
+}
+.post-details>div {
+    display: inline-block;
+}
+
+.author-avatar img {
+    border-radius: 50%;
+    max-height: 30px;
+}
+
+.page-header {
+    margin-top: 20px !important;
+    margin-bottom: 20px;
+    padding-bottom: 0;
+    border-bottom: 1px solid #e5e8ed;
+}
+.page-header h1 {
+    margin-top: 0;
+}
+.page-header small {
+    font-weight: 300;
+}
+
+h4 small {
+    display: block;
+    font-size: 60%;
+    color: #888;
+}
+
+.tag {
+    background: #00b4d0;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.tag:hover {
+    background: #445460;
+    color: #fff;
+    text-decoration: none;
+}
+.tags-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+.tags-list li {
+    display: inline-block;
+}
+
+.well {
+    background-color: #f2f6f7;
+    border: none;
+    box-shadow: none;
+}
+
+footer.container {
+    margin-top: 30px;
+    padding: 30px 0;
+    border-top: 1px solid #e5e8ed;
+}
+
+@media (max-width: 767px) {
+    .mainContent {
+        padding: 20px 15px 0 15px;
+    }
+    .container>.navbar-header {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    .navbar-toggle {
+        margin: 5px 0 5px 0;
+    }
+    footer.container {
+        padding: 30px 15px;
+    }
+    .sidebar {
+        float: none;
+        width: 100%;
+        margin-top: 40px;
+    }
+    .dev-content {
+        margin-left: 0;
+    }
+}
+@media (min-width: 980px) {
+    body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        padding-bottom: 40px;
+    }
+}
+
+#disqus_thread {
+    padding: 20px;
+    border: 2px solid #e5e8ed;
+    margin: 40px 0;
+    border-radius: 8px;
+}
+
+/* Hiring Banner */
+
+.hiring-block {
+    background: #0e5061;
+    -webkit-transform: rotate(-7deg);
+    transform: rotate(-7deg);
+    -webkit-transition: 0.25s linear;
+    -moz-transition: 0.25s linear;
+    -o-transition: 0.25s linear;
+    transition: 0.25s linear;
+    width: 180px;
+    height: 180px;
+    float: right;
+    border-radius: 50%;
+    margin-left: 30px;
+    margin-bottom: 30px;
+}
+.hiring-block a {
+    display: block;
+    padding: 20px;
+    height: 200px;
+}
+.hiring-block a:hover {
+    text-decoration: none;
+}
+.hiring-block h1, .hiring-block h2 {
+    color: #fff;
+    text-align: center;
+    margin-top: 15px;
+}
+.hiring-block h1 {
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 40px;
+    line-height: 52px;
+}
+.hiring-block h2 {
+    font-size: 40px;
+    line-height: 24px;
+    font-weight: 100;
+    margin-bottom: 0;
+}
+.hiring-block span {
+    background: #78be20;
+    display: block;
+    color: #fff;
+    text-align: center;
+    border-radius: 12px;
+    width: 120px;
+    margin: 5px auto -30px auto;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+.hiring-block:hover {
+    -webkit-transform: rotate(7deg);
+    transform: rotate(7deg);
+    background: -webkit-linear-gradient(left,#00b4d0,#266782);
+    background: linear-gradient(90deg,#00b4d0,#266782);
+}
+
