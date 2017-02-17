@@ -21,9 +21,10 @@ li, dd, dt {
     margin-top: 40px;
     margin-bottom: 30px;
 }
-a {
+a, a:hover, a:active, a:focus {
     color: #00b4d0;
     text-decoration: none;
+    outline: none;
 }
 
 ::-webkit-scrollbar {
@@ -259,36 +260,6 @@ footer.container {
     border-top: 1px solid #e5e8ed;
 }
 
-@media (max-width: 767px) {
-    .mainContent {
-        padding: 20px 15px 0 15px;
-    }
-    .container>.navbar-header {
-        margin-right: 0;
-        margin-left: 0;
-    }
-    .navbar-toggle {
-        margin: 5px 0 5px 0;
-    }
-    footer.container {
-        padding: 30px 15px;
-    }
-    .sidebar {
-        float: none;
-        width: 100%;
-        margin-top: 40px;
-    }
-    .dev-content {
-        margin-left: 0;
-    }
-}
-@media (min-width: 980px) {
-    body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-        padding-bottom: 40px;
-    }
-}
-
 #disqus_thread {
     padding: 20px;
     border: 2px solid #e5e8ed;
@@ -359,3 +330,70 @@ footer.container {
     background: linear-gradient(90deg,#00b4d0,#266782);
 }
 
+
+@media (max-width: 767px) {
+    .mainContent {
+        padding: 20px 15px 0 15px;
+    }
+    .container>.navbar-header {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    .navbar-toggle {
+        margin: 5px 0 5px 0;
+    }
+    footer.container {
+        padding: 30px 15px;
+    }
+    .sidebar {
+        float: none;
+        width: 100%;
+        margin-top: 40px;
+    }
+    .dev-content {
+        margin-left: 0;
+    }
+    .hiring-block {
+        float: none;
+        width: 100%;
+        height: auto;
+        margin: 0;
+        border-radius: 4px;
+        -webkit-transform: rotate(0);
+        transform: rotate(0) !important;
+    }
+    .hiring-block a {
+        padding: 10px;
+        height: auto;
+    }
+    .hiring-block h1, .hiring-block h2 {
+        font-size: 30px;
+        line-height: 30px;
+        margin-top: 0px;
+        float: left;
+        text-transform: capitalize;
+    }
+    .hiring-block h2 {
+        margin-right: 8px;
+    }
+    .hiring-block span {
+        margin: 3px 0 0 0;
+        float: right;
+    }
+    article {
+        padding: 15px;
+        margin: 20px 0;
+    }
+    article ul, article ol {
+        padding: 25px;
+    }
+    article .hljs {
+        padding: 15px !important;
+    }
+}
+@media (min-width: 980px) {
+    body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        padding-bottom: 40px;
+    }
+}
