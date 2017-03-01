@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/tags/Issues.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2017-03-01T08:22:23+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Bug Fixing: Creating Synergy Between Dev and Support]]></title>
+            <link href="/blog/2017/03/01/batman-chatman"/>
+            <updated>2017-03-01T09:00:00+00:00</updated>
+            <id>/blog/2017/03/01/batman-chatman</id>
+            <content type="html"><![CDATA[<p>This blog post is about bugs. About bug-tracking software. About prioritising what issues to fix first. About client-developer communication. About Service Level Agreements. And about hotfixes.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/oh-f.gif" alt="Oh, f*ck" /></center></p>
+
+<p>If that didn't scare you away, well hello there!</p>
+
+<h2 id="first-line-support">First Line Support</h2>
+
+<p>CX Social is software that allows companies to respond to their incoming social data (Twitter mentions, Facebook wall posts, etc.) as fast and as efficiently as possible. The customer care agents of companies like Telenet, De Lijn, NMBS (in Belgium), and Lufthansa, Turkish Airlines, T-Mobile (worldwide) use CX Social day-in day-out. They've set-up highly customized workflows within our tool, including automated actions, advanced filtering and real-time communication.<br />
+This makes CX Social a business-critical tool for our clients to serve their customers. To help with set-up, or if clients have discovered a bug in our system, there is direct in-app access to a live chat that puts them in contact with one of our support agents.<br />
+These support agents handle several chats and incoming emails per hour. We use Olark for in-app live chat, and use Salesforce Desk as the tool to handle incoming emails.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/olark-chat.png" alt="CX Social in-app Live Chat via Olark" /></center></p>
+
+<h2 id="an-empowered-support-agent-means-less-bugs">An Empowered Support Agent Means Less Bugs</h2>
+
+<p>The support agents are the people in our company that know our tool best. In several cases even better than us developers who wrote the code for it. We involve our support agents in testing new features we build. By making support part of the Q&amp;A-process, we assure they have used new features before clients put their hands on it, but also that the product team keeps solving <em>real</em> problems that our clients are having every day.<br />
+Apart from that, we actively maintain FAQ documents that help support agents identify problems, and collect the correct information to reproduce issues. We - try to - regularly organise trainings that go deep into certain aspects of our application. The customer support agents for CX Social know the basics of html, can interpret some - if not most - of our monitoring dashboards and know about <code>oAuth</code> or <code>API's</code> and find their way around the Chrome Developer Tools.<br />
+All with one goal: to be able to solve our clients' problems as fast as possible. (Read: With as little help from a developer as possible 😏 )</p>
+
+<h2 id="a-direct-line-to-development">A Direct Line To Development</h2>
+
+<p>For those cases where the help of a developer is wanted, our support team has a direct line open to development, and that's the internal Slack channel <code>#supdev</code> that all support agents have joined. The main goal of this channel is to discuss whether a certain <em>symptom</em> is in fact an issue. We've seen it work best if all these discussions happen through a single and public channel so that multiple people can jump in to help. This encourages learning from each other's questions and answers, and also helps to hand-over problems to teams in other timezones.
+On the other hand, on active days, the constant flow of messages in the <code>#supdev</code> channel often get in the way of focus. That's why the people in our development team are taking turns in answering support questions in this channel, and by doing that allowing others to preserve their focus. The whole development team (all full stack developers) takes part in this schedule we nicknamed the 'chatman', in periods of one week.</p>
+
+<p>The result of this direct line is;</p>
+
+<ol>
+<li>Less bugs:
+
+<ul>
+<li>Because some configuration errors might be spotted earlier;</li>
+<li>Because multiple reports by clients get bundled into a single bug report;</li>
+</ul></li>
+<li>Better bug reports:
+
+<ul>
+<li>More detailed steps to reproduce;</li>
+</ul></li>
+</ol>
+
+<h2 id="github-as-bug-repository">GitHub as Bug Repository</h2>
+
+<p>We use GitHub Issues as our main bug tracker. Not that it matters that much, but here's some of the reasons we appreciate GitHub:</p>
+
+<ul>
+<li>Integration with the git repository;
+
+<ul>
+<li>Closing issues from your commit message via <code>closes #issueno</code>;</li>
+<li>The automatic referencing between issues, pull requests and commits;</li>
+</ul></li>
+<li>It's simple and easy to use interface; and at the same time flexible enough due to its labeling system.</li>
+<li>Its simple and extensive REST API.</li>
+</ul>
+
+<p>We have set-up an <a href="https://help.github.com/articles/creating-an-issue-template-for-your-repository/">issue template</a> to guide our support agents to provide as much of the relevant context as possible. This issue template makes sure we always know the User ID and Account ID of the person having/reporting the problem.</p>
+
+<p>We have several types of issues; "critical", "minor" and "major", which we indicate with <a href="https://help.github.com/articles/creating-and-editing-labels-for-issues-and-pull-requests/">issue labels</a>. Most issues are classified as "minor", and the "major"/"critical" labels are reserved for those "drop everything and fix this"-type of problems.</p>
+
+<p>Whenever a Desk case (= client report) results in a GitHub issue (= actual bugreport), we make sure to save the connection between the Desk case and GitHub issue in our own database. <em>(The why is explained later.)</em></p>
+
+<p>In a typical week at CX Social around 10 bugs are reported, and while most of them take about 2 to 3 hours to fix, some take days.</p>
+
+<h2 id="batman-will-fix-it">Batman Will Fix It</h2>
+
+<p>Similar to how we have a dedicated person answering questions from our support team, the person(s) responsible for fixing bugs is also a rotated role. Each week different people are assigned the Batman role, and spend their week digging into the reported and confirmed issues, trying to find a solution for them.</p>
+
+<p>This separation of bug fixing work from standard product development <em>(i.e. new features, or reworked features)</em> has the following advantages for us:</p>
+
+<ul>
+<li><p>Everyone in the team will at some point be involved in fixing bugs, including bugs in parts of the code he/she doesn't know yet. Of course, everyone's free to go ask other people's advice, but it's definitely an efficient way of preventing knowledge silos. This contributes to everyone's knowledge of the code base, and also to how much care is given to writing clean &amp; well documented code.</p></li>
+<li><p>In weeks a developer isn't assigned the Batman role, he/she can fully focus on the product development project; making it easier to stay focused and work towards target dates. Before we used a system like this, it was often much harder to make progress on product development, because there's always a certain bug that got more priority.</p></li>
+<li><p>By separating these duties it also becomes more measurable how much effort is spent - team-wide - on each type of job, and how we should distribute our resources.</p></li>
+</ul>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/scars.jpg" alt="Do you want to know how I got these scars?" /></center></p>
+
+<p>At the same time, a system like this creates a few problems as well:</p>
+
+<ul>
+<li><p>Probably the person trying to find the cause of a bug is not the person who originally wrote the code, and thus it might take more time than somebody who knows the ins and outs of what he/she wrote.</p></li>
+<li><p>Bugs that aren't fixed by the end of the week, will of course not go away by itself, and a handover to the next batman is needed.</p></li>
+</ul>
+
+<p>The solution for this is simple: allow to deviate from the guidelines. In emergency situations, more people are working on bugs than just the Batman. And if you are close to a fix on Friday evening and fixing it will only take another half a day; of course that's what we do. And have regular in-person <code>#supdev</code>-meetings with the support team, and this and next week's Batman and Chatman.<br />
+The agenda for these meetings is:</p>
+
+<ul>
+<li>What are the most important issues still needing a fix, from a support point of view?</li>
+<li>What are blocking problems, from a dev point of view?</li>
+<li>Passing on information to the next batman, both from support and from batman.</li>
+</ul>
+
+<p>We use this system in a tech team of 11 people, of which 7 people are involved in this Batman/Chatman schedule. The rest of the team is either designer, data scientist or ops people. While it works for us now, we realise it might become hard if the team grows.</p>
+
+<p>On top of the GitHub API we built several dashboards that plot the trend in amount of open bugs and that show our average resolution time. These are the prime indicators we take into account when planning extra resources for this role. Our Slack bot will also notify us when issues stay open for too long, or are unassigned, or miss labels, etc.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/issue-stats.png" alt="Amount of open issues over time" /></center></p>
+
+<p>When an issue is closed but without a resolution (it's a duplicate, we were unable to reproduce it, it's a limitation of the external services we use, etc.) we indicate this with a resolution label. And similarly we tag all bugs with a label indicating which CX Social feature group it's related to. These two types of labels help us assess the quality of both our bug reports as identify problem areas with the application.</p>
+
+<h2 id="prioritising-issues">Prioritising Issues</h2>
+
+<p>The nature of a bug typically entails its priority; if something is a problem with a core feature of CX Social, for multiple accounts at once, it's labeled as "major", and thus has higher priority over bugs classified as "minor". Luckily, the amount of "major" bugs is limited. So, most of the time we spent fixing "minor" bugs. Typically we have between 10 and 30 of these bugs open, and from this to-do list for the Batman it's important we focus on those issues that have the most impact, for whatever reason. It's our support team that decides which of these to work on, since they know a bug's impact on customers best.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/github-screenshot.png" alt="Some open issues" /></center></p>
+
+<h2 id="what-didn%27t-work">What Didn't Work</h2>
+
+<p>We didn't always work this way. Over the course of the last 5 years, we've had a whole bunch of different approaches.</p>
+
+<p>In our first iterations Batman also did the duties of who we now refer to as Chatman. But complex bugs often require a lot of focus (and we found out: more so than for standard product development work), so this combined role, resulted in a lower bug closing efficiency. And that's of course the main target for a system like this.</p>
+
+<p>Not having a Chatman at all, is even worse. The fact that a developer can add his/her perspective to a bug report, greatly enriches the quality of a bug report. The fact that this communication with the Chatman happens over chat, avoids a slow ping-pong of "needs more information" comments on GitHub issues.</p>
+
+<p>While it's sometimes tempting to skip a weekly <code>#supdev</code>-meetings, we've found that not having a regular in-person meeting between development and support creates an invisible "hostility" where it feels like one party is fighting against the other: fixing bugs versus reporting bugs. While what really happens is two teams working together to fix customer issues. Talking in person can cause breakthroughs because ideas get validated or ping-ponged.</p>
+
+<h2 id="deploying-fixes-%26-reaching-out-to-the-customer">Deploying Fixes &amp; Reaching Out to the Customer</h2>
+
+<p>When a developer has fixed a bug, it's pushed to a separate branch which is then opened up for peer review via <a href="https://help.github.com/articles/about-pull-requests/">GitHub's Pull Requests</a> and the Support Agents involved in the bug report are notified. At this moment it's also possible to fire up a staging environment with the bug fix to verify by support.</p>
+
+<p>Approved bug fixes are typically pushed out to production the same day. And by requiring issues to be closed via GitHub's <code>closes #issueno</code> commits, our continuous integration agent Jenkins also knows what fixes he is deploying to production. We have configured Jenkins so that it leaves a comment on the actual GitHub issue with the build number and exact time of when a fix for that issue went live. Jenkins will also make sure to post any bug fixes that are deployed to a few of the relevant Slack channels.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/fixed-comment.png" alt="It's fixed" /></center></p>
+
+<p>This Jenkins-comment on the GitHub issue will also trigger the reopening of any Desk cases associated with the GitHub issue, so that our support team immediately has the relevant cases reopened. By closing the loop back to the customer we make sure that customer immediately knows about a fix, and that we have confirmation of the fix as soon as possible.</p>
+
+<p>What strategies have worked for you to speed up the bug fixing process and ensure positive communication between those encountering the bugs, reporting the bugs and fixing the bugs?</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/fixed-slack.png" alt="It's fixed" /></center></p>
+]]></content>
+        </entry>
+    </feed>
