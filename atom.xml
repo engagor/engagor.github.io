@@ -3,9 +3,109 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-03-01T08:22:23+00:00</updated>
+    <updated>2017-03-15T07:51:39+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Vim As A PHP IDE - Quality Control]]></title>
+            <link href="/blog/2017/03/15/vim-ide-quality-control"/>
+            <updated>2017-03-15T09:00:00+00:00</updated>
+            <id>/blog/2017/03/15/vim-ide-quality-control</id>
+            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>So it seems that people find it really handy that their IDEs tell them when things are going wrong, and I can't really disagree with that. So let's see how we can get pretty much the same thing in Vim, for PHP.</p>
+
+<ul>
+<li>I need to be warned of syntax errors.</li>
+<li>I need to be warned of unused variables, methods, fields, etc.</li>
+<li>Every language has their own rules for indenting and tabs vs. spaces, and maybe even every project.</li>
+<li>What about coding standards like PSR-2?</li>
+</ul>
+
+<p>Basically I do two things here:</p>
+
+<ol>
+<li>I make sure that my editor is configured correctly for the language and the project, using a simple default configuration in my <code>.vimrc</code> which I overwrite on a project basis using <a href="http://editorconfig.org/">EditorConfig</a>.</li>
+<li>I use some static analysis tools for the other parts.</li>
+</ol>
+
+<h2 id="1.-basic-setup">1. Basic setup</h2>
+
+<h3 id="filetype-plugin">Filetype plugin</h3>
+
+<p>Depending on your taste, you might want to update your PHP filetype plugin in Vim, with a more modern version, for instance if you'd like <code>@param</code> highlighted differently in your PHPDoc blocks. You can find a more up-to-date plugin <a href="https://github.com/StanAngeloff/php.vim">here</a>.</p>
+
+<h3 id="editor-config">Editor Config</h3>
+
+<p>To properly configure my editor, I use the simple snippet in my <code>~/.vim/ftplugin/php.vim</code> that I also posted in the first episode of this blog series:</p>
+
+<pre><code class="vim">" Some basic PSR code style rules
+set tabstop=4           " Tab width
+set softtabstop=4       " Soft tab width
+set shiftwidth=4        " Shift width
+set expandtab           " Use spaces instead of tabs
+</code></pre>
+
+<p>I override this with project settings, using <a href="http://editorconfig.org/">EditorConfig</a>. It's as easy as installing the <a href="https://github.com/editorconfig/editorconfig-vim">EditorConfig plugin</a> for Vim.</p>
+
+<p>In my projects I then have a <code>.editorconfig</code> file that might look like this:</p>
+
+<pre><code class="editorconfig">; This file is for unifying the coding style for different editors and IDEs.
+; More information at http://editorconfig.org
+
+root = true
+
+[**.{php,js,scss,html}]
+charset = utf-8
+indent_size = 4
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+</code></pre>
+
+<h2 id="2.-static-analysis">2. Static Analysis</h2>
+
+<p>On to more interesting stuff, for the rest of our list: syntax errors, coding guideline violations, unused variables, and the like. The cool part of this, is that many of these things are covered by great PHP tools:</p>
+
+<ul>
+<li>syntax errors: <code>php -l</code></li>
+<li>coding guideline violations: <a href="https://pear.php.net/package/PHP_CodeSniffer/">PHP Code Sniffer</a></li>
+<li>unused variables and other possible issues with code: <a href="https://phpmd.org/">PHP Mess Detector</a></li>
+</ul>
+
+<p>Even greater is that there's a great Vim plugin that combines all of these quality control tools into one great automated package: <a href="https://github.com/vim-syntastic/syntastic">Syntastic</a>, and it's fantastically easy to install. Use your Vim package manager, and put some lines into your <code>.vimrc</code> to configure it:</p>
+
+<pre><code class="vim">" Syntastic configuration
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+</code></pre>
+
+<p>Now to configure the PHP specific tools, that I mentioned above, I do it like this:</p>
+
+<pre><code class="vim">" Syntastic configuration for PHP
+let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
+let g:syntastic_php_phpcs_exec = './bin/phpcs'
+let g:syntastic_php_phpcs_args = '--standard=psr2'
+let g:syntastic_php_phpmd_exec = './bin/phpmd'
+let g:syntastic_php_phpmd_post_args = 'cleancode,codesize,controversial,design,unusedcode'
+</code></pre>
+
+<p>This works because the <code>phpcs</code> and <code>phpmd</code> binaries live in a <code>bin/</code> directory inside my project's directory (I installed them using composer). If you have global installs of these tools, you can just leave out these config lines, Syntastic knows where to find them. As we now have the <code>php -l</code> linter as a Syntastic checker, we can remove the <code>autocmd</code> from our <code>.vimrc</code>.</p>
+
+<p>Some screenshots for the visually minded people:</p>
+
+<p><img src="/images/2017-03-15-vim-ide-quality-control/syntax-error.png" alt="Syntax error detection with php -l" /></p>
+
+<p><img src="/images/2017-03-15-vim-ide-quality-control/psr-violation.png" alt="PSR-2 violation" /></p>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>Now I get live feedback about the quality of my code! Great! On to the next episode.</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Bug Fixing: Creating Synergy Between Dev and Support]]></title>
             <link href="/blog/2017/03/01/batman-chatman"/>
@@ -509,7 +609,7 @@ set expandtab           " Use spaces instead of tabs
 
 <ul>
 <li><a href="/blog/2017/02/15/vim-ide-exploring-code">exploring the codebase</a></li>
-<li>quality control</li>
+<li><a href="/blog/2017/03/15/vim-ide-quality-control">quality control</a></li>
 <li>git integration</li>
 <li>testing integration</li>
 <li>refactoring</li>
