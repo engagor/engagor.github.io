@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-04-03T08:00:33+00:00</updated>
+    <updated>2017-04-05T09:02:25+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -58,7 +58,7 @@ $ git log
 * 308c96d Add bug
 </code></pre>
 
-<p>There you go. We forgot <code>Closes #issue</code>. What can we do about it? It's important that you don't push (otherwise you'll have to use <code>--force</code> and you should <strong>never</strong> do that). You should consider committing with <code>$ git commit --amend</code>. It opens a proper text editor (like <a href="http://vim.sourceforge.net/">vim</a>) to write a comprehensive message (instead of using <code>-m "message"</code>).</p>
+<p>There you go. We forgot <code>Closes #issue</code>. What can we do about it? It's important that you don't push (otherwise you'll have to use <code>--force</code> and you should <strong>never</strong> do that).</p>
 
 <p>If you want to edit your last commit you can use:</p>
 
@@ -68,7 +68,7 @@ $ git log
  1 file changed, 1 insertion(+), 1 deletion(-)
 </code></pre>
 
-<p>Did you notice I used <code>-m</code> twice? You can read about it in <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">Some tips for a better Git history</a>.</p>
+<p>You should consider committing with <code>$ git commit --amend</code>. It opens a proper text editor (like <a href="http://vim.sourceforge.net/">vim</a>) to write a comprehensive message (instead of using <code>-m "message"</code>). Did you notice I used <code>-m</code> twice? You can read about it in <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">Some tips for a better Git history</a>.</p>
 
 <pre><code class="sh">$ git show f27a1ca
 ommit f27a1caac3ee33ac3b0ef81040cd2c2f877f13f4
