@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/tags/Emoji.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2017-04-06T14:12:22+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Emoji as conversation enhancement]]></title>
+            <link href="/blog/2017/04/06/emoji-conversations"/>
+            <updated>2017-04-06T16:15:00+00:00</updated>
+            <id>/blog/2017/04/06/emoji-conversations</id>
+            <content type="html"><![CDATA[<p>At CX Social, we use emoji extensively. 💰💭 We believe they are an enrichment of ongoing conversations, and can be used to express things that can't be expressed in a textual representation. Let's see how and where we use them 👌</p>
+
+<h2 id="slack">Slack</h2>
+
+<p>Our main communication form is chat. We use Slack and we just love the integration of emoji in their application! They're everywhere! 😻</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/1.png" alt="emoji in between text in slack" /></p>
+
+<p>Also, the "reactions" are quite handy to not mess up conversation flow with emoji only.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/2.png" alt="emoji reactions in slack" /></p>
+
+<p>In full conversation, it looks a bit like this:</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/3.png" alt="mixture of reactions in slack" /></p>
+
+<h2 id="github">GitHub</h2>
+
+<p>Of course, our conversations in Issues and Pull Requests on github resemble those on Slack...</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/4.png" alt="github reviews with emoji" /></p>
+
+<p>And in our commits, we use the <a href="http://gitmoji.carloscuesta.me/">gitmoji</a> way of prefixing commit messages with one or more semi-standardized emoji, to make it <strong>much clearer</strong> what the commit is about.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/5.png" alt="gitmoji in commit messages" /></p>
+
+<h2 id="emoji-news">Emoji-news</h2>
+
+<p>To top it off, there's a dedicated channel on our company chat for <strong>emoji-only</strong> conversation. It's called <code>#emoji-news</code>.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/6.png" alt="emoji news, conversations with emoji only" /></p>
+
+<p>The great thing about all this, is that emoji really have positive vibes about them, and they work in an inspiring, encouraging way in conversations. They make you laugh, or they express a feeling that could be very difficult to express in text only. They provide context to what was said. They can be combined to create whole stories in just a few images. They work cross-language. They can be abused. It's just fantastic 😏. We are so into it, that we added 100's of our own custom emoji to slack, which in turn add much more specific things that we could express (you can find some of them in the screenshots above). If you're looking for custom emoji, <a href="http://slackmojis.com">Slackmojis</a> is a great place to start looking.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/7.png" alt="a small part of our custom emoji on slack" /></p>
+
+<p>Do you use emoji differently? Do you have tips for us? Let us know 📯</p>
+
+<p>Have a great day! ☕️</p>
+]]></content>
+        </entry>
+    </feed>
