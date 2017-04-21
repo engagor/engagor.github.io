@@ -27,6 +27,13 @@ a, a:hover, a:active, a:focus {
     outline: none;
 }
 
+.left {
+    float: left;
+}
+.right {
+    float: right;
+}
+
 ::-webkit-scrollbar {
     -webkit-appearance: none;
     width: 8px;
@@ -187,6 +194,16 @@ article img {
     max-width: 100%;
 }
 
+article table {
+    border: 1px solid #e5e8ed;
+    margin: 0 0 15px;
+}
+article table th,
+article table td {
+    border: 1px solid #e5e8ed;
+    padding: 6px 13px;
+}
+
 code {
     color: #7591a9;
     background: #e4ebf1;
@@ -195,6 +212,7 @@ pre {
     padding: 0;
     border-radius: 3px;
     border: 0;
+    margin: 0 0 15px;
 }
 .hljs {
     padding: 20px !important;
