@@ -3,23 +3,9 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-05-15T08:02:06+00:00</updated>
+    <updated>2017-05-15T14:19:45+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
-            <entry>
-            <title type="html"><![CDATA[]]></title>
-            <link href="/_posts/.2017-01-01-vim-ide-setting-up.md.swp"/>
-            <updated>2017-01-01T00:00:00+00:00</updated>
-            <id>/_posts/.2017-01-01-vim-ide-setting-up.md.swp</id>
-            <content type="html"><![CDATA[]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[]]></title>
-            <link href="/_posts/.2017-05-15-vim-ide-testing.md.swp"/>
-            <updated>2017-05-15T00:00:00+00:00</updated>
-            <id>/_posts/.2017-05-15-vim-ide-testing.md.swp</id>
-            <content type="html"><![CDATA[]]></content>
-        </entry>
             <entry>
             <title type="html"><![CDATA[Vim As A PHP IDE - Testing]]></title>
             <link href="/blog/2017/05/15/vim-ide-testing"/>
@@ -808,6 +794,212 @@ The agenda for these meetings is:</p>
 <p>What strategies have worked for you to speed up the bug fixing process and ensure positive communication between those encountering the bugs, reporting the bugs and fixing the bugs?</p>
 
 <p><center><img src="/images/2017-03-01-batman-chatman/fixed-slack.png" alt="It's fixed" /></center></p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Vim As A PHP IDE - Exploring Code]]></title>
+            <link href="/blog/2017/02/15/vim-ide-exploring-code"/>
+            <updated>2017-02-15T09:30:00+00:00</updated>
+            <id>/blog/2017/02/15/vim-ide-exploring-code</id>
+            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>As it turns out, finding things in a huge project is one of the main reasons people use an IDE. The most frequently used functionality seems to be</p>
+
+<ul>
+<li>searching for a file by its name;</li>
+<li>searching within the current file;</li>
+<li>searching for something arbitrary in the current project;</li>
+<li>searching for methods or classes;</li>
+<li>"jumping" to implementations of interfaces, child classes, definitions of methods;</li>
+<li>finding usages of a method;</li>
+</ul>
+
+<h2 id="finding-files-by-their-names">Finding files by their names</h2>
+
+<p>Finding files is something I'm very bad at. I mostly remember only part of the name, or nothing at all. That's why I want to search for files in a "fuzzy" way, if at all. For fuzzy file search, a feature found in most text editors and IDEs these days, I use <a href="https://github.com/kien/ctrlp.vim">CtrlP</a>, which does that just fine. It also has some nice extra commands that let you fuzzily find files in your open buffers, tags (more on that later), and bookmarks.</p>
+
+<p>Some people like to use <a href="https://github.com/scrooloose/nerdtree">NerdTree</a> to have a nice directory listing to the left of the screen, like in Sublime Text or similar editors. You can use it, and I sometimes do for its <code>:NERDTreeFind</code> command, but for most of your needs, the default file browser in Vim is great. You can open it like you open any file, just open a directory instead e.g. <code>:e src/</code>.</p>
+
+<h2 id="searching-within-the-current-file">Searching within the current file</h2>
+
+<p>To find something in the current file, Vim provides a huge number of options. There's the default forward search command, <code>/</code>, which can be pimped a bit to behave in a more "natural" way. In <code>.vimrc</code>:</p>
+
+<pre><code class="vim">set incsearch           " search as characters are entered
+set hlsearch            " highlight matches
+</code></pre>
+
+<p>And you can search backwards in exactly the same way by using <code>?</code>. Jump to next and previous hits with <code>n</code> and <code>N</code>. And of course you can use regex.</p>
+
+<p>Then there are some more "special" ways of searching in the current file:</p>
+
+<ul>
+<li>Hop to the next occurence of the word under cursor <code>*</code></li>
+<li>Hop to the previous occurence of the word under cursor <code>#</code></li>
+<li>Hop to the next method <code>]]</code></li>
+<li>Hop to the previous method <code>[[</code></li>
+<li>Hop to the definition of a variable under cursor <code>gd</code> (goto definition)</li>
+</ul>
+
+<h2 id="searching-for-arbitrary-text-in-the-current-project">Searching for arbitrary text in the current project</h2>
+
+<p>I use <code>ag</code> as my main code search engine. It's a great command line tool to search codebases really fast. I use it on the command line, as well as in Vim, to replace <code>:vimgrep</code> with something faster. It's also the basis for some more interesting stuff, which I'll talk about later.</p>
+
+<p>You'll need to have the <code>ag</code> binary for your operating system installed, using e.g. <code>brew install ag</code>. Check if it works by searching your codebase for a class, e.g. <code>ag HttpKernelInterface</code>.</p>
+
+<p>Install the <code>Ack.vim</code> plugin, that you can find <a href="https://github.com/mileszs/ack.vim">here</a>. Then set the default search engine for the plugin to <code>ag</code> in your <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Ack -&gt; Ag
+if executable('ag')
+    let g:ackprg = 'ag --vimgrep'
+endif
+</code></pre>
+
+<p>Open Vim in your codebase's working directory and try it there, e.g. <code>:Ack HttpKernelInterface</code>. This should jump straight to the first match found.</p>
+
+<p>The problem with this is that you don't have a visual representation of what else was found. Luckily, and much like <code>:vimgrep</code>, <code>:Ack</code> fills the quickfix list with matches, so you can use <code>:cwindow</code> to show matches (and see also <code>:cnext</code>, <code>:cprev</code>, <code>:cclose</code>). If you want your quicklist to open automatically if anything was found you can add this to your <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Automatically open &amp; close quickfix window
+autocmd QuickFixCmdPost [^l]* nested cwindow
+</code></pre>
+
+<h2 id="searching-for-methods-or-classes">Searching for methods or classes</h2>
+
+<p>Now this is where it gets interesting, and where people somewhat underestimate Vim. Using an external application to generate an index of your project's "tags" (classes, interfaces, methods, variables, etc), which Vim can interpret, it provides jumping to all these things and back! This is great. How to set it up?</p>
+
+<p>You'll need to have the <code>ctags</code> binary for your operating system installed, using e.g. <code>brew install ctags</code>. Check if it works by issueing this command <code>ctags --version</code>. I created a config file for it in my <code>$HOME</code> directory, called <code>.ctags</code> with this in it:</p>
+
+<pre><code class="ctags">--recurse=yes
+--tag-relative=yes
+--exclude=.git
+--exclude=composer.phar
+--exclude=*.js
+--exclude=*.vim
+--langmap=php:.engine.inc.module.theme.install.php
+--PHP-kinds=+cfi-vj
+</code></pre>
+
+<p>The line with <code>--PHP-kinds</code> tells <code>ctags</code> to index classes, functions, interfaces, but not variables or javascript functions. You can tune this to your likings.</p>
+
+<p>If you now use <code>ctags</code> from the command line to generate the tags file for your project, using <code>ctags -R .</code>, a file that Vim can interpret, called <code>tags</code> will be created.</p>
+
+<ul>
+<li>You can now open Vim on a tag like so <code>vim -t HttpKernelInterface</code></li>
+<li>Or search for that tag from within Vim <code>:tag HttpKernelInterface</code></li>
+<li>Or jump to the tag under the cursor: <code>&lt;C-]&gt;</code> or <code>&lt;C-$&gt;</code> depending on keyboard layout</li>
+<li>if you jumped to some tags and you want to jump back, use <code>&lt;C-t&gt;</code></li>
+</ul>
+
+<p>Of course there are <a href="https://github.com/ludovicchabant/vim-gutentags">plugins</a> to manage your <code>tags</code> files for you.</p>
+
+<h2 id="finding-implementations-of-interfaces%2C-child-classes">Finding implementations of interfaces, child classes</h2>
+
+<p>So this is where the aforementioned <code>Ack</code> magic comes in handy, as it's not default Vim functionality, and I didn't find a plugin to do these things either. I basically just created some functions that find PHP implementations of an interface, and PHP subclassses of a class. I just put them in my <code>.vimrc</code>, but I'm planning on creating a very simple plugin for them.</p>
+
+<pre><code class="vim">" PHP Find Implementations
+function! PhpImplementations(word)
+    exe 'Ack "implements.*' . a:word . ' *($|{)"'
+endfunction
+
+" PHP Find Subclasses
+function! PhpSubclasses(word)
+    exe 'Ack "extends.*' . a:word . ' *($|{)"'
+endfunction
+
+noremap &lt;Leader&gt;fi :call PhpImplementations('&lt;cword&gt;')&lt;CR&gt;
+noremap &lt;Leader&gt;fe :call PhpSubclasses('&lt;cword&gt;')&lt;CR&gt;
+</code></pre>
+
+<p>As you can see, I added mappings to execute them for the word under cursor (<code>&lt;cword&gt;</code>). These key mappings should probably be done inside the PHP <code>augroup</code> we created in the previous post.</p>
+
+<h2 id="finding-usages-of-a-method">Finding usages of a method</h2>
+
+<p>Pretty much in the same spirit of the Vim functions I wrote to find implementations of an interface, I also wrote such a function to find usages of a method, which I also just added to my <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" PHP Find Usage
+function! PhpUsage(word)
+    exe 'Ack "::' . a:word . '\(|&gt;' . a:word . '\("'
+endfunction
+
+noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
+</code></pre>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to the next episode!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Some tips for a better Git history]]></title>
+            <link href="/blog/2017/01/24/some-tips-for-a-better-git-history"/>
+            <updated>2017-01-24T15:00:00+00:00</updated>
+            <id>/blog/2017/01/24/some-tips-for-a-better-git-history</id>
+            <content type="html"><![CDATA[<p>We're all heavy Git users in the CX Social development team. Honestly, we couldn't survive without it, as some of us are located across the planet, and we also use GitHub as our primary source of information, even when talking to other teams like the "Customer Support" team. Here's some small tips we learned along the way, when it comes to keeping your Git history clean.</p>
+
+<h2 id="%60git-log%60-like-a-boss"><code>git log</code> like a boss</h2>
+
+<p>I personally like to see everything there is to see about my git history. That's why I have an alias for <code>git log</code> that upgrades it with two default flags:</p>
+
+<pre><code class="sh">git log --decorate --name-status
+</code></pre>
+
+<p>The <code>--decorate</code> flag shows ref names next to commits, meaning that you can see where <code>HEAD</code> points, and where your current (and remote) branches are pointing.</p>
+
+<p>The <code>--name-status</code> flag activates the functionality to display which files were changed in that commit, below your commit message. This is great to see what changed in a commit, at first glance.</p>
+
+<h2 id="writing-proper-commit-messages">Writing proper commit messages</h2>
+
+<p>Another great tip, and maybe the best thing you'll take away from this blog post, actually comes from <a href="http://chris.beams.io/posts/git-commit/">another blogpost</a> which talks about writing great <code>git commit</code> messages. If you haven't read that post, go read it now, it's awesome. The main things I took away from it are these:</p>
+
+<ul>
+<li>use a proper text editor (like Vim) for writing your commit messages</li>
+<li>write a commit subject as the first line, which complete this sentence:
+<code>if applied, this commit will...</code></li>
+<li>keep a blank line between the subject and what follows</li>
+<li><strong>always</strong> write a commit body with <strong>what</strong> changed, and <strong>why</strong> you changed it.</li>
+</ul>
+
+<p>If you're too stubborn to write your commit messages using a decent text editor, here's a trick for you: you can use the <code>-m</code> flag on your command line more than once, to create paragraphs, e.g.:</p>
+
+<pre><code class="sh">git commit \
+-m "Add a second Hyperdrive as a backup" \
+-m "When being followed by an imperial fighter, we want to be able to jump to hyperspace even though our first drive fails." \
+-m "We're afraid this might cause some more radiation than expected."
+</code></pre>
+
+<p>But still, really consider using a text editor.</p>
+
+<h2 id="distributed-versioning">Distributed versioning</h2>
+
+<p>Git is a distributed versioning system, which means that it's designed to work offline, without a connection to the remote. We might as well exploit that to have great git history.</p>
+
+<ul>
+<li><code>git checkout</code> your own feature branch to work on something</li>
+<li>don't <code>push</code> or <code>pull</code> while working on your feature. This gives you the advantage that you can <code>amend</code> your commit messages if you made a mistake, or that you can even <code>rebase</code> or <code>squash</code> your commits for clarity.</li>
+<li>when you're done, push your branch. If you're working alone on your feature branch, this will work fine and you're done. If there are other people working on the same branch, don't panic and proceed to the next step</li>
+<li><code>git pull --rebase origin {branch-name}</code> and then push</li>
+</ul>
+
+<p>As I mentioned before, <strong>not</strong> pushing or pulling, and still being able to work is a great feature of git. It means that you can work offline and do everything as if you were the only developer working on a project. You can undo mistakes you made in git, say, you forgot to include a file in a commit. Just <code>git commit --amend</code> it to your liking. Just don't go around and change parts of history that were already pushed.</p>
+
+<p>Now the <code>--rebase</code> part in the <code>git pull</code> step is where it gets interesting. What this does, is undo everything you did since the last time you pulled the branch. Then it pulls from the remote, so that it's a fast-forward without conflicts with 100% certainty. And then it will apply your commits to that. This means that if you changed something, and someone else changed the same thing, you will have a rebase conflict. Which is great! You can now just fix your own conflict, and the history will still be linear! This also means that you will have to fix your own conflicts from now, instead of fixing other people's conflicts. Go on and push your branch when your done.</p>
+
+<h2 id="merging-master-in-your-feature-branch">Merging master in your feature branch</h2>
+
+<p>In analogy with what I said before, you can look at your feature branch as an "isolated" place where you can work on your feature in separation of everything that happens in other branches. Just do what you wanted to do, and never merge any branch into it, or at least minimize the amount of times you merge in case you really really have to.</p>
+
+<p>The advantage this gives you, is great linear history in your feature branch, which <strong>only</strong> applies to that feature, which makes it easy to review or merge into other branches. This is even more true if you use the <code>git pull --rebase</code> feature from the previous tip.</p>
+
+<p>Now, when your feature is ready and there are merge conflicts between your feature branch, and the branch you want to merge it into, e.g. <code>master</code>, you can solve that easily. Merge master in your branch once, and fix your own conflicts. Then merge your branch into master. There are some rebase tricks you can do here to keep linear history too, but I prefer to still merge branches when a feature is done.</p>
+
+<h2 id="further-reading">Further Reading</h2>
+
+<ul>
+<li><a href="http://chris.beams.io/posts/git-commit/">How to Write a Git Commit Message</a></li>
+<li><a href="https://git-scm.com/book/en/v2/Distributed-Git-Distributed-Workflows">GitBook chapter on Distributed Workflows</a></li>
+<li><a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful Git branching model</a></li>
+</ul>
+
+<p>That's it! Enjoy your clean git logs!</p>
 ]]></content>
         </entry>
     </feed>
