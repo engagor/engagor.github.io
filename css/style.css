@@ -173,6 +173,10 @@ a, a:hover, a:active, a:focus {
     font-weight: lighter;
 }
 
+nav.pager {
+    margin-top: 40px;
+}
+
 /* Content */
 
 .dev-content {
@@ -188,6 +192,10 @@ article {
     border: 2px solid #e5e8ed;
     margin: 40px 0;
     border-radius: 8px;
+}
+
+article:last-of-type {
+    margin-bottom: 0px;
 }
 
 article img {
@@ -406,6 +414,9 @@ footer.container {
     article {
         padding: 15px;
         margin: 20px 0;
+    }
+    article:last-of-type {
+        margin-bottom: 0px;
     }
     article ul, article ol {
         padding: 25px;
