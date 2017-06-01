@@ -3,9 +3,98 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-05-22T07:44:12+00:00</updated>
+    <updated>2017-06-01T07:30:41+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[What it&#039;s Like to Intern at CX Social]]></title>
+            <link href="/blog/2017/06/01/internship-gheerwijn-cx-social-developer"/>
+            <updated>2017-06-01T10:00:00+00:00</updated>
+            <id>/blog/2017/06/01/internship-gheerwijn-cx-social-developer</id>
+            <content type="html"><![CDATA[<p>This February, Gheerwijn joined the CX Social development team as an intern. Now, three months later, with the bulk of his internship over, we’ve asked him what that was like and what he built.</p>
+
+<h3 id="building-a-social-profile-manager">Building a Social Profile Manager</h3>
+
+<p>The idea for the subject of the internship started a few years ago when several of our customers, including the <a href="https://twitter.com/nmbs">Belgian Railways NMBS</a>, started showing off their Twitter reply times in their cover photo. NMBS took the reply time for their Twitter profile from the CX Social API and wrote the necessary code to showcase that on their page.</p>
+
+<p><center><img src="/images/2017-06-01-profile-manager-internship-gheerwijn/nmbs.png" alt="NMBS Twitter Profile" />
+<small>NMBS Twitter Profile</small>
+</center></p>
+
+<p>We thought it would be great to build this into CX Social itself and improve on the idea with the extra features our tool offers, like having different cover images depending on your business hours, or showing different avatars depending on if a certain crisis plan is active. 
+Gheerwijn, a student of <a href="https://www.odisee.be/nl/elektronica-ict">Electronica - ICT at Odisee Gent</a>, took on this challenge and dove right in.</p>
+
+<p><strong>Gheerwijn</strong>: <em>"The main purpose of the Profile Manager is to give CX Social customers a single place to manage all of their owned social profiles. Not only can it manage basic profile information, but it can also perform more complex tasks. The most striking feature of the Profile Manager is the ability to create themes. These themes are a combination of a profile photo and cover photo."</em></p>
+
+<p>The idea was to offer clients the possibility to upload their own pictures and even annotate them. These annotations include plain text, but also variables like "reply time" or "unique users serviced".</p>
+
+<p><strong>Gheerwijn:</strong> <em>"After a theme has been created, it can be scheduled for one or more profiles. This means that CX Social users can choose when a specific theme, like a Christmas theme, should be shown on certain profiles. We've also added the option to show different themes during/outside configured business hours schedules."</em></p>
+
+<blockquote>
+  <p><strong><em>"This feature gives companies with a large customer base on social the ability to be transparant on how long it will approximately take to get an answer to their questions."</em></strong> - Gheerwijn</p>
+</blockquote>
+
+<h3 id="using-react-and-node.js">Using React and Node.js</h3>
+
+<p>When asked about what were some of the most interesting aspects of the project, Gheerwijn cites the JavaScript library React and the backend technology Node.js as two fun technologies to work with.</p>
+
+<p><strong>Gheerwijn:</strong> <em>"I had heard of React but never actually used it. A first experiment I did with it was a component to handle the scheduling of a theme. It proved to be an excellent way to quickly create interactive user interfaces, so I started to use it for everything I possibly could."</em></p>
+
+<p><strong>Gheerwijn:</strong> <em>"I also got to work on a Node.js microservice. Although I had already worked with Node.js on several occasions, I got to use new modules and libraries, like Fabric, which made it an interesting learning opportunity. I love how Node.js brings the joy of writing JavaScript to the backend.
+The hardest part to get right was having the annoted images render correctly, both on the front-end as well as in the back-end."</em></p>
+
+<blockquote>
+  <p><strong><em>"I love how Node.js brings the joy of writing JavaScript to the backend."</em></strong> - Gheerwijn</p>
+</blockquote>
+
+<p><center><img src="/images/2017-06-01-profile-manager-internship-gheerwijn/annotate-dialog.png" alt="Annotating images in the Profile Manager" />
+<small>Annotating images with Profile KPI's</small>
+</center></p>
+
+<p><strong>CX Social: Did you acquire any non-technical skills while working here?</strong></p>
+
+<p><strong>Gheerwijn</strong>: <em>"Preparing for the weekly status meetings was a great way to learn how to separate the important things from the less important ones. It forced me to spend more time thinking about how the users would eventually use this feature. I learned that things that are obvious to the programmer aren't necessarily clear to the users."</em></p>
+
+<h3 id="a-look-behind-the-scenes">A Look Behind the Scenes</h3>
+
+<p><strong>Gheerwijn:</strong> <em>"What drew me to this internship proposal was the fact that it involved social media. Everyone and their mother has a Facebook, Twitter, or Instagram account. Not only individuals, but also companies are using social media on a daily basis. In this day and age, social media is something irreplaceable.
+I started at CX Social because I wanted a look behind the scenes."</em></p>
+
+<p><strong>CX Social:</strong> <strong>Did you have any idea what to expect that first day you started?</strong></p>
+
+<p><strong>Gheerwijn:</strong> <em>I actually expected it to be quite stressful, mainly because it was such a big project to complete, but also because you suddenly start working in a company and you have to get to know everything and everyone.</em></p>
+
+<p><strong>CX Social:</strong> <strong>So, how high were the stress levels then?</strong></p>
+
+<p><strong>Gheerwijn:</strong> <em>"Well, the team was very helpful. I felt like a real part of the team and not just ‘the intern’.
+Anthony helped me out with getting to know the do's and don'ts in the codebase. Hans introduced me to several best practices and ways to make my code better. Down the road, I got to work with Jared and Ursula, who both took care of the design. Jurriaan was always able to come up with a solution to problems I would've never been able to fix on my own. And Toon showed me how to integrate my features in the task-scheduling back-end of CX Social. In the end, I got to work with everyone from the development team. I learned a lot just from asking other people how they would approach a certain problem."</em></p>
+
+<blockquote>
+  <p><strong><em>"It was also great to be able to have my feedback always taken into account when making decisions."</em></strong> - Gheerwijn</p>
+</blockquote>
+
+<p><strong>Gheerwijn:</strong> <em>"When I thought something didn't make sense the way it was expected to be implemented, my thoughts about what I thought should change were actually taken into account and implemented."</em></p>
+
+<p><center><img src="/images/2017-06-01-profile-manager-internship-gheerwijn/facebook-preview.png" alt="Creating a Facebook Theme" />
+<small>Creating a Facebook Theme</small>
+</center></p>
+
+<p><strong>CX Social: Any moments during your internship that stood out?</strong></p>
+
+<p><strong>Gheerwijn:</strong> <em>"There are two moments I won't forget. The team went on a two-day off-site bootcamp. It was the perfect way to get to know all the team members. After an entire day of working, the evenings were filled with fun activities. It was certainly not something I was expecting to do during my internship!
+The second unforgettable moment was the last day of my internship. After months of working on this one feature, the time had come to deploy it to production. We spent the last days pair programming the last bits to be able to put it live for testing. It was great seeing the work I did go live to beta-testers."</em></p>
+
+<blockquote>
+  <p><strong><em>"Let me end with sharing an important tip for any interns after me: Work hard and buy a Nerf gun. You won't survive long without one."</em></strong> - Gheerwijn</p>
+</blockquote>
+
+<p><center><img src="/images/2017-06-01-profile-manager-internship-gheerwijn/nerf-battle.gif" alt="Dekking Zoeken" />
+<small>Dekking Zoeken</small>
+</center></p>
+
+<p><strong>Also interested in working as an intern in the CX Social team from the Clarabridge Ghent office? <a href="mailto:jurriaan.persyn@clarabridge.com">Reach out</a> and maybe you'll be part of our team soon?</strong></p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Taking Care of Little Big Details on an Off-Site Bootcamp]]></title>
             <link href="/blog/2017/05/22/implementing-little-big-details-on-offsite-bootcamp"/>
@@ -890,138 +979,6 @@ The agenda for these meetings is:</p>
 <p>What strategies have worked for you to speed up the bug fixing process and ensure positive communication between those encountering the bugs, reporting the bugs and fixing the bugs?</p>
 
 <p><center><img src="/images/2017-03-01-batman-chatman/fixed-slack.png" alt="It's fixed" /></center></p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Vim As A PHP IDE - Exploring Code]]></title>
-            <link href="/blog/2017/02/15/vim-ide-exploring-code"/>
-            <updated>2017-02-15T09:30:00+00:00</updated>
-            <id>/blog/2017/02/15/vim-ide-exploring-code</id>
-            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>As it turns out, finding things in a huge project is one of the main reasons people use an IDE. The most frequently used functionality seems to be</p>
-
-<ul>
-<li>searching for a file by its name;</li>
-<li>searching within the current file;</li>
-<li>searching for something arbitrary in the current project;</li>
-<li>searching for methods or classes;</li>
-<li>"jumping" to implementations of interfaces, child classes, definitions of methods;</li>
-<li>finding usages of a method;</li>
-</ul>
-
-<h2 id="finding-files-by-their-names">Finding files by their names</h2>
-
-<p>Finding files is something I'm very bad at. I mostly remember only part of the name, or nothing at all. That's why I want to search for files in a "fuzzy" way, if at all. For fuzzy file search, a feature found in most text editors and IDEs these days, I use <a href="https://github.com/kien/ctrlp.vim">CtrlP</a>, which does that just fine. It also has some nice extra commands that let you fuzzily find files in your open buffers, tags (more on that later), and bookmarks.</p>
-
-<p>Some people like to use <a href="https://github.com/scrooloose/nerdtree">NerdTree</a> to have a nice directory listing to the left of the screen, like in Sublime Text or similar editors. You can use it, and I sometimes do for its <code>:NERDTreeFind</code> command, but for most of your needs, the default file browser in Vim is great. You can open it like you open any file, just open a directory instead e.g. <code>:e src/</code>.</p>
-
-<h2 id="searching-within-the-current-file">Searching within the current file</h2>
-
-<p>To find something in the current file, Vim provides a huge number of options. There's the default forward search command, <code>/</code>, which can be pimped a bit to behave in a more "natural" way. In <code>.vimrc</code>:</p>
-
-<pre><code class="vim">set incsearch           " search as characters are entered
-set hlsearch            " highlight matches
-</code></pre>
-
-<p>And you can search backwards in exactly the same way by using <code>?</code>. Jump to next and previous hits with <code>n</code> and <code>N</code>. And of course you can use regex.</p>
-
-<p>Then there are some more "special" ways of searching in the current file:</p>
-
-<ul>
-<li>Hop to the next occurence of the word under cursor <code>*</code></li>
-<li>Hop to the previous occurence of the word under cursor <code>#</code></li>
-<li>Hop to the next method <code>]]</code></li>
-<li>Hop to the previous method <code>[[</code></li>
-<li>Hop to the definition of a variable under cursor <code>gd</code> (goto definition)</li>
-</ul>
-
-<h2 id="searching-for-arbitrary-text-in-the-current-project">Searching for arbitrary text in the current project</h2>
-
-<p>I use <code>ag</code> as my main code search engine. It's a great command line tool to search codebases really fast. I use it on the command line, as well as in Vim, to replace <code>:vimgrep</code> with something faster. It's also the basis for some more interesting stuff, which I'll talk about later.</p>
-
-<p>You'll need to have the <code>ag</code> binary for your operating system installed, using e.g. <code>brew install ag</code>. Check if it works by searching your codebase for a class, e.g. <code>ag HttpKernelInterface</code>.</p>
-
-<p>Install the <code>Ack.vim</code> plugin, that you can find <a href="https://github.com/mileszs/ack.vim">here</a>. Then set the default search engine for the plugin to <code>ag</code> in your <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" Ack -&gt; Ag
-if executable('ag')
-    let g:ackprg = 'ag --vimgrep'
-endif
-</code></pre>
-
-<p>Open Vim in your codebase's working directory and try it there, e.g. <code>:Ack HttpKernelInterface</code>. This should jump straight to the first match found.</p>
-
-<p>The problem with this is that you don't have a visual representation of what else was found. Luckily, and much like <code>:vimgrep</code>, <code>:Ack</code> fills the quickfix list with matches, so you can use <code>:cwindow</code> to show matches (and see also <code>:cnext</code>, <code>:cprev</code>, <code>:cclose</code>). If you want your quicklist to open automatically if anything was found you can add this to your <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" Automatically open &amp; close quickfix window
-autocmd QuickFixCmdPost [^l]* nested cwindow
-</code></pre>
-
-<h2 id="searching-for-methods-or-classes">Searching for methods or classes</h2>
-
-<p>Now this is where it gets interesting, and where people somewhat underestimate Vim. Using an external application to generate an index of your project's "tags" (classes, interfaces, methods, variables, etc), which Vim can interpret, it provides jumping to all these things and back! This is great. How to set it up?</p>
-
-<p>You'll need to have the <code>ctags</code> binary for your operating system installed, using e.g. <code>brew install ctags</code>. Check if it works by issueing this command <code>ctags --version</code>. I created a config file for it in my <code>$HOME</code> directory, called <code>.ctags</code> with this in it:</p>
-
-<pre><code class="ctags">--recurse=yes
---tag-relative=yes
---exclude=.git
---exclude=composer.phar
---exclude=*.js
---exclude=*.vim
---langmap=php:.engine.inc.module.theme.install.php
---PHP-kinds=+cfi-vj
-</code></pre>
-
-<p>The line with <code>--PHP-kinds</code> tells <code>ctags</code> to index classes, functions, interfaces, but not variables or javascript functions. You can tune this to your likings.</p>
-
-<p>If you now use <code>ctags</code> from the command line to generate the tags file for your project, using <code>ctags -R .</code>, a file that Vim can interpret, called <code>tags</code> will be created.</p>
-
-<ul>
-<li>You can now open Vim on a tag like so <code>vim -t HttpKernelInterface</code></li>
-<li>Or search for that tag from within Vim <code>:tag HttpKernelInterface</code></li>
-<li>Or jump to the tag under the cursor: <code>&lt;C-]&gt;</code> or <code>&lt;C-$&gt;</code> depending on keyboard layout</li>
-<li>if you jumped to some tags and you want to jump back, use <code>&lt;C-t&gt;</code></li>
-</ul>
-
-<p>Of course there are <a href="https://github.com/ludovicchabant/vim-gutentags">plugins</a> to manage your <code>tags</code> files for you.</p>
-
-<h2 id="finding-implementations-of-interfaces%2C-child-classes">Finding implementations of interfaces, child classes</h2>
-
-<p>So this is where the aforementioned <code>Ack</code> magic comes in handy, as it's not default Vim functionality, and I didn't find a plugin to do these things either. I basically just created some functions that find PHP implementations of an interface, and PHP subclassses of a class. I just put them in my <code>.vimrc</code>, but I'm planning on creating a very simple plugin for them.</p>
-
-<pre><code class="vim">" PHP Find Implementations
-function! PhpImplementations(word)
-    exe 'Ack "implements.*' . a:word . ' *($|{)"'
-endfunction
-
-" PHP Find Subclasses
-function! PhpSubclasses(word)
-    exe 'Ack "extends.*' . a:word . ' *($|{)"'
-endfunction
-
-noremap &lt;Leader&gt;fi :call PhpImplementations('&lt;cword&gt;')&lt;CR&gt;
-noremap &lt;Leader&gt;fe :call PhpSubclasses('&lt;cword&gt;')&lt;CR&gt;
-</code></pre>
-
-<p>As you can see, I added mappings to execute them for the word under cursor (<code>&lt;cword&gt;</code>). These key mappings should probably be done inside the PHP <code>augroup</code> we created in the previous post.</p>
-
-<h2 id="finding-usages-of-a-method">Finding usages of a method</h2>
-
-<p>Pretty much in the same spirit of the Vim functions I wrote to find implementations of an interface, I also wrote such a function to find usages of a method, which I also just added to my <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" PHP Find Usage
-function! PhpUsage(word)
-    exe 'Ack "::' . a:word . '\(|&gt;' . a:word . '\("'
-endfunction
-
-noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
-</code></pre>
-
-<h2 id="wrapping-up">Wrapping up</h2>
-
-<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to the next episode!</p>
 ]]></content>
         </entry>
     </feed>
