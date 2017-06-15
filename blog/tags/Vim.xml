@@ -3,9 +3,98 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Vim.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-06-01T07:52:48+00:00</updated>
+    <updated>2017-06-15T07:29:50+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Vim As A PHP IDE - Refactoring]]></title>
+            <link href="/blog/2017/06/15/vim-ide-refactoring"/>
+            <updated>2017-06-15T10:00:00+00:00</updated>
+            <id>/blog/2017/06/15/vim-ide-refactoring</id>
+            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>Yes, I kept the best for last. The feature I get the most questions about is the refactoring capabilities of IDEs. While Vim has some great features that most IDEs don't have, it certainly is true that this is one of the features that Vim is not really that good at. Or is it? In any case, it's good enough at it for me. Let's see what we got.</p>
+
+<h2 id="how-would-you-do-it-from-the-cli%3F">How would you do it from the cli?</h2>
+
+<p>Basically, if some functionality is not in Vim by default, there are two options:</p>
+
+<ul>
+<li>Use a command line tool that already does the job - this is how Vim fits into the UNIX philosophy.</li>
+<li>Use Vimscript to program the functionality.</li>
+</ul>
+
+<p>Luckily, there's this neat tool called <a href="https://github.com/QafooLabs/php-refactoring-browser/">PHP Refactoring Browser</a>, that already knows how to do some PHP refactorings from the command line.</p>
+
+<ul>
+<li>extract method;</li>
+<li>rename local variable;</li>
+<li>local variable to instance variable;</li>
+<li>optimise use statements;</li>
+</ul>
+
+<p>The tool is also open source, so we can add missing refactorings in the future. The tool is standing on the shoulders of giants like <a href="https://github.com/nikic/PHP-Parser">PHP Parser</a> and <a href="https://github.com/Andrewsville/PHP-Token-Reflection">PHP Token Reflection</a>. But doing this from the command line isn't that great...</p>
+
+<p><img src="/images/2017-06-15-vim-ide-refactoring/refactoring-browser.png" alt="Running the Refactoring Browser from the command line" /></p>
+
+<h2 id="vim-integration">Vim integration</h2>
+
+<p>Of course, some people already thought this was useful for Vim people, and created <a href="https://github.com/vim-php/vim-php-refactoring">a plugin</a> to wrap the command line tool. I'm assuming you installed the command line tool in <code>/usr/local/bin/refactor.phar</code>. Install the plugin using your favorite Vim package manager, and put this line in your <code>.vimrc</code> to let the plugin know where to look for the executable:</p>
+
+<pre><code class="vim">" PHP refactoring browser
+let g:php_refactor_command='/usr/local/bin/refactor.phar'
+</code></pre>
+
+<p><img src="/images/2017-06-15-vim-ide-refactoring/refactoring-in-vim.png" alt="Running the Refactoring Browser from within Vim" /></p>
+
+<p>You can now do these basic refactorings using their hotkey <code>&lt;Leader&gt;r</code> and selecting your desired refactoring from the list. That's nice, but there are some refactorings missing that we'd like, e.g. "Extract Interface".</p>
+
+<h2 id="creating-refactorings-with-vimscript">Creating refactorings with Vimscript</h2>
+
+<p>While the best solution would definitely be to contribute to the PHP Refactoring Browser, we want to have this functionality right now. Let's create the "Extract Interface" refactoring in Vimscript. I'd like to select some class methods using linewise <code>VISUAL</code> mode, issue a command on it, fill in the name of the Interface that I'd like the methods be extracted to, and have the current class implement that method. Let's see what we got:</p>
+
+<pre><code class="vim">command! -range PhpExtractInterfaceFromRange &lt;line1&gt;,&lt;line2&gt;call PhpInterfaceFromRange()
+
+function! PhpInterfaceFromRange() range
+  let interface = input('Enter extracted interface name: ')
+  call PhpExtractInterface(a:firstline, a:lastline, interface)
+endfunction
+
+function! PhpExtractInterface(start, end, interface)
+  normal! qkq
+  execute ''.a:start.','.a:end.'g/public.*function.*(\_.\{-})/normal ^f(V%"Ky'
+  let @k = substitute(@k, ' \?{', '', 'g')
+  let @k = substitute(@k, ')', ');', 'g')
+  ?class
+  execute "normal! A implements ".a:interface
+  execute "normal! Ointerface ".a:interface
+  execute "normal! o{\&lt;CR&gt;}\&lt;CR&gt;"
+  normal! k"kP
+  normal! dd
+endfunction
+</code></pre>
+
+<ol>
+<li>We create a command, called <code>PhpExtractInterfaceFromRange</code> which can be called with a Vim range (like <code>10,50</code>, or from a <code>VISUAL</code> select). If the command is issued, it calls a Vimscript function with the name <code>PhpInterfaceFromRange()</code></li>
+<li>The <code>PhpInterfaceFromRange()</code> function asks the user how they want to call their new interface, and passes the range and the name of that interface to <code>PhpExtractInterface()</code></li>
+<li>Here's where the real magic happens. We clear register <code>k</code>, and search for all public method definitions in the specified range. We then append every definition to the <code>k</code> register. We then remove curly braces <code>{}</code> and put the missing <code>;</code> after every method definition. We search for the start of the current class, and make it implement the interface. We then create the interface with the contents of the register <code>k</code>.</li>
+</ol>
+
+<p><img src="/images/2017-06-15-vim-ide-refactoring/extract-interface-1.png" alt="Extracting an interface from a class with one method selected in Visual Mode" /></p>
+
+<p><img src="/images/2017-06-15-vim-ide-refactoring/extract-interface-2.png" alt="Interface was extracted successfully" /></p>
+
+<p><strong>Wow</strong></p>
+
+<p>Since this is now a command, it could easily be assigned a <code>&lt;Leader&gt;</code> hotkey for visual mode selects, for instance. And you could easily do the same thing for e.g. "Extract Class".</p>
+
+<p>Now, I created this in half an hour, and it's perfectly usable in most use cases, but it's not perfect. As this is the only refactoring I really missed from the Refactoring Browser, I'll just use this until a real refactoring gets integrated in the real plugin. There are plugins with some more Vimscript implementations of refactorings, like <a href="https://github.com/adoy/vim-php-refactoring-toolbox">this one</a>. Keep in mind that they will be susceptible to mistakes, as they don't <em>really</em> understand your PHP code like the Refactoring Browser does.</p>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>So, that's it for this episode, and for now this will also be the end of this blog series for now. I hope you liked it! Happy Vimming!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Vim As A PHP IDE - Testing]]></title>
             <link href="/blog/2017/05/15/vim-ide-testing"/>
@@ -445,7 +534,7 @@ set expandtab           " Use spaces instead of tabs
 <li><a href="/blog/2017/03/15/vim-ide-quality-control">quality control</a></li>
 <li><a href="/blog/2017/04/18/vim-ide-git">git integration</a></li>
 <li><a href="/blog/2017/05/15/vim-ide-testing">testing integration</a></li>
-<li>refactoring</li>
+<li><a href="/blog/2017/06/15/vim-ide-refactoring">refactoring</a></li>
 </ul>
 
 <p>In the upcoming posts, I'll talk about those in more detail!</p>
