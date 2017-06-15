@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/IDE.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-06-15T07:29:51+00:00</updated>
+    <updated>2017-06-15T07:40:21+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -132,7 +132,7 @@ autocmd QuickFixCmdPost [^l]* nested cwindow
 
 <p>If you want to jump through the different errors without focussing on that list, you can just use <code>:cnext</code> and <code>:cprev</code>.</p>
 
-<p>After some testing and trying out, it all seemed to work great for me. Fantastic, up to the next episode!</p>
+<p>After some testing and trying out, it all seemed to work great for me. Fantastic, up to <a href="/blog/2017/06/15/vim-ide-refactoring">the next episode</a>!</p>
 ]]></content>
         </entry>
             <entry>
@@ -217,7 +217,7 @@ nmap &lt;Leader&gt;gb :Gblame&lt;CR&gt;
 
 <h2 id="wrapping-up">Wrapping up</h2>
 
-<p>That's it really, super easy integration of git. Of course you could e.g. also integrate your current branch into your Vim statusline. Just check Fugitive's documentation! I don't feel the need for that, as I <code>:Gstatus</code> practically the whole time, and as a result, I see which branch I'm on the whole time! See you in the next episode!</p>
+<p>That's it really, super easy integration of git. Of course you could e.g. also integrate your current branch into your Vim statusline. Just check Fugitive's documentation! I don't feel the need for that, as I <code>:Gstatus</code> practically the whole time, and as a result, I see which branch I'm on the whole time! See you in <a href="/blog/2017/05/15/vim-ide-testing">the next episode</a>!</p>
 ]]></content>
         </entry>
             <entry>
@@ -317,7 +317,7 @@ let g:syntastic_php_phpmd_post_args = 'cleancode,codesize,controversial,design,u
 
 <h2 id="wrapping-up">Wrapping up</h2>
 
-<p>Now I get live feedback about the quality of my code! Great! On to the next episode.</p>
+<p>Now I get live feedback about the quality of my code! Great! On to <a href="/blog/2017/04/18/vim-ide-git">the next episode</a>.</p>
 ]]></content>
         </entry>
             <entry>
@@ -449,7 +449,7 @@ noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
 
 <h2 id="wrapping-up">Wrapping up</h2>
 
-<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to the next episode!</p>
+<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to <a href="/blog/2017/03/15/vim-ide-quality-control">the next episode</a>!</p>
 ]]></content>
         </entry>
             <entry>
