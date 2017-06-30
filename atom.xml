@@ -3,9 +3,64 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-06-15T07:40:21+00:00</updated>
+    <updated>2017-06-30T14:34:19+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Achievement Unlocked: Secure an Internship with us]]></title>
+            <link href="/blog/2017/06/30/internship-achievements"/>
+            <updated>2017-06-30T16:30:00+00:00</updated>
+            <id>/blog/2017/06/30/internship-achievements</id>
+            <content type="html"><![CDATA[<p>Are you a student looking for an internship for 2017-2018? We have a fun project for you...</p>
+
+<h2 id="what-do-we-do%3F">What do we do?</h2>
+
+<p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.<br />
+<a href="https://developers.engagor.com/team">Read more about what we do</a>.</p>
+
+<p>As of September 2017, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2017 to June 2018)</em>, to work as part of the CX Social development team. As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, Elasticsearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.<br />
+We are looking for a student with interest and knowledge of both front-end and back-end technologies.</p>
+
+<p>Want to hear from a previous intern what it’s like to join our team? Read about <a href="https://engagor.github.io/blog/2017/06/01/internship-gheerwijn-cx-social-developer/">Gheerwijn’s experiences</a>.</p>
+
+<h2 id="the-project%3A-achievements%21">The Project: Achievements!</h2>
+
+<p>A big percentage of users work in our customer care tool full time, day-in day-out. So it’s important for us to keep the user experience for them smooth and enjoyable. We want to make the experience more fun by developing an achievement based system in the web-application.</p>
+
+<p>Apart from making CX Social more fun for agents to work in, we aim to improve team work, increase retention and let users discover new features.</p>
+
+<p><center>
+<img src="/images/2017-06-30-internship-achievements/notification.png" alt="NMBS Twitter Profile" /><br />
+<small>An achievement notification popping up in the CX Social interface.</small>
+</center></p>
+
+<p>Some of the tasks we’re thinking of...</p>
+
+<ul>
+<li>Implementing user profiles, with a live feed of completed achievements throughout the account.</li>
+<li>Help out thinking about possible ways of implementing.</li>
+<li>Taking part in brainstorms.</li>
+<li>Preparing for weekly status meetings, communicating about the progress of the project.</li>
+<li>Having lots of fun, while trying to make this feature the best it can possibly be.</li>
+</ul>
+
+<p><center>
+<img src="/images/2017-06-30-internship-achievements/achievements.png" alt="NMBS Twitter Profile" /><br />
+<small>A series of achievements for using one of CX Social's features: Canned Responses.</small>
+</center></p>
+
+<h2 id="interested%3F">Interested?</h2>
+
+<p>We are looking for someone to join us in the Gent, Belgium office of Clarabridge, located at Grauwpoort 1, 9000 Gent.</p>
+
+<p>Does this seem like a fun challenge for you? Please reach out to <a href="&#x6d;&#97;&#105;l&#x74;&#x6f;&#58;&#106;&#x75;&#x72;&#114;&#105;a&#x61;&#110;&#46;p&#x65;&#x72;&#115;&#121;&#x6e;&#x40;&#99;&#108;a&#x72;&#x61;&#98;&#114;&#x69;&#x64;&#103;&#101;&#x2e;&#x63;&#111;&#109;">jurriaan.persyn@clarabridge.com</a> with your details, and the requirements for your internship, and we’ll be in touch!</p>
+
+<p><center>
+<img src="/images/2017-06-30-internship-achievements/profile-page.png" alt="NMBS Twitter Profile" /><br />
+<small>A user profile with overview of completed achievements, personal information and live feed with account activity. </small>
+</center></p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Vim As A PHP IDE - Refactoring]]></title>
             <link href="/blog/2017/06/15/vim-ide-refactoring"/>
@@ -834,106 +889,6 @@ index 128b630..8b13789 100644
 </code></pre>
 
 <p>Hooray! We did it again. Now pat yourself on the back.</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Vim As A PHP IDE - Quality Control]]></title>
-            <link href="/blog/2017/03/15/vim-ide-quality-control"/>
-            <updated>2017-03-15T09:00:00+00:00</updated>
-            <id>/blog/2017/03/15/vim-ide-quality-control</id>
-            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>So it seems that people find it really handy that their IDEs tell them when things are going wrong, and I can't really disagree with that. So let's see how we can get pretty much the same thing in Vim, for PHP.</p>
-
-<ul>
-<li>I need to be warned of syntax errors.</li>
-<li>I need to be warned of unused variables, methods, fields, etc.</li>
-<li>Every language has their own rules for indenting and tabs vs. spaces, and maybe even every project.</li>
-<li>What about coding standards like PSR-2?</li>
-</ul>
-
-<p>Basically I do two things here:</p>
-
-<ol>
-<li>I make sure that my editor is configured correctly for the language and the project, using a simple default configuration in my <code>.vimrc</code> which I overwrite on a project basis using <a href="http://editorconfig.org/">EditorConfig</a>.</li>
-<li>I use some static analysis tools for the other parts.</li>
-</ol>
-
-<h2 id="1.-basic-setup">1. Basic setup</h2>
-
-<h3 id="filetype-plugin">Filetype plugin</h3>
-
-<p>Depending on your taste, you might want to update your PHP filetype plugin in Vim, with a more modern version, for instance if you'd like <code>@param</code> highlighted differently in your PHPDoc blocks. You can find a more up-to-date plugin <a href="https://github.com/StanAngeloff/php.vim">here</a>.</p>
-
-<h3 id="editor-config">Editor Config</h3>
-
-<p>To properly configure my editor, I use the simple snippet in my <code>~/.vim/ftplugin/php.vim</code> that I also posted in the first episode of this blog series:</p>
-
-<pre><code class="vim">" Some basic PSR code style rules
-set tabstop=4           " Tab width
-set softtabstop=4       " Soft tab width
-set shiftwidth=4        " Shift width
-set expandtab           " Use spaces instead of tabs
-</code></pre>
-
-<p>I override this with project settings, using <a href="http://editorconfig.org/">EditorConfig</a>. It's as easy as installing the <a href="https://github.com/editorconfig/editorconfig-vim">EditorConfig plugin</a> for Vim.</p>
-
-<p>In my projects I then have a <code>.editorconfig</code> file that might look like this:</p>
-
-<pre><code class="editorconfig">; This file is for unifying the coding style for different editors and IDEs.
-; More information at http://editorconfig.org
-
-root = true
-
-[**.{php,js,scss,html}]
-charset = utf-8
-indent_size = 4
-indent_style = space
-end_of_line = lf
-insert_final_newline = true
-trim_trailing_whitespace = true
-</code></pre>
-
-<h2 id="2.-static-analysis">2. Static Analysis</h2>
-
-<p>On to more interesting stuff, for the rest of our list: syntax errors, coding guideline violations, unused variables, and the like. The cool part of this, is that many of these things are covered by great PHP tools:</p>
-
-<ul>
-<li>syntax errors: <code>php -l</code></li>
-<li>coding guideline violations: <a href="https://pear.php.net/package/PHP_CodeSniffer/">PHP Code Sniffer</a></li>
-<li>unused variables and other possible issues with code: <a href="https://phpmd.org/">PHP Mess Detector</a></li>
-</ul>
-
-<p>Even greater is that there's a great Vim plugin that combines all of these quality control tools into one great automated package: <a href="https://github.com/vim-syntastic/syntastic">Syntastic</a>, and it's fantastically easy to install. Use your Vim package manager, and put some lines into your <code>.vimrc</code> to configure it:</p>
-
-<pre><code class="vim">" Syntastic configuration
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-</code></pre>
-
-<p>Now to configure the PHP specific tools, that I mentioned above, I do it like this:</p>
-
-<pre><code class="vim">" Syntastic configuration for PHP
-let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
-let g:syntastic_php_phpcs_exec = './bin/phpcs'
-let g:syntastic_php_phpcs_args = '--standard=psr2'
-let g:syntastic_php_phpmd_exec = './bin/phpmd'
-let g:syntastic_php_phpmd_post_args = 'cleancode,codesize,controversial,design,unusedcode'
-</code></pre>
-
-<p>This works because the <code>phpcs</code> and <code>phpmd</code> binaries live in a <code>bin/</code> directory inside my project's directory (I installed them using composer). If you have global installs of these tools, you can just leave out these config lines, Syntastic knows where to find them. As we now have the <code>php -l</code> linter as a Syntastic checker, we can remove the <code>autocmd</code> from our <code>.vimrc</code>.</p>
-
-<p>Some screenshots for the visually minded people:</p>
-
-<p><img src="/images/2017-03-15-vim-ide-quality-control/syntax-error.png" alt="Syntax error detection with php -l" /></p>
-
-<p><img src="/images/2017-03-15-vim-ide-quality-control/psr-violation.png" alt="PSR-2 violation" /></p>
-
-<h2 id="wrapping-up">Wrapping up</h2>
-
-<p>Now I get live feedback about the quality of my code! Great! On to <a href="/blog/2017/04/18/vim-ide-git">the next episode</a>.</p>
 ]]></content>
         </entry>
     </feed>

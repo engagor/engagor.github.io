@@ -103,6 +103,142 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/02/15/vim-ide-exploring-code">Vim As A PHP IDE - Exploring Code</a></h1>
+        </header>
+        <div>
+            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>As it turns out, finding things in a huge project is one of the main reasons people use an IDE. The most frequently used functionality seems to be</p>
+
+<ul>
+<li>searching for a file by its name;</li>
+<li>searching within the current file;</li>
+<li>searching for something arbitrary in the current project;</li>
+<li>searching for methods or classes;</li>
+<li>"jumping" to implementations of interfaces, child classes, definitions of methods;</li>
+<li>finding usages of a method;</li>
+</ul>
+
+<h2 id="finding-files-by-their-names">Finding files by their names</h2>
+
+<p>Finding files is something I'm very bad at. I mostly remember only part of the name, or nothing at all. That's why I want to search for files in a "fuzzy" way, if at all. For fuzzy file search, a feature found in most text editors and IDEs these days, I use <a href="https://github.com/kien/ctrlp.vim">CtrlP</a>, which does that just fine. It also has some nice extra commands that let you fuzzily find files in your open buffers, tags (more on that later), and bookmarks.</p>
+
+<p>Some people like to use <a href="https://github.com/scrooloose/nerdtree">NerdTree</a> to have a nice directory listing to the left of the screen, like in Sublime Text or similar editors. You can use it, and I sometimes do for its <code>:NERDTreeFind</code> command, but for most of your needs, the default file browser in Vim is great. You can open it like you open any file, just open a directory instead e.g. <code>:e src/</code>.</p>
+
+<h2 id="searching-within-the-current-file">Searching within the current file</h2>
+
+<p>To find something in the current file, Vim provides a huge number of options. There's the default forward search command, <code>/</code>, which can be pimped a bit to behave in a more "natural" way. In <code>.vimrc</code>:</p>
+
+<pre><code class="vim">set incsearch           " search as characters are entered
+set hlsearch            " highlight matches
+</code></pre>
+
+<p>And you can search backwards in exactly the same way by using <code>?</code>. Jump to next and previous hits with <code>n</code> and <code>N</code>. And of course you can use regex.</p>
+
+<p>Then there are some more "special" ways of searching in the current file:</p>
+
+<ul>
+<li>Hop to the next occurence of the word under cursor <code>*</code></li>
+<li>Hop to the previous occurence of the word under cursor <code>#</code></li>
+<li>Hop to the next method <code>]]</code></li>
+<li>Hop to the previous method <code>[[</code></li>
+<li>Hop to the definition of a variable under cursor <code>gd</code> (goto definition)</li>
+</ul>
+
+<h2 id="searching-for-arbitrary-text-in-the-current-project">Searching for arbitrary text in the current project</h2>
+
+<p>I use <code>ag</code> as my main code search engine. It's a great command line tool to search codebases really fast. I use it on the command line, as well as in Vim, to replace <code>:vimgrep</code> with something faster. It's also the basis for some more interesting stuff, which I'll talk about later.</p>
+
+<p>You'll need to have the <code>ag</code> binary for your operating system installed, using e.g. <code>brew install ag</code>. Check if it works by searching your codebase for a class, e.g. <code>ag HttpKernelInterface</code>.</p>
+
+<p>Install the <code>Ack.vim</code> plugin, that you can find <a href="https://github.com/mileszs/ack.vim">here</a>. Then set the default search engine for the plugin to <code>ag</code> in your <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Ack -&gt; Ag
+if executable('ag')
+    let g:ackprg = 'ag --vimgrep'
+endif
+</code></pre>
+
+<p>Open Vim in your codebase's working directory and try it there, e.g. <code>:Ack HttpKernelInterface</code>. This should jump straight to the first match found.</p>
+
+<p>The problem with this is that you don't have a visual representation of what else was found. Luckily, and much like <code>:vimgrep</code>, <code>:Ack</code> fills the quickfix list with matches, so you can use <code>:cwindow</code> to show matches (and see also <code>:cnext</code>, <code>:cprev</code>, <code>:cclose</code>). If you want your quicklist to open automatically if anything was found you can add this to your <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Automatically open &amp; close quickfix window
+autocmd QuickFixCmdPost [^l]* nested cwindow
+</code></pre>
+
+<h2 id="searching-for-methods-or-classes">Searching for methods or classes</h2>
+
+<p>Now this is where it gets interesting, and where people somewhat underestimate Vim. Using an external application to generate an index of your project's "tags" (classes, interfaces, methods, variables, etc), which Vim can interpret, it provides jumping to all these things and back! This is great. How to set it up?</p>
+
+<p>You'll need to have the <code>ctags</code> binary for your operating system installed, using e.g. <code>brew install ctags</code>. Check if it works by issueing this command <code>ctags --version</code>. I created a config file for it in my <code>$HOME</code> directory, called <code>.ctags</code> with this in it:</p>
+
+<pre><code class="ctags">--recurse=yes
+--tag-relative=yes
+--exclude=.git
+--exclude=composer.phar
+--exclude=*.js
+--exclude=*.vim
+--langmap=php:.engine.inc.module.theme.install.php
+--PHP-kinds=+cfi-vj
+</code></pre>
+
+<p>The line with <code>--PHP-kinds</code> tells <code>ctags</code> to index classes, functions, interfaces, but not variables or javascript functions. You can tune this to your likings.</p>
+
+<p>If you now use <code>ctags</code> from the command line to generate the tags file for your project, using <code>ctags -R .</code>, a file that Vim can interpret, called <code>tags</code> will be created.</p>
+
+<ul>
+<li>You can now open Vim on a tag like so <code>vim -t HttpKernelInterface</code></li>
+<li>Or search for that tag from within Vim <code>:tag HttpKernelInterface</code></li>
+<li>Or jump to the tag under the cursor: <code>&lt;C-]&gt;</code> or <code>&lt;C-$&gt;</code> depending on keyboard layout</li>
+<li>if you jumped to some tags and you want to jump back, use <code>&lt;C-t&gt;</code></li>
+</ul>
+
+<p>Of course there are <a href="https://github.com/ludovicchabant/vim-gutentags">plugins</a> to manage your <code>tags</code> files for you.</p>
+
+<h2 id="finding-implementations-of-interfaces%2C-child-classes">Finding implementations of interfaces, child classes</h2>
+
+<p>So this is where the aforementioned <code>Ack</code> magic comes in handy, as it's not default Vim functionality, and I didn't find a plugin to do these things either. I basically just created some functions that find PHP implementations of an interface, and PHP subclassses of a class. I just put them in my <code>.vimrc</code>, but I'm planning on creating a very simple plugin for them.</p>
+
+<pre><code class="vim">" PHP Find Implementations
+function! PhpImplementations(word)
+    exe 'Ack "implements.*' . a:word . ' *($|{)"'
+endfunction
+
+" PHP Find Subclasses
+function! PhpSubclasses(word)
+    exe 'Ack "extends.*' . a:word . ' *($|{)"'
+endfunction
+
+noremap &lt;Leader&gt;fi :call PhpImplementations('&lt;cword&gt;')&lt;CR&gt;
+noremap &lt;Leader&gt;fe :call PhpSubclasses('&lt;cword&gt;')&lt;CR&gt;
+</code></pre>
+
+<p>As you can see, I added mappings to execute them for the word under cursor (<code>&lt;cword&gt;</code>). These key mappings should probably be done inside the PHP <code>augroup</code> we created in the previous post.</p>
+
+<h2 id="finding-usages-of-a-method">Finding usages of a method</h2>
+
+<p>Pretty much in the same spirit of the Vim functions I wrote to find implementations of an interface, I also wrote such a function to find usages of a method, which I also just added to my <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" PHP Find Usage
+function! PhpUsage(word)
+    exe 'Ack "::' . a:word . '\(|&gt;' . a:word . '\("'
+endfunction
+
+noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
+</code></pre>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to <a href="/blog/2017/03/15/vim-ide-quality-control">the next episode</a>!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/01/24/some-tips-for-a-better-git-history">Some tips for a better Git history</a></h1>
         </header>
         <div>
@@ -263,100 +399,8 @@ Using RabbitMQ as the intermediate we allow services written in a multitude of d
             <strong>Tags:</strong>
                         <a href="/blog/tags/Distributed%20Processing" class="tag">Distributed Processing</a>                        <a href="/blog/tags/RabbitMQ" class="tag">RabbitMQ</a>                        <a href="/blog/tags/Message%20Broker" class="tag">Message Broker</a>                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                        </p>
             </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/01/01/vim-ide-setting-up">Vim As A PHP IDE - Setting Up</a></h1>
-        </header>
-        <div>
-            <p>I always get a lot of critique and disbelief when I mention that I use Vim to do my daily work in our PHP codebase. Most people in PHP have become avid users of <a href="https://www.jetbrains.com/phpstorm/">PhpStorm</a>, a great PHP IDE made by JetBrains. I'm unsure about my own reasons to use Vim over PhpStorm but I guess these are some factors:</p>
-
-<ul>
-<li>I do not only write PHP</li>
-<li>I love the fact that using Vim is like speaking a language</li>
-<li>I live in my terminal</li>
-</ul>
-
-<p>I'm hereby starting a blog series about how I use Vim as my IDE of choice for PHP development. This is not a Vim tutorial, I'm assuming that you can look up the basics <a href="http://vimcasts.org/">anywhere else</a> and that you know about <code>:h :h</code>. However, I'll show you how I manage to do my work in Vim, how you can accomplish the same thing, and that I don't have a lot of missing features compared to users of other IDEs. This will be a blog series, and I'll list up episodes below as they come out. Let's start with setting up for a really basic PHP oriented workflow.</p>
-
-<h2 id="basic-%60.vimrc%60-setup">Basic <code>.vimrc</code> setup</h2>
-
-<p>First of all, never put things in your <code>.vimrc</code> that you don't understand. There's a huge amount of documentation in Vim's built-in help pages, which you can access like this: <code>:h &lt;keyword&gt;</code>. These are some simple things that I put in my <code>.vimrc</code> that I want at all times:</p>
-
-<pre><code class="vim">filetype plugin indent on " use the file type plugins
-syntax on                 " Syntax highlighting
-set number nu             " Line numbers
-set cursorline            " Color the cursorline
-set autoindent            " Auto indenting
-set smartindent           " Smart indenting
-</code></pre>
-
-<h2 id="basic-packages-i-use-all-the-time">Basic Packages I Use All The Time</h2>
-
-<h3 id="package-manager">Package Manager</h3>
-
-<p>To be able to easily install Vim plugins, I use <a href="https://github.com/tpope/vim-pathogen">Pathogen</a> or another Vim package manager, they make it so much easier to install the other packages.</p>
-
-<h3 id="multiple-cursors">Multiple Cursors</h3>
-
-<p>Even though it's really not Vim-like to use this, sometimes it comes in handy to have multiple cursors, even though we all know it can be done using find-and-replace or using Vim's macros. There are multiple packages for this, I use <a href="https://github.com/terryma/vim-multiple-cursors">this one</a>.</p>
-
-<h3 id="surroundings">Surroundings</h3>
-
-<p>Adding, removing and editing brackets around all Vim objects like "words", "paragraphs", "HTML-tags", etc has been made super easy with <a href="https://github.com/tpope/vim-surround">surround.vim</a>, which makes all these actions feel like they were in Vim all along.</p>
-
-<h3 id="sessions">Sessions</h3>
-
-<p>To manage my sessions, I usually don't use any plugins, since Vim has basic session management built in. You can save your current session using <code>:mksession! &lt;name&gt;</code>. Vim will save a file with the <code>&lt;name&gt;</code> you specified. If you then close vim, you can come back to the same session by starting vim like this: <code>vim -S &lt;name&gt;</code>.</p>
-
-<p>If you go with the aforementionned approach, your sessions won't be saved automatically. If you want to get more out of your sessions, you might want to try the <a href="https://github.com/tpope/vim-obsession">vim obsession</a> plugin.</p>
-
-<h3 id="snippets">Snippets</h3>
-
-<p>As a last general purpose plugin, I'll recommend some snippet managers. I myself don't use any of them, just because I started out with a very basic Vim setup and I didn't yet feel the need for one of them. But if you'd like one, check out <a href="https://github.com/sirver/UltiSnips">UltiSnips</a> or <a href="https://github.com/msanders/snipmate.vim">SnipMate</a>.</p>
-
-<h2 id="php-specific-things-for-your-%60.vimrc%60">PHP Specific things for your <code>.vimrc</code></h2>
-
-<p>Let's start looking at some PHP specific configurations. I created a specific <code>augroup</code> section in my <code>.vimrc</code>, to be able to define <code>autocmd</code>s that can be overwritten if I reload my <code>.vimrc</code>. I'll reference this <code>augroup</code> in the following episodes of this series, too. Let's use it to run the <code>php -l</code> linter after we save a PHP file. Here we go:</p>
-
-<pre><code class="vim">augroup PHP
-  autocmd! " Clear all autocmd's in this group before running them again
-
-  " Check for PHP syntax errors after saving a file
-  autocmd BufWritePost {*.php} echom system("php -l ".expand('%'))
-
-augroup END
-</code></pre>
-
-<p>Let's set some basic configuration for all PHP files that we'll open. Create a file called <code>~/.vim/ftplugin/php.vim</code> and put this in it:</p>
-
-<pre><code class="vim">" Some basic PSR code style rules
-set tabstop=4           " Tab width
-set softtabstop=4       " Soft tab width
-set shiftwidth=4        " Shift width
-set expandtab           " Use spaces instead of tabs
-</code></pre>
-
-<h2 id="what%27s-next%3F">What's next?</h2>
-
-<p>When I talk to people about their IDE of choice, which I don't do often, these are some topics which seem to be important:</p>
-
-<ul>
-<li><a href="/blog/2017/02/15/vim-ide-exploring-code">exploring the codebase</a></li>
-<li><a href="/blog/2017/03/15/vim-ide-quality-control">quality control</a></li>
-<li><a href="/blog/2017/04/18/vim-ide-git">git integration</a></li>
-<li><a href="/blog/2017/05/15/vim-ide-testing">testing integration</a></li>
-<li><a href="/blog/2017/06/15/vim-ide-refactoring">refactoring</a></li>
-</ul>
-
-<p>In the upcoming posts, I'll talk about those in more detail!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
-            </article>
     <nav class="pager">
-        <a href="/page/4" class="left">Newer Posts</a>            </nav>
+        <a href="/page/4" class="left">Newer Posts</a>        <a href="/page/6" class="right">Older Posts</a>    </nav>
                 </div>
             </div>
         </div>
