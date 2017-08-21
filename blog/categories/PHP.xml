@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/categories/PHP.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2017-08-21T09:03:09+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[5 simple rules for simpler code]]></title>
+            <link href="/blog/2017/08/21/simple-rules-for-simpler-code"/>
+            <updated>2017-08-21T11:00:00+00:00</updated>
+            <id>/blog/2017/08/21/simple-rules-for-simpler-code</id>
+            <content type="html"><![CDATA[<p>We as developers care about simple code. Simple code makes it easier to read and debug code which will allow you to build new features and fix bugs faster.</p>
+
+<p>In this blogpost I would like to explain a few simple rules to get simpler code. The code examples will be written in PHP and are therefore more suited to procedural programming languages.</p>
+
+<h2 id="1.-avoid-else">1. Avoid else</h2>
+
+<p>This is probably my favourite rule. Avoiding else can drastically improve the readability of your code. For example:</p>
+
+<pre><code class="php">if ($isAllowedToReadAutomationRecipes) {
+  $automationRecipes = $this-&gt;repository-&gt;getByAccountId($accountId);
+} else {
+  $automationRecipes = [];
+}
+</code></pre>
+
+<p>You can almost always simplify this to:</p>
+
+<pre><code class="php">$automationRecipes = [];
+if ($isAllowedToReadAutomationRecipes) {
+  $automationRecipes = $this-&gt;repository-&gt;getByAccountId($accountId);
+}
+</code></pre>
+
+<p>Look ma, no else!</p>
+
+<h2 id="2.-use-early-returns">2. Use early returns</h2>
+
+<p>Early returns are a nice way to simplify code. Using early returns goes hand in hand with avoiding else. For example:</p>
+
+<pre><code class="php">class PostController
+{
+    public function delete()
+    {
+        $post = $this-&gt;repository-&gt;getById($postId);
+        if ($post) {
+            if ($isConfirmed) {
+                $user-&gt;deletePost($post);
+                $success = $this-&gt;repository-&gt;persist($post);
+                if ($success) {
+                    return $this-&gt;success('The post was successfully deleted');
+                } else {
+                    return $this-&gt;error('Something went wrong.');
+                }
+            } else {
+                return $this-&gt;confirm('Are you sure you want to delete this post?');
+            }
+        } else {
+            return $this-&gt;error('The post was not found.');
+        }
+    }
+}
+</code></pre>
+
+<p>It's really hard to see the flow of the code, don't you think? Let's refactor the example to use early returns:</p>
+
+<pre><code class="php">class PostController
+{
+    public function delete()
+    {
+        $post = $this-&gt;repository-&gt;getById($postId);
+        if ($post === null) {
+            return $this-&gt;error('The post was not found.');
+        }
+        if ($isConfirmed === false) {
+            return $this-&gt;confirm('Are you sure you want to delete this post?');
+        }
+
+        $user-&gt;deletePost($post);
+        $success = $this-&gt;repository-&gt;persist($post);
+        if ($success === false) {
+            return $this-&gt;error('Something went wrong. Try again.');
+        }
+
+        return $this-&gt;success('The post was successfully deleted');
+    }
+}
+</code></pre>
+
+<p>What do you prefer? I surely prefer the latter. Early returns keep the level of indentation low and make the happy path of the code visible.</p>
+
+<h2 id="3.-use-meaningful-variables-names">3. Use meaningful variables names</h2>
+
+<p>If you abbreviate the names of variables you probably don't have a good IDE (autocompletion). It might make sense to use abbreviations while writing some quick code but it will eventually shoot you in the back when you need to fix a bug. You'll lose valuable time by deciphering the code.</p>
+
+<h2 id="4.-avoid-code-comments">4. Avoid code comments</h2>
+
+<p>Each time you're commenting code you're failing to express yourself. This rule goes hand in hand with meaningful variable names. Code comments can get outdated and nothing is as damaging as lies and misinformation. The code is the only source of truth. If you find yourself writing a code comment think of ways to make it clear in the code by extracting variables and functions with meaningful names. Sometimes a well placed comment can be helpful. They'll likely explain the why while the code explains the what/how.</p>
+
+<h2 id="5.-follow-a-consistent-coding-standard">5. Follow a consistent coding standard</h2>
+
+<p>Following a consistent coding standard makes sure all code is formatted in the same way. Which makes it easier to read code because you expect it to be formatted in a specific way. For PHP this is <a href="http://www.php-fig.org/psr/psr-2/">PSR-2</a>. I don't like every rule in <a href="http://www.php-fig.org/psr/psr-2/">PSR-2</a> but it doesn't matter as long as everyone writes the same code. Please don't invent your own coding standard. It's a good practice to <a href="http://cs.sensiolabs.org/">lint and fix</a> coding style automatically.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hope these simple rules will inspire you to leave the campground cleaner than you found it. Which rules do you think are important? Leave a comment (on disqus they are allowed)! If you want to know more, <a href="https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882">Clean Code</a> is good read.</p>
+
+<p>"Avoiding else" is a rule from <a href="https://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf">Object Calisthenics</a>. If you want to become a better developer, read it.</p>
+]]></content>
+        </entry>
+    </feed>
