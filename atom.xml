@@ -3,9 +3,16 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-08-21T09:03:09+00:00</updated>
+    <updated>2017-08-25T12:19:32+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[]]></title>
+            <link href="/_posts/.2017-09-01-using-decorators-for-debugging.md.swp"/>
+            <updated>2017-09-01T00:00:00+00:00</updated>
+            <id>/_posts/.2017-09-01-using-decorators-for-debugging.md.swp</id>
+            <content type="html"><![CDATA[]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[5 simple rules for simpler code]]></title>
             <link href="/blog/2017/08/21/simple-rules-for-simpler-code"/>
@@ -820,136 +827,6 @@ git bisect run {path to the script to run}
 <p>So next time a nasty bug report comes in on a Friday -you're about to leave for a great weekend with your mates- and there were a thousand commits pushed to production that day by your team, don't dispair! Fire up <code>git bisect</code> and find where you need to be in a few minutes time, revert the commit, and enjoy your weekend!</p>
 
 <p>Happy bughunting!</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Building a sliding window rate limiter with Redis]]></title>
-            <link href="/blog/2017/05/02/sliding-window-rate-limiter-redis"/>
-            <updated>2017-05-02T14:00:00+00:00</updated>
-            <id>/blog/2017/05/02/sliding-window-rate-limiter-redis</id>
-            <content type="html"><![CDATA[<p>For our Instagram crawler we needed a system to keep track of the amount of API calls we did to prevent us from hitting the rate limits. We could of course perform our HTTP requests without checking rate limits upfront, and wait until we get a <code>429 OAuthRateLimitException</code> from Instagram, but that would exhaust our tokens and block us from talking efficiently to their API.</p>
-
-<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/429.jpg" alt="Too many cats" /></p>
-
-<blockquote>
-  <p>All rate limits on the Instagram Platform are controlled separately for each access token, and on a sliding 1-hour window.</p>
-  
-  <p><a href="https://www.instagram.com/developer/limits">Instagram API rate Limits</a></p>
-</blockquote>
-
-<p>We're allowed to do 5000 API calls per access token each hour.</p>
-
-<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/slidingwindow.png" alt="Sliding window ratelimiting visualisation" /></p>
-
-<p>Every point on the axis represents an API call. The sliding window is an hour in this case. Every time we do an API call we add the timestamp (in microseconds) of the API call to a list. In pseudocode:</p>
-
-<pre><code class="js">timestamps.push(Date.now());
-</code></pre>
-
-<p>When we're about to do an API call in our crawler we need to check if we're allowed to do one:</p>
-
-<ol>
-<li>How many calls did we do in the last hour?</li>
-</ol>
-
-<pre><code class="js">callsInTheLastHour = timestamps.filter(timestamp =&gt; timestamp &gt; now - slidingWindow);
-count = callsInTheLastHour.length
-</code></pre>
-
-<ol start="2">
-<li>How many can we still do?</li>
-</ol>
-
-<p>After we calculated the amount of API calls we did in the last hour we can calculate the remaining API calls:</p>
-
-<pre><code class="js">remaining = maxCallsPerHour - count;
-</code></pre>
-
-<p>Let's say we did <code>4413</code> API calls in the last hour then we're allowed to do <code>587</code> more at this moment.</p>
-
-<p>Great, we got our algorithm. Now we need some kind of database to store a list of timestamps grouped per access token. Maybe we could use MySQL or PostgreSQL? Yes, we could but then we would need a system that periodically removes outdated timestamps since neither MySQL or PostgreSQL allow us to set a time to life on a row. What about <a href="http://memcached.org/">Memcached</a>? Yes, that's also an option. Sadly Memcached doesn't have the concept of an array or list (we could serialize an array using our favourite programming language). We can do better. What about <a href="https://redis.io/">Redis</a>? Yes, I like where this is going. Redis is a key/value store that supports lists, sets, sorted sets and more.</p>
-
-<p>We're ready to translate our algorithm to Redis commands. Assuming you already have Redis installed, start a server: <code>$ redis-server</code>. If you're on a mac, you can just <code>$ brew install redis</code> to get it.</p>
-
-<p>We're going to use a <a href="https://redis.io/commands/#sorted_set">sorted set</a> to hold our timestamps because it fits our needs.</p>
-
-<pre><code>&gt; MULTI
-&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
-&gt; ZRANGE $accessToken 0 -1
-&gt; ZADD $accessToken $now $now
-&gt; EXPIRE $accessToken $slidingWindow
-&gt; EXEC
-</code></pre>
-
-<p>Let's break it down:</p>
-
-<ul>
-<li><code>MULTI</code> to mark the start of a transaction block. Subsequent commands will be queued for atomic execution using <code>EXEC</code>.</li>
-<li><code>ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)</code> to remove API call timestamps that were done before the start of the window.</li>
-<li><code>ZRANGE $accessToken 0 -1</code> to get a list of all API call timestamps that happened during the window.</li>
-<li><code>ZADD $accessToken $now $now</code> to add a log for the current API call that we're about to do.</li>
-<li><code>EXPIRE $accessToken $slidingWindow</code> to reset the expiry date for this sorted set of timestamps (for the current OAuth Token).</li>
-<li><code>EXEC</code> will execute all previously queued commands and restore the connection state to normal.</li>
-</ul>
-
-<p>Instead of using the actual OAuth access tokens (and duplicating them to Redis), you might want to use an identifier or hash of the token instead as <code>$accessToken</code>. It serves as the key for our Redis sorted set. Also note that, in the same transaction as reading the list of timestamps, we <em>add</em> a new timestamp to the list (the <code>ZADD</code> command). We do this because this is being used in a distributed context (we have many workers performing API calls), and we don't want to write when we already exceeded our limits.</p>
-
-<p>In PHP this might look like this:</p>
-
-<pre><code class="php">// composer require predis/predis
-require_once __DIR__ . '/vendor/autoload.php';
-
-$maxCallsPerHour = 5000;
-$slidingWindow = 3600;
-
-$now = microtime(true);
-$accessToken = md5('access-token');
-
-$client = new Predis\Client();
-$client-&gt;multi();
-$client-&gt;zrangebyscore($accessToken, 0, $now - $slidingWindow);
-$client-&gt;zrange($accessToken, 0, -1);
-$client-&gt;zadd($accessToken, $now, $now);
-$client-&gt;expire($accessToken, $slidingWindow);
-$result = $client-&gt;exec();
-
-// The second command inside the transaction was ZRANGE,
-// which returns a list of timestamps within the last hour.
-$timestamps = $result[1];
-
-$remaining = max(0, $maxCallsPerHour - count($timestamps));
-
-if ($remaining &gt; 0) {
-    echo sprintf('%s: Allowed and %d remaining', $now, $remaining) . PHP_EOL;
-} else {
-    echo sprintf('%s: Not allowed', $now) . PHP_EOL;
-}
-</code></pre>
-
-<p>To conclude all of this, and to make this work within our codebase, we put this all nicely in a class, behind an interface <code>RateLimiter</code>:</p>
-
-<pre><code class="php">&lt;?php
-
-namespace CXSocial\RateLimiter;
-
-interface RateLimiter
-{
-    /**
-     * Request the remaining ratelimit points
-     *
-     * @param RateLimitedResource $rateLimitedResource
-     *
-     * @throws SorryRateLimitUnavailable
-     *
-     * @return int
-     */
-    public function remaining(RateLimitedResource $rateLimitedResource);
-}
-</code></pre>
-
-<p>This allows us to write code that doesn't couple to implemention too much. This has been working like a charm for us! We're huge fans.</p>
-
-<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/fan-limit.gif" alt="HUGE FAN" /></p>
 ]]></content>
         </entry>
     </feed>
