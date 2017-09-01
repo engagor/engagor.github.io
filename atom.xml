@@ -3,9 +3,61 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-08-25T12:23:07+00:00</updated>
+    <updated>2017-09-01T07:36:42+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Star Vars, an intergalactic story of tiny code smells]]></title>
+            <link href="/blog/2017/09/01/star-vars"/>
+            <updated>2017-09-01T10:00:00+00:00</updated>
+            <id>/blog/2017/09/01/star-vars</id>
+            <content type="html"><![CDATA[<p>In this post, we'll look at a type of variables that I call Star Vars, they're stars and shouldn't be touched. In any case. Whatsoever. Just don't start editing these in your code, or you'll eventually break stuff, with 100% guarantee.</p>
+
+<h2 id="star-vars-i%3A-the-timestamp-menace">Star Vars I: The Timestamp Menace</h2>
+
+<p>Timestamps are nice: asking the Unix Epoch timestamp results in a number that's the same, independent of in which timezone you are. The secret to this, is that a moment in history was labeled as Unix Epoch, and the timestamp is just the number of seconds that has passed from that moment up until now.</p>
+
+<p>And that's where things start to get nasty: with the understanding of what the number means (the number of seconds passed since January 1st 1970), people start editing the number to get dates in the past or future. What they're almost never take in consideration is the fact that time isn't linear, dates aren't the same around the globe, there are leap seconds, leap years, etc. There are too many exceptions from the rule, to just start adding <code>60 * 60 * 24</code> seconds to a timestamp's value, to get the next day. Don't do it. Your language most probably has a <code>DateTime</code> package to do just that, with less mistakes.</p>
+
+<h2 id="star-vars-ii%3A-attack-of-the-%60%24_post%60">Star Vars II: Attack Of The <code>$_POST</code></h2>
+
+<p>When a HTTP request is made to your app, there are most likely <code>POST</code> or <code>GET</code> parameters being passed along. In PHP, and likely other languages, these are made available trough (global) variables, no different than other variables. Thus, they can be changed, or used in computations or output. Be very careful with that!</p>
+
+<p>Changing a global variable means that it will be changed everywhere, so you risk breaking functionality in other places when you change e.g. the <code>$_POST</code> variable. Optimally, you could reduce the risk by using the immutable datastructures that your PSR-7 framework makes available to you.</p>
+
+<p>Also, using user input in calculations and/or output might result in errors or major hacks of your software. Be very cautious! People might be able to steal your app's data, run arbitrary code on your server, or impersonate users.</p>
+
+<h2 id="star-vars-iii%3A-events-of-the-sith">Star Vars III: Events Of The Sith</h2>
+
+<p>Since forever now, people use event dispatching and event sourcing as a way to let systems know about state changes, or even build their state from scratch based on events only. These <em>events</em> are nothing more than a "record" of something that has happened (in the past complete sense). Something that has happened will never change anymore, so the variables holding events should never be changed. Events are <em>immutable</em>. If you do change them, you change history, which I assume you aren't enabled to do.</p>
+
+<h2 id="star-vars-iv%3A-a-new-%60%24row%60">Star Vars IV: A New <code>$row</code></h2>
+
+<p>Here's the classic "naming things" exercise. We all know it's hard, but it's also very important. Take your time, give variables an appropriate name. I'm not touching your <code>$row</code> because I don't know what it is.</p>
+
+<h2 id="star-vars-v%3A-the-query-strikes-back">Star Vars V: The Query Strikes Back</h2>
+
+<p>Whether you're using an ORM or not, you might write the occasional database query from time to time. I find myself still writing my own queries for the sake of simplicity, inside the database specific implementation of e.g. a repository. Sometimes, for instance when you need "filter" functionality over a huge number of entities based on their various properties, it's tempting to write a query in a very generic way so that reusable parts of the query get concatenated into one final query. I find this a very dangerous practice, all the while not providing much benefit over writing the same query a few times with minor changes. Since the repository implementation we're doing this in is the only place in our codebase that knows about the database, we shouldn't care too much about duplication here.</p>
+
+<h2 id="star-vars-vi%3A-return-of-the-id">Star Vars VI: Return Of The ID</h2>
+
+<p>Making assumptions about the form of variables can be quite dangerous. Let's say that you expect a string to be in place, but what you get is an empty string. Is that valid? Now, think of identifiers of different objects. Sometimes, people use incremental numeric values (more often than not generated by the database) as identifiers for their objects, e.g. the <code>Person</code> with id <code>1337</code> is a cool guy. Already I can think of multiple cases of unexpected values for numerical ids, like <code>0</code>, <code>-1</code>, <code>false</code>, <code>null</code>, <code>''</code>, <code>foo</code>... If we then make the assumption that we'll save them as an integer in the database, we'll shoot ourselves in the foot by saving an object with id <code>'arrow'</code> or <code>'knee'</code>. Or what if the id is a numerical value that is too big to fit inside an integer?</p>
+
+<p>How about string representations, do you ask? For instance, post ids on the Facebook API have ids in the form of <code>{page id}_{post id}</code>. Now that you know this, given a post with an id, could you tell me the page id? Yes, but... what if Facebook decides to change their <em>naming scheme</em> for new posts (which they actually do from time to time)? From now on posts are called <code>pid_{random number}</code>. Now if we had logic in our software that depended on the implicit knowledge of the id was being made of two parts, it will break for those new posts.</p>
+
+<p>The moral of the story is: ids are black boxes, they could contain anything, and we shouldn't make assumptions about them, break them up into meaningful parts, or save them as anything else than strings inside the database.</p>
+
+<h2 id="star-vars-vii%3A-the-%60git-push---force%60-awakens">Star Vars VII: The <code>git push --force</code> Awakens</h2>
+
+<p>Even though <code>git</code> isn't a variable in the context of this blog post, I wanted to put this one in: <code>git push --force</code> is evil. The only reason why you would want to do this, is to change <em>public history</em>, which is something that can't be done. For more about that, scroll up to the Star Vars III section, or read <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">this blog post about git</a>.</p>
+
+<h2 id="star-vars-viii%3A-the-last-url">Star Vars VIII: The Last URL</h2>
+
+<p>The last, but not least, "star var" is the URL. Now, we all know and understand the most basic building blocks of URLs, like the scheme, tld, and query. But actually, the standard for URLs is quite complicated, and there could be many moving parts. People don't always include the scheme (e.g. the <code>https://</code> part), or the TLD is longer than 3 characters. Therefor, parsing an URL, or changing anything meaningful of it could be very error-prone. Have a look at <a href="https://daringfireball.net/2010/07/improved_regex_for_matching_urls">this regular expression to parse an URL</a>. As you can see, it's not as simple as you think. In fact, most languages have <a href="https://secure.php.net/manual/en/function.parse-url.php">built-in functionality</a> for this, as well as <a href="http://uri.thephpleague.com/">great packages</a>. As a side-note, the same goes for e-mail addresses, telephone numbers, and many other things.</p>
+
+<p>That's it for now! Keep in mind that a lot of these problems can be solved by either using established packages, built-in language features, or <a href="https://martinfowler.com/bliki/ValueObject.html">Value Objects</a> (or a mixture of several of those). May the force be with you!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[5 simple rules for simpler code]]></title>
             <link href="/blog/2017/08/21/simple-rules-for-simpler-code"/>
@@ -820,136 +872,6 @@ git bisect run {path to the script to run}
 <p>So next time a nasty bug report comes in on a Friday -you're about to leave for a great weekend with your mates- and there were a thousand commits pushed to production that day by your team, don't dispair! Fire up <code>git bisect</code> and find where you need to be in a few minutes time, revert the commit, and enjoy your weekend!</p>
 
 <p>Happy bughunting!</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Building a sliding window rate limiter with Redis]]></title>
-            <link href="/blog/2017/05/02/sliding-window-rate-limiter-redis"/>
-            <updated>2017-05-02T14:00:00+00:00</updated>
-            <id>/blog/2017/05/02/sliding-window-rate-limiter-redis</id>
-            <content type="html"><![CDATA[<p>For our Instagram crawler we needed a system to keep track of the amount of API calls we did to prevent us from hitting the rate limits. We could of course perform our HTTP requests without checking rate limits upfront, and wait until we get a <code>429 OAuthRateLimitException</code> from Instagram, but that would exhaust our tokens and block us from talking efficiently to their API.</p>
-
-<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/429.jpg" alt="Too many cats" /></p>
-
-<blockquote>
-  <p>All rate limits on the Instagram Platform are controlled separately for each access token, and on a sliding 1-hour window.</p>
-  
-  <p><a href="https://www.instagram.com/developer/limits">Instagram API rate Limits</a></p>
-</blockquote>
-
-<p>We're allowed to do 5000 API calls per access token each hour.</p>
-
-<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/slidingwindow.png" alt="Sliding window ratelimiting visualisation" /></p>
-
-<p>Every point on the axis represents an API call. The sliding window is an hour in this case. Every time we do an API call we add the timestamp (in microseconds) of the API call to a list. In pseudocode:</p>
-
-<pre><code class="js">timestamps.push(Date.now());
-</code></pre>
-
-<p>When we're about to do an API call in our crawler we need to check if we're allowed to do one:</p>
-
-<ol>
-<li>How many calls did we do in the last hour?</li>
-</ol>
-
-<pre><code class="js">callsInTheLastHour = timestamps.filter(timestamp =&gt; timestamp &gt; now - slidingWindow);
-count = callsInTheLastHour.length
-</code></pre>
-
-<ol start="2">
-<li>How many can we still do?</li>
-</ol>
-
-<p>After we calculated the amount of API calls we did in the last hour we can calculate the remaining API calls:</p>
-
-<pre><code class="js">remaining = maxCallsPerHour - count;
-</code></pre>
-
-<p>Let's say we did <code>4413</code> API calls in the last hour then we're allowed to do <code>587</code> more at this moment.</p>
-
-<p>Great, we got our algorithm. Now we need some kind of database to store a list of timestamps grouped per access token. Maybe we could use MySQL or PostgreSQL? Yes, we could but then we would need a system that periodically removes outdated timestamps since neither MySQL or PostgreSQL allow us to set a time to life on a row. What about <a href="http://memcached.org/">Memcached</a>? Yes, that's also an option. Sadly Memcached doesn't have the concept of an array or list (we could serialize an array using our favourite programming language). We can do better. What about <a href="https://redis.io/">Redis</a>? Yes, I like where this is going. Redis is a key/value store that supports lists, sets, sorted sets and more.</p>
-
-<p>We're ready to translate our algorithm to Redis commands. Assuming you already have Redis installed, start a server: <code>$ redis-server</code>. If you're on a mac, you can just <code>$ brew install redis</code> to get it.</p>
-
-<p>We're going to use a <a href="https://redis.io/commands/#sorted_set">sorted set</a> to hold our timestamps because it fits our needs.</p>
-
-<pre><code>&gt; MULTI
-&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
-&gt; ZRANGE $accessToken 0 -1
-&gt; ZADD $accessToken $now $now
-&gt; EXPIRE $accessToken $slidingWindow
-&gt; EXEC
-</code></pre>
-
-<p>Let's break it down:</p>
-
-<ul>
-<li><code>MULTI</code> to mark the start of a transaction block. Subsequent commands will be queued for atomic execution using <code>EXEC</code>.</li>
-<li><code>ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)</code> to remove API call timestamps that were done before the start of the window.</li>
-<li><code>ZRANGE $accessToken 0 -1</code> to get a list of all API call timestamps that happened during the window.</li>
-<li><code>ZADD $accessToken $now $now</code> to add a log for the current API call that we're about to do.</li>
-<li><code>EXPIRE $accessToken $slidingWindow</code> to reset the expiry date for this sorted set of timestamps (for the current OAuth Token).</li>
-<li><code>EXEC</code> will execute all previously queued commands and restore the connection state to normal.</li>
-</ul>
-
-<p>Instead of using the actual OAuth access tokens (and duplicating them to Redis), you might want to use an identifier or hash of the token instead as <code>$accessToken</code>. It serves as the key for our Redis sorted set. Also note that, in the same transaction as reading the list of timestamps, we <em>add</em> a new timestamp to the list (the <code>ZADD</code> command). We do this because this is being used in a distributed context (we have many workers performing API calls), and we don't want to write when we already exceeded our limits.</p>
-
-<p>In PHP this might look like this:</p>
-
-<pre><code class="php">// composer require predis/predis
-require_once __DIR__ . '/vendor/autoload.php';
-
-$maxCallsPerHour = 5000;
-$slidingWindow = 3600;
-
-$now = microtime(true);
-$accessToken = md5('access-token');
-
-$client = new Predis\Client();
-$client-&gt;multi();
-$client-&gt;zrangebyscore($accessToken, 0, $now - $slidingWindow);
-$client-&gt;zrange($accessToken, 0, -1);
-$client-&gt;zadd($accessToken, $now, $now);
-$client-&gt;expire($accessToken, $slidingWindow);
-$result = $client-&gt;exec();
-
-// The second command inside the transaction was ZRANGE,
-// which returns a list of timestamps within the last hour.
-$timestamps = $result[1];
-
-$remaining = max(0, $maxCallsPerHour - count($timestamps));
-
-if ($remaining &gt; 0) {
-    echo sprintf('%s: Allowed and %d remaining', $now, $remaining) . PHP_EOL;
-} else {
-    echo sprintf('%s: Not allowed', $now) . PHP_EOL;
-}
-</code></pre>
-
-<p>To conclude all of this, and to make this work within our codebase, we put this all nicely in a class, behind an interface <code>RateLimiter</code>:</p>
-
-<pre><code class="php">&lt;?php
-
-namespace CXSocial\RateLimiter;
-
-interface RateLimiter
-{
-    /**
-     * Request the remaining ratelimit points
-     *
-     * @param RateLimitedResource $rateLimitedResource
-     *
-     * @throws SorryRateLimitUnavailable
-     *
-     * @return int
-     */
-    public function remaining(RateLimitedResource $rateLimitedResource);
-}
-</code></pre>
-
-<p>This allows us to write code that doesn't couple to implemention too much. This has been working like a charm for us! We're huge fans.</p>
-
-<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/fan-limit.gif" alt="HUGE FAN" /></p>
 ]]></content>
         </entry>
     </feed>
