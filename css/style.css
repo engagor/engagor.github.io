@@ -261,7 +261,9 @@ h4 small {
 .tag {
     background: #00b4d0;
     color: #fff;
-    padding: 2px 8px;
+    padding: 0px 8px;
+    margin: 2px 0px;
+    display: inline-block;
     border-radius: 2px;
     font-weight: 500;
     cursor: pointer;
