@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/categories/Conferences.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2017-09-15T07:18:16+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[A trip to Nordic.js ✈️]]></title>
+            <link href="/blog/2017/09/15/nordicjs"/>
+            <updated>2017-09-15T10:00:00+00:00</updated>
+            <id>/blog/2017/09/15/nordicjs</id>
+            <content type="html"><![CDATA[<p><center>
+<img src="/images/2017-09-15-nordicjs/nordicjs.png" alt="Nordic.js cover" /><br />
+</center></p>
+
+<p>This year I was finally able to make it to <a href="http://nordicjs.com/">Nordic.js</a> whoot whoot.
+This conference deserves to be on your radar! Read on for some impressions from a fellow dev.</p>
+
+<h2 id="talks-%F0%9F%91%A9%E2%80%8D%F0%9F%8F%AB%F0%9F%91%A8%E2%80%8D%F0%9F%8F%AB">Talks 👩‍🏫👨‍🏫</h2>
+
+<p><em>At the time of writing no videos are online but they will be soonish. Check the <a href="https://www.youtube.com/user/nordicjs">Nordic.js youtube channel</a> for updates.</em></p>
+
+<p>This was the first single track conference I went to and I actually prefer this format compared to multi-track conferences where you always tend to shift to things familiar. "Just serve me the menu, I trust the chefs" is much more enjoyable, and oh boy these chefs deserve some Michelin stars because the menu was delicious.</p>
+
+<p>Talks were about Javascript, frontend development in general and the Javascript community. Below a small list of my favourites.</p>
+
+<h3 id="sociolinguistics-and-the-javascript-community%3A-a-love-story"><a href="http://nordicjs.com/speakers#harriet-lawrence">Sociolinguistics and the Javascript community: a love story</a></h3>
+
+<p>Let's start with "community". 
+The most surprising talk of the conference was about sociolinguistics.
+Not something that I would choose on a multi-track conference but super glad I saw this one. Small things can make a huge difference, and I love that.</p>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Don’t use words like “easy” or “simple” in instructions so users don’t feel ashamed if they fail. Brilliant talk <a href="https://twitter.com/harrietgl">@harrietgl</a>! 👏 <a href="https://twitter.com/hashtag/NordicJS?src=hash">#NordicJS</a> <a href="https://t.co/4aly56IzC0">pic.twitter.com/4aly56IzC0</a></p>&mdash; Jyri Tuulos (@jtuulos) <a href="https://twitter.com/jtuulos/status/905736469226151936">September 7, 2017</a></blockquote>
+
+<p><em>video coming soon</em></p>
+
+<h3 id="best-practices-for-reusable-ui-components"><a href="http://nordicjs.com/speakers#mars-jullian">Best Practices for reusable UI components</a></h3>
+
+<p>Next up was a talk about React, which we use day to day at CXSocial, so any talk about it is always insightful. You often think big companies use complex techniques but actually everything can be pretty straightforward. Great tips from Mars and if you are starting out with React you should definitely check them out.</p>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Reusable UI components should be: <br>1. self-sufficient<br>2. easy to integrate with<a href="https://twitter.com/marsjosephine">@marsjosephine</a> <a href="https://twitter.com/hashtag/nordicjs?src=hash">#nordicjs</a> <a href="https://twitter.com/hashtag/react?src=hash">#react</a> ⚛</p>&mdash; Nordic.js (@nordicjs) <a href="https://twitter.com/nordicjs/status/905780159248310272">September 7, 2017</a></blockquote>
+
+<p><em>video coming soon</em></p>
+
+<h3 id="p2p"><a href="http://nordicjs.com/speakers#feross-aboukhadijeh">P2P</a></h3>
+
+<p>How did I miss that P2P is a thing now in browsers? Luckily we got this great intro by Feross.</p>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">I love how <a href="https://twitter.com/feross">@feross</a> has just given a super approachable talk about peer to peer 💖 also with great slides and demos! <a href="https://twitter.com/hashtag/nordicjs?src=hash">#nordicjs</a></p>&mdash; fantastic ms. 🇸🇪 (@fox) <a href="https://twitter.com/fox/status/906132074058457092">September 8, 2017</a></blockquote>
+
+<p><em>video coming soon</em></p>
+
+<h2 id="conference-%F0%9F%8E%9F">Conference 🎟</h2>
+
+<p>Here are some things that things that made the conference stand out:</p>
+
+<h3 id="make-new-friends-%F0%9F%91%AD%F0%9F%91%AB">Make new friends 👭👫</h3>
+
+<p>Nordic.js does everything in it's power to make everyone feel welcome and loved. The diverse group of people that show up is a testimony to that. A community I feel proud to be a part of.</p>
+
+<p>The conference organizes "Dinner with new friends", a fun way to meet new people. They book a table at a restaurant in Stockholm for you and 5 other people from the conference. If you are a shy person like me you instantly have 5 new conference buddies.</p>
+
+<h3 id="festen-%F0%9F%8E%89">Festen 🎉</h3>
+
+<p>During the conference after party you can participate in a "Code In The Dark" competition. Create a HTML frontend site without testing your code. Does it scare you? Well me to but it's fun to watch brave souls attempt it, I suddenly understand sports now. Why wait until the conference you can actually organize it yourself just check <a href="http://codeinthedark.com/">codeinthedark.com</a>.</p>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">The Code in the Dark has started! What a cool experience! <a href="https://twitter.com/hashtag/NordicJS?src=hash">#NordicJS</a> <a href="https://twitter.com/hashtag/JavaScript?src=hash">#JavaScript</a> <a href="https://twitter.com/hashtag/FrontEnd?src=hash">#FrontEnd</a> <a href="https://t.co/0A2gnzT2bl">pic.twitter.com/0A2gnzT2bl</a></p>&mdash; Sweet Systems (@sweet_systems) <a href="https://twitter.com/sweet_systems/status/906196233945055232">September 8, 2017</a></blockquote>
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>And the party well what can I say that's the most epic funtastic awesomist conference after party ever.</p>
+
+<blockquote class="instagram-media" data-instgrm-version="7" style=" background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:658px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"><div style="padding:8px;"> <div style=" background:#F8F8F8; line-height:0; margin-top:40px; padding:38.47222222222222% 0; text-align:center; width:100%;"> <div style=" background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAMAAAApWqozAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAMUExURczMzPf399fX1+bm5mzY9AMAAADiSURBVDjLvZXbEsMgCES5/P8/t9FuRVCRmU73JWlzosgSIIZURCjo/ad+EQJJB4Hv8BFt+IDpQoCx1wjOSBFhh2XssxEIYn3ulI/6MNReE07UIWJEv8UEOWDS88LY97kqyTliJKKtuYBbruAyVh5wOHiXmpi5we58Ek028czwyuQdLKPG1Bkb4NnM+VeAnfHqn1k4+GPT6uGQcvu2h2OVuIf/gWUFyy8OWEpdyZSa3aVCqpVoVvzZZ2VTnn2wU8qzVjDDetO90GSy9mVLqtgYSy231MxrY6I2gGqjrTY0L8fxCxfCBbhWrsYYAAAAAElFTkSuQmCC); display:block; height:44px; margin:0 auto -44px; position:relative; top:-22px; width:44px;"></div></div><p style=" color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;"><a href="https://www.instagram.com/p/BYy1yxMhcP0/" style=" color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;" target="_blank">Een bericht gedeeld door Peter van der Meulen (@hendrikpetertje)</a> op <time style=" font-family:Arial,sans-serif; font-size:14px; line-height:17px;" datetime="2017-09-08T21:01:47+00:00">8 Sep 2017 om 2:01 PDT</time></p></div></blockquote>
+
+<p><script async defer src="//platform.instagram.com/en_US/embeds.js"></script>
+<small>Me and some new conference friends with an old familiar.</small></p>
+
+<h2 id="practical-%F0%9F%92%B5">Practical 💵</h2>
+
+<p>Some prices if you are trying to conference on a budget.</p>
+
+<ul>
+<li>Ticket: Regular Bird - 678 euro</li>
+<li>Flights: Brussels Zaventem &lt;=> Stockholm Bromma (Brussels airlines) - 95 euro</li>
+<li>Lodging: Skanstulls Vandrarhem 3 nights - 83 euro</li>
+</ul>
+
+<h2 id="tips-%E2%9C%94">Tips ✔</h2>
+
+<p>I walked everywhere during my trip (except from the airport to the city center). Stockholm is a beautiful city and very pedestrian-friendly.</p>
+
+<p>Want to buy tickets for next year? Sign up for the <a href="http://nordicjs.com">Nordic.js newsletter</a> and be fast very fast because it sells out quickly.</p>
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+]]></content>
+        </entry>
+    </feed>

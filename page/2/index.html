@@ -103,6 +103,203 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/08/01/tips-for-better-phpunit-tests">Some tips for better PHPUnit tests</a></h1>
+        </header>
+        <div>
+            <p>Writing good unit tests can be a pain. When you write your tests superfluously, you're testing more than the single unit, and they start failing with reasons not related to the <em>Subject Under Test (SUT)</em>. Or your tests become unreadable, and you can't figure out what they were supposed to be testing. Or they test only the one situation where everything goes according to plan, and not possible errors. Of course we want to mitigate all that! Let's see some simple tips to keep your test suite clean and working all the time.</p>
+
+<h2 id="test-the-unhappy-path-first">Test the unhappy path first</h2>
+
+<p>You could've sworn that your test was complete, but there seem to be exceptional cases that you missed. When writing unit tests -and doing TDD in particular- thinking about what might go wrong is very important: how should your unit fail, and when? What should happen when it fails? Should it throw exceptions? If you start with this, you won't forget to do it, and you'll write more robust code as a side-effect.</p>
+
+<h2 id="assertions-have-a-structure">Assertions have a structure</h2>
+
+<p>You might not know it, but most PHPUnit assertions have their parameters in the same order. They almost always take <code>$expected</code> and <code>$actual</code> as first and second parameters respectively. The third (and optional) parameter is often <code>$message</code>, which is a specific message you can write to make PHPUnit rapport back to you with when something fails. This is important, because in case of failure, PHPUnit will report you that your assertion's actual value doesn't match what you expected (so order is significant here). Let's see some examples:</p>
+
+<pre><code class="php">$this-&gt;assertEquals($expected, $actual, $message);
+$this-&gt;assertSame($expected, $actual, $message);
+$this-&gt;assertTrue($condition, $message);
+</code></pre>
+
+<p>As you can see, the <code>assertTrue()</code> call misses an <code>$expected</code> part, as it's already made clear in the name of the assertion.</p>
+
+<h2 id="use-the-correct-assertion">Use the correct assertion</h2>
+
+<p>To me, the daddy of all assertions is <code>assertEquals</code>, it's the basis of a unit test. You assert that your <em>Subject Under Test</em> gives a return value that's equal to what you expect it to return. If you're in doubt about which assertion is the right one to use, always pick <code>assertEquals</code>. The added benifit you get, is that PHPUnit displays really nice diffs between the <code>$expected</code> and <code>$actual</code> values if they don't match. That's much less useful when you use <code>assertTrue</code>, and it can only tell you that <code>False</code> is not equal to <code>True</code>.</p>
+
+<p><img src="/images/2017-08-01-tips-for-better-phpunit-tests/phpunit-diff.png" alt="Diff that PHPUnit shows when expected is different than the actual value" /></p>
+
+<h2 id="pick-names-that-make-sense">Pick names that make sense</h2>
+
+<p>PHPUnit expects you to start the name of your test methods with <code>test</code>, so that you get names like <code>testItThrowsAnExceptionWhenNetworkIsDown()</code>. Although that name is quite descriptive (and it should be!) it doesn't read very well. We can, however, make much more readable function names using underscores. What do you think of <code>test_it_throws_an_exception_when_network_is_down()</code>? It might not fit your coding standard (i'm looking at you, PSR-2), but isn't readability worth the occasional exception to some rules that are meant for readability? Also note, that be reading the name of the test method like this, it's totally clear to me what that test does, and I don't have to go in and read the code if I don't need to change it.</p>
+
+<h2 id="data-providers-for-clear-failure-messages">Data Providers for clear failure messages</h2>
+
+<p>If you need to test the same method with a huge number of inputs and make the same assertion over and over again, you might be tempted to write your assertion inside a <code>foreach</code> loop or something similar.</p>
+
+<pre><code class="php">public function test_prices_cast_to_strings()
+{
+    $validPrices = array(
+        '$100' =&gt; new Price(10000),
+        '$10' =&gt; new Price(1000),
+        '$1' =&gt; new Price(100),
+        '$0.10' =&gt; new Price(10),
+        '$0.01' =&gt; new Price(1),
+    );
+
+    foreach ($validPrices as $expectedString =&gt; $price) {
+        $this-&gt;assertEquals($expectedString, (string) $price);
+    }
+}
+</code></pre>
+
+<p>The problem with this, is that all your assertions happen on the same line, and PHPUnit will rapport a failure in one of those assertions as a failure on that line. Then you'll have to play detective and start looking through your test data to see where things break. This is where PHPUnit Data Providers come in handy, check it out:</p>
+
+<pre><code class="php">/**
+ * @dataProvider validPrices
+ */
+public function test_prices_cast_to_strings($expectedString, $price)
+{
+    $this-&gt;assertEquals($expectedString, (string) $price);
+}
+
+public function validPrices()
+{
+    return array(
+        array('$100', new Price(10000)),
+        array('$10', new Price(1000)),
+        array('$1', new Price(100)),
+        array('$0.10', new Price(10)),
+        array('$0.01', new Price(1)),
+    );
+}
+</code></pre>
+
+<p>Now PHPUnit will tell you which input data made the test fail. Don't you think this also cleans up the test so much more? No more <code>foreach</code> that didn't add any meaning to the test! What's also good to know, is that the <code>@dataProvider</code> annotation also works in conjunction with the <code>@expectedException</code> annotation, so you can also easily test if your method throws exceptions for invalid input.</p>
+
+<pre><code class="php">/**
+ * @dataProvider invalidPrices
+ * @expectedException InvalidArgumentException
+ */
+public function test_prices_throw_when_built_from_non_integer_value($nonInteger)
+{
+    $price = new Price($nonInteger);
+}
+
+public function invalidPrices()
+{
+    return array(
+        array('foo'),
+        array(null),
+        array(true),
+        array(false),
+        array(0.01),
+        array('1'),
+    );
+}
+</code></pre>
+
+<h2 id="programming-against-interfaces">Programming against interfaces</h2>
+
+<p>When you're writing tests for a SOLID codebase, be it in a test-first fashion, or writing tests after the facts, you'll be glad you used interfaces for your <em>Subject Under Test</em>'s dependencies. Not only do they give you the obvious benefits of "being able to swap out dependencies with a totally different implementation" or "not caring about specifics, if you just adhere to the contract", but also this means that you can test your class without its dependencies! Look at this example, where <code>Bank</code> has two dependencies:</p>
+
+<pre><code class="php">&lt;?php
+
+final class Bank
+{
+    private $clock;
+    private $log;
+
+    public function __construct(Clock $clock, TransactionLog $log)
+    {
+        $this-&gt;clock = $clock;
+        $this-&gt;log = $log;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>Of course, <code>Bank</code> cannot operate without its dependencies, so in our test we'll have to instantiate it correctly, but we'll use test doubles, so that we can test <code>Bank</code> with e.g. a <code>Clock</code> that we control:</p>
+
+<pre><code class="php">$clock = $this-&gt;getMock('Clock');
+$clock
+    -&gt;method('getTime')
+    -&gt;willReturn(new DateTime('2017-07-15 10:00:00'));
+
+$log = $this-&gt;getMock('TransactionLog');
+
+$bank = new Bank($clock, $log);
+</code></pre>
+
+<p>Now that we know that <code>Clock</code> will always return a given time, we can make assertions that e.g. a <code>Bank</code> transaction was done at the time the clock returned, instead of taking a guess and using stuff like <code>time()</code> or <code>new DateTime('now')</code>. On the <code>TransactionLog</code>, we could assert that a certain method got called (because we expect a transaction to be made), and thus validate if the <code>Bank</code> communicates correctly with it:</p>
+
+<pre><code class="php">$now = new DateTime('2017-07-15 10:00:00');
+$clock = $this-&gt;getMock('Clock');
+$clock
+    -&gt;method('getTime')
+    -&gt;willReturn($now);
+
+$transaction = new Transaction('Toon', 'Hans', 100, $now);
+$log = $this-&gt;getMock('TransactionLog');
+$log
+    -&gt;expects($this-&gt;once())
+    -&gt;method('log')
+    -&gt;with($this-&gt;equalTo($transaction));
+
+$bank = new Bank($clock, $log);
+$bank-&gt;payment('Toon', 'Hans', 100);
+</code></pre>
+
+<p>On the last line we do the call that your code would actually do to make a bank transaction (this is example code, beware). This makes the <code>Bank</code> log a <code>Transaction</code> in the <code>TransactionLog</code>. Since we control the clock, we can assert on the correct time in the <code>Transaction</code>. Also note that this is a complete test. The rather invisible assertion is the <code>$this-&gt;equalTo()</code> call. We're asserting that <code>Bank</code> communicates correctly to the <code>TransactionLog</code>.</p>
+
+<h2 id="interface-discovery">Interface Discovery</h2>
+
+<p>When we're doing TDD, the PHPUnit test doubles can help us "discovering" what an interface must be, in order to have a dependency that properly supports our <em>Subject Under Test</em>. This works because PHPUnit's mocks will mock any non-existing interfaces. Let's say we want the bank to trigger a WebHook whenever a transaction was made, containing the transaction details.</p>
+
+<pre><code class="php">$clock = $this-&gt;getMock('Clock');
+$log = $this-&gt;getMock('TransactionLog');
+
+// The WebHooks interface doesn't exist yet
+$webhooks = $this-&gt;getMock('WebHooks');
+$webhooks
+    -&gt;expects($this-&gt;once())
+    -&gt;method('trigger')
+    -&gt;with($this-&gt;equalTo('{"transaction": {"from": "Toon", "to": "Hans", "amount": 100}}'));
+
+$bank = new Bank($clock, $log, $webhooks);
+$bank-&gt;payment('Toon', 'Hans', 100);
+</code></pre>
+
+<p>Without having an interface, we can already define what we want to see happening. Our test then fails, because the <code>trigger()</code> method didn't get called, so we can start implementing. When we're done, we'll see that our <code>Bank</code> class tests green, and we have discovered a very simple interface for the <code>WebHooks</code> that we can now create (see a whole blog post about this in the Further Reading section).</p>
+
+<pre><code class="php">&lt;?php
+
+interface WebHooks
+{
+    public function trigger($jsonContents);
+}
+</code></pre>
+
+<h2 id="further-reading">Further Reading</h2>
+
+<p>These were only a few of the things that you can do to make your testsuite better than it is right now! There are lots of ways to improve even further. My strategy is to not only refactor the code (when tests are green of course), but also the tests, to make them as comprehensive and robust as possible. Think about how you can make them easy to understand for the next person looking to improve or change them. Here's some more reading material that can help you out:</p>
+
+<ul>
+<li><a href="https://phpunit.de/manual/current/en/">The PHPUnit manual</a></li>
+<li><a href="https://github.com/mockery/mockery">Much nicer test doubles with Mockery</a></li>
+<li><a href="http://verraes.net/2011/03/interface-discovery-with-phpunit-mock-objects/">Interface Discovery with PHPUnit's Mock Objects</a></li>
+</ul>
+
+<p>That's it, enjoy writing better tests!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Unit%20Tests" class="tag">Unit Tests</a>                        <a href="/blog/tags/PHPUnit" class="tag">PHPUnit</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/07/10/perceived-performance">How We Handle Perceived Performance</a></h1>
         </header>
         <div>
@@ -230,99 +427,6 @@ We are looking for a student with interest and knowledge of both front-end and b
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Internship" class="tag">Internship</a>                        <a href="/blog/tags/Achievements" class="tag">Achievements</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/06/15/vim-ide-refactoring">Vim As A PHP IDE - Refactoring</a></h1>
-        </header>
-        <div>
-            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>Yes, I kept the best for last. The feature I get the most questions about is the refactoring capabilities of IDEs. While Vim has some great features that most IDEs don't have, it certainly is true that this is one of the features that Vim is not really that good at. Or is it? In any case, it's good enough at it for me. Let's see what we got.</p>
-
-<h2 id="how-would-you-do-it-from-the-cli%3F">How would you do it from the cli?</h2>
-
-<p>Basically, if some functionality is not in Vim by default, there are two options:</p>
-
-<ul>
-<li>Use a command line tool that already does the job - this is how Vim fits into the UNIX philosophy.</li>
-<li>Use Vimscript to program the functionality.</li>
-</ul>
-
-<p>Luckily, there's this neat tool called <a href="https://github.com/QafooLabs/php-refactoring-browser/">PHP Refactoring Browser</a>, that already knows how to do some PHP refactorings from the command line.</p>
-
-<ul>
-<li>extract method;</li>
-<li>rename local variable;</li>
-<li>local variable to instance variable;</li>
-<li>optimise use statements;</li>
-</ul>
-
-<p>The tool is also open source, so we can add missing refactorings in the future. The tool is standing on the shoulders of giants like <a href="https://github.com/nikic/PHP-Parser">PHP Parser</a> and <a href="https://github.com/Andrewsville/PHP-Token-Reflection">PHP Token Reflection</a>. But doing this from the command line isn't that great...</p>
-
-<p><img src="/images/2017-06-15-vim-ide-refactoring/refactoring-browser.png" alt="Running the Refactoring Browser from the command line" /></p>
-
-<h2 id="vim-integration">Vim integration</h2>
-
-<p>Of course, some people already thought this was useful for Vim people, and created <a href="https://github.com/vim-php/vim-php-refactoring">a plugin</a> to wrap the command line tool. I'm assuming you installed the command line tool in <code>/usr/local/bin/refactor.phar</code>. Install the plugin using your favorite Vim package manager, and put this line in your <code>.vimrc</code> to let the plugin know where to look for the executable:</p>
-
-<pre><code class="vim">" PHP refactoring browser
-let g:php_refactor_command='/usr/local/bin/refactor.phar'
-</code></pre>
-
-<p><img src="/images/2017-06-15-vim-ide-refactoring/refactoring-in-vim.png" alt="Running the Refactoring Browser from within Vim" /></p>
-
-<p>You can now do these basic refactorings using their hotkey <code>&lt;Leader&gt;r</code> and selecting your desired refactoring from the list. That's nice, but there are some refactorings missing that we'd like, e.g. "Extract Interface".</p>
-
-<h2 id="creating-refactorings-with-vimscript">Creating refactorings with Vimscript</h2>
-
-<p>While the best solution would definitely be to contribute to the PHP Refactoring Browser, we want to have this functionality right now. Let's create the "Extract Interface" refactoring in Vimscript. I'd like to select some class methods using linewise <code>VISUAL</code> mode, issue a command on it, fill in the name of the Interface that I'd like the methods be extracted to, and have the current class implement that method. Let's see what we got:</p>
-
-<pre><code class="vim">command! -range PhpExtractInterfaceFromRange &lt;line1&gt;,&lt;line2&gt;call PhpInterfaceFromRange()
-
-function! PhpInterfaceFromRange() range
-  let interface = input('Enter extracted interface name: ')
-  call PhpExtractInterface(a:firstline, a:lastline, interface)
-endfunction
-
-function! PhpExtractInterface(start, end, interface)
-  normal! qkq
-  execute ''.a:start.','.a:end.'g/public.*function.*(\_.\{-})/normal ^f(V%"Ky'
-  let @k = substitute(@k, ' \?{', '', 'g')
-  let @k = substitute(@k, ')', ');', 'g')
-  ?class
-  execute "normal! A implements ".a:interface
-  execute "normal! Ointerface ".a:interface
-  execute "normal! o{\&lt;CR&gt;}\&lt;CR&gt;"
-  normal! k"kP
-  normal! dd
-endfunction
-</code></pre>
-
-<ol>
-<li>We create a command, called <code>PhpExtractInterfaceFromRange</code> which can be called with a Vim range (like <code>10,50</code>, or from a <code>VISUAL</code> select). If the command is issued, it calls a Vimscript function with the name <code>PhpInterfaceFromRange()</code></li>
-<li>The <code>PhpInterfaceFromRange()</code> function asks the user how they want to call their new interface, and passes the range and the name of that interface to <code>PhpExtractInterface()</code></li>
-<li>Here's where the real magic happens. We clear register <code>k</code>, and search for all public method definitions in the specified range. We then append every definition to the <code>k</code> register. We then remove curly braces <code>{}</code> and put the missing <code>;</code> after every method definition. We search for the start of the current class, and make it implement the interface. We then create the interface with the contents of the register <code>k</code>.</li>
-</ol>
-
-<p><img src="/images/2017-06-15-vim-ide-refactoring/extract-interface-1.png" alt="Extracting an interface from a class with one method selected in Visual Mode" /></p>
-
-<p><img src="/images/2017-06-15-vim-ide-refactoring/extract-interface-2.png" alt="Interface was extracted successfully" /></p>
-
-<p><strong>Wow</strong></p>
-
-<p>Since this is now a command, it could easily be assigned a <code>&lt;Leader&gt;</code> hotkey for visual mode selects, for instance. And you could easily do the same thing for e.g. "Extract Class".</p>
-
-<p>Now, I created this in half an hour, and it's perfectly usable in most use cases, but it's not perfect. As this is the only refactoring I really missed from the Refactoring Browser, I'll just use this until a real refactoring gets integrated in the real plugin. There are plugins with some more Vimscript implementations of refactorings, like <a href="https://github.com/adoy/vim-php-refactoring-toolbox">this one</a>. Keep in mind that they will be susceptible to mistakes, as they don't <em>really</em> understand your PHP code like the Refactoring Browser does.</p>
-
-<h2 id="wrapping-up">Wrapping up</h2>
-
-<p>So, that's it for this episode, and for now this will also be the end of this blog series for now. I hope you liked it! Happy Vimming!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/." class="left">Newer Posts</a>        <a href="/page/3" class="right">Older Posts</a>    </nav>
