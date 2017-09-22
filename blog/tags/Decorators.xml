@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/tags/Decorators.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2017-09-22T07:15:20+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Using decorators for debugging]]></title>
+            <link href="/blog/2017/09/22/using-decorators-for-debugging"/>
+            <updated>2017-09-22T10:00:00+00:00</updated>
+            <id>/blog/2017/09/22/using-decorators-for-debugging</id>
+            <content type="html"><![CDATA[<p>When you're writing SOLID code, you probably hide some implementation details behind interfaces in many parts of your codebase. In this post, we'll talk about an HTTP client, which is hidden behind an interface. The exact implementation we use doesn't matter. It could be a simple cURL call, or we could be using a more advance package like <a href="https://github.com/guzzle/guzzle/">Guzzle</a> or <a href="https://github.com/kriswallsmith/Buzz">Buzz</a>. In any case, our application knows only about the <code>HttpClient</code> interface that it defined, like this.</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+interface HttpClient
+{
+    /**
+     * @param Request $request An HTTP Request
+     *
+     * @throws ClientException if the request failed
+     *
+     * @return Response a response instance
+     */
+    public function execute(Request $request): Response;
+}
+</code></pre>
+
+<p>Our code will ask the <code>HttpClient</code> implementation to <code>execute()</code> a <code>Request</code> and expects a <code>Response</code> if the call succeeded, or a <code>ClientException</code> if something unexpected happens.</p>
+
+<p>The cool thing about this, is that our whole codebase needs to only know about this one interface, and not about the specific package that we're going to use. Plus, we can use another (fake) implementation of the <code>HttpClient</code> interface during testing.</p>
+
+<h2 id="decorators">Decorators</h2>
+
+<p>Now let's say that we want our application to make all HTTP calls with a certain User-Agent header. We don't want to go into our code and change every occurrence of <code>new Request</code> to also include that specific header. This is where decorators come in. We can "wrap" the <code>HttpClient</code> instance in a shell that acts as if it's the original <code>HttpClient</code>, but just takes the incoming <code>Request</code> and adds that header to it, and then passes on the call to the wrapped <code>HttpClient</code>. Like this:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+final class ClientWithUserAgent implements HttpClient
+{
+    private $wrappedClient;
+    private $userAgentString;
+
+    public function __construct(HttpClient $wrappedClient, $userAgentString = 'Coffee Bot 1.0')
+    {
+        $this-&gt;wrappedClient = $wrappedClient;
+        $this-&gt;userAgentString = (string) $userAgentString;
+    }
+
+    public function execute(Request $request): Response
+    {
+        $request = $request-&gt;withHeader('User-Agent', $this-&gt;userAgentString);
+
+        return $this-&gt;wrappedClient-&gt;execute($request);
+    }
+}
+</code></pre>
+
+<p>Creating an instance looks something like this:</p>
+
+<pre><code>&lt;?php
+
+$httpClient = new ClientWithUserAgent(
+    new ClientCurl(),
+    'ROBOCOP'
+);
+</code></pre>
+
+<p>As this Decorator also implements the same <code>HttpClient</code> interface, the application doesn't even know this is happening, because from the outside it looks and behaves exactly the same. This change essentially now is a change in the configuration file of our Dependency Injection Container, no other files needed to be changed to make this happen.</p>
+
+<h2 id="using-decorators-for-investigation">Using decorators for investigation</h2>
+
+<p>Now, if we want to investigate the requests and responses that we get from a service while the application is running, e.g. when an unidentified bug is happening, we could do it with a decorator. The rest of the application won't know about it and should just keep on working as usual, while we get logs of the data that we want:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+final class LoggingClient implements HttpClient
+{
+    private $wrappedClient;
+    private $logger;
+
+    public function __construct(HttpClient $wrappedClient, LoggerInterface $logger)
+    {
+        $this-&gt;wrappedClient = $wrappedClient;
+        $this-&gt;logger = $logger;
+    }
+
+    public function execute(Request $request): Response
+    {
+        $this-&gt;logger-&gt;debug('request', $request);
+
+        $response = $this-&gt;wrappedClient-&gt;execute($request);
+
+        $this-&gt;logger-&gt;debug('response', $response);
+
+        return $response;
+    }
+}
+</code></pre>
+
+<p>The request and response are logged in our logs now, and they look good to us, but we still haven't found what we're looking for and we want to see if the requests our app is making work from the command line using <code>curl</code>. What if we made our application also log the complete curl commands? Then we could just copy paste them in our terminal to test them locally.</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+final class CurlCommandLoggingClient implements HttpClient
+{
+    private $wrappedClient;
+    private $logger;
+
+    public function __construct(HttpClient $wrappedClient, LoggerInterface $logger)
+    {
+        $this-&gt;wrappedClient = $wrappedClient;
+        $this-&gt;logger = $logger;
+    }
+
+    public function execute(Request $request): Response
+    {
+        $method = $request-&gt;getMethod();
+        $url = $request-&gt;getUrl();
+        $params = $request-&gt;getParams();
+        $headers = $request-&gt;getHeaders();
+
+        $curlString = 'curl';
+        $curlString .= ' --' . strtolower($method);
+
+        foreach ($params as $key =&gt; $value) {
+            $curlString .= ' --data "' . $key . '=' . $value . '"';
+        }
+
+        foreach ($headers as $key =&gt; $value) {
+            $curlString .= ' --header "' . $key . '=' . $value . '"';
+        }
+
+        $curlString .= ' "' . $url . '"';
+
+        $this-&gt;logger-&gt;debug('curl command', $curlString);
+
+        return $this-&gt;client-&gt;execute($request);
+    }
+}
+</code></pre>
+
+<p>Of course, this is an oversimplified way of building the <code>curl</code> command, but this will help you debug your HTTP calls by copy/pasting them to your terminal! Easy as that, and still no changes to the existing code. It takes one line to change it, and one line to delete and bring it back to production values.</p>
+
+<h2 id="concerns">Concerns</h2>
+
+<ul>
+<li>Liskov Substition Principle: It's very important that our decorators still adhere to the original contract of the wrapped instance (in this case the <code>HttpClient</code> interface). If the decorator would produce another return value, or take different method parameters, it wouldn't work.</li>
+<li>Applying a decorator that logs a lot of data in production might have an impact on your host. This is just an example of using your existing interfaces to create some plug &amp; play debugging solutions. If you do something like this in production, use the same caution as with other changes in production.</li>
+</ul>
+
+<p>That's it! Have fun.</p>
+]]></content>
+        </entry>
+    </feed>
