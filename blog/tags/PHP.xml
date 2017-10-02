@@ -3,9 +3,76 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-09-27T08:55:33+00:00</updated>
+    <updated>2017-10-02T07:44:51+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Vim As A PHP IDE - Debugging]]></title>
+            <link href="/blog/2017/10/02/vim-ide-debugging"/>
+            <updated>2017-10-02T10:00:00+00:00</updated>
+            <id>/blog/2017/10/02/vim-ide-debugging</id>
+            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>A few weeks ago, I ended the "Vim As A PHP IDE" series with the <a href="/blog/2017/06/15/vim-ide-refactoring">refactoring</a> post. However, there's a huge thing missing from this series, and that's debugging. A lot of people debug their code using <code>var_dump</code> and <code>echo</code>, or worse, with self-made methods to markup the things they want to dump. Not only is this very old-school, there are also problems with this method. For instance, the dumped code affects the behaviour or the output of the running script. This is where the step debugger comes in.</p>
+
+<p>A step debugger lets you step trough your code while it's running, so that you can inspect variables on the fly. This eliminates the need for dumping lines to the standard output, while giving you more insight in what's happening. e.g. you can see the whole stack trace and step through that as well...</p>
+
+<p><a href="/images/2017-10-02-vim-ide-debugging/1.png"><img src="/images/2017-10-02-vim-ide-debugging/1.png" alt="screenshot of Vdebug in action" /></a></p>
+
+<h2 id="how-does-this-work%3F">How does this work?</h2>
+
+<p>Basically, the debugger, in the case of PHP <a href="https://xdebug.org/">xdebug</a>, hooks into the running code and exposes an API that you can use to set breakpoints, make the compiler run, etc... To install xdebug, follow the instructions on <a href="https://xdebug.org/docs/install">their documentation page</a>. Now you'll also have to add some lines to your <code>php.ini</code> configuration file. In my case it looks like this:</p>
+
+<pre><code class="ini">[xdebug]
+zend_extension="/path/to/xdebug.so"
+xdebug.remote_enable=1
+</code></pre>
+
+<p>The important part is the <code>remote_enable=1</code>, which allows us to hook into the step debugger.</p>
+
+<p>Then you, as a user, sets a breakpoint somewhere and inspects the state of the program at that point, using a "client" that knows how to speak the language of the debugger's API and integrates with your IDE. In our case that client is going to be the Vim plugin <a href="https://github.com/joonty/vdebug/">Vdebug</a>. You can install the plugin using your favorite plugin installation method.</p>
+
+<h2 id="debugging-our-first-script">Debugging our first script</h2>
+
+<p>Let's create a script <code>test.php</code> that we want to debug:</p>
+
+<pre><code class="php">&lt;?php
+
+$foo = 'bar';
+$foo = 'baz';
+</code></pre>
+
+<p>We want to see what's inside the <code>$foo</code> variable during the time this script runs. In Vim, press <code>F5</code> to activate Vdebug. Now, run the script with debugging enabled:</p>
+
+<pre><code class="sh">XDEBUG_CONFIG="idekey=xdebug" php test.php
+</code></pre>
+
+<p>You'll notice that the script seems to hang. In Vim, however, you'll see something like this happening:</p>
+
+<p><img src="/images/2017-10-02-vim-ide-debugging/2.png" alt="Vdebug first startup screen" /></p>
+
+<p>That's right! A new tab opened in Vim, containing the Vdebug window with the first breakpoint active. You can instantly see the local variables on the right, as well as the stack trace. If we now move our cursor to line <code>4</code> and press <code>F9</code>, to make the debugger run to that line and inspect the state right before it, we'll see that the <code>$foo</code> variable's value was changed to <code>'bar'</code>. Look ma, no <code>var_dump</code>!</p>
+
+<p><img src="/images/2017-10-02-vim-ide-debugging/3.png" alt="Inspecting the $foo variable in Vdebug" /></p>
+
+<p>You can also see the superglobals by hitting that tab in the variables screen:</p>
+
+<p><img src="/images/2017-10-02-vim-ide-debugging/4.png" alt="Vdebug shows PHPs superglobals at this point in time" /></p>
+
+<p>Great! Now you know the basics. Take a look at the other things you can do while debugging (stepping out, stepping over, etc) with Vdebug on <a href="https://github.com/joonty/vdebug/#quick-guide">their documentation's Quick Guide section</a>. To quickly stop debugging and return to where you were before, press <code>F6</code> twice.</p>
+
+<p>Tip: if you don't want to set the environment variable every time, you can make XDebug try and run a remote debugger session all the time, and hook into it when you want to by enabling your client. Put this extra line in your <code>php.ini</code> configuration file:</p>
+
+<pre><code class="ini">xdebug.remote_autostart=1
+</code></pre>
+
+<h2 id="debugging-code-that-is-run-by-a-webserver">Debugging code that is run by a webserver</h2>
+
+<p>Running the debugger for web requests is also possible. If the webserver is running on your local machine, you don't have to change much (assuming XDebug is installed and configured as above): just append a parameter to your URL, like this <code>XDEBUG_SESSION_START=xdebug</code>. For instance, <code>https://foo.local/test.php</code> would become <code>https://foo.local/test.php?XDEBUG_SESSION_START=xdebug</code>. The debugger will now try to connect to your client!</p>
+
+<p>So hereby we conclude this blog series about Vim as an IDE once more, and we hope that you liked it! Happy Debugging!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Using decorators for debugging]]></title>
             <link href="/blog/2017/09/22/using-decorators-for-debugging"/>
@@ -988,6 +1055,7 @@ set expandtab           " Use spaces instead of tabs
 <li><a href="/blog/2017/04/18/vim-ide-git">git integration</a></li>
 <li><a href="/blog/2017/05/15/vim-ide-testing">testing integration</a></li>
 <li><a href="/blog/2017/06/15/vim-ide-refactoring">refactoring</a></li>
+<li><a href="/blog/2017/10/02/vim-ide-debugging">debugging</a></li>
 </ul>
 
 <p>In the upcoming posts, I'll talk about those in more detail!</p>
