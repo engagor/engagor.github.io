@@ -103,6 +103,182 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/04/03/how-to-edit-commit-description">How to edit a commit message</a></h1>
+        </header>
+        <div>
+            <p>We use GitHub for hosting the code, and issue tracker behind CX Social. As you may already know, you can close issues automatically by adding <code>Closes #issue</code> to a commit message and merging it in the master branch. This is great because I always forget to close the fixed issue (it's also great for cross-linking between issues and commits).</p>
+
+<p>But what if you forgot to add <code>Closes #issue</code> to your commit? Let me teach you a trick to edit a commit message.</p>
+
+<p>Let's make a new directory to test it.</p>
+
+<pre><code class="sh">$ mkdir demo-git-edit
+$ cd demo-git-edit
+$ git init
+Initialized empty Git repository in /Users/hansott/Code/demo-git-edit/.git/
+</code></pre>
+
+<p>Okay great. We've got our repository ready. Let's add a file.</p>
+
+<pre><code class="sh">$ touch app.js
+</code></pre>
+
+<p>Then add the following contents:</p>
+
+<pre><code class="js">throw new Error('This is a bug!');
+</code></pre>
+
+<pre><code class="sh">$ git add app.js
+$ git commit -m "Add bug"
+[master (root-commit) 308c96d] Add bug
+ 1 file changed, 1 insertion(+)
+ create mode 100644 app.js
+</code></pre>
+
+<p>Let's fix the bug by removing it.</p>
+
+<pre><code class="sh">$ echo &gt; app.js
+$ git diff
+diff --git a/app.js b/app.js
+index 128b630..8b13789 100644
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-throw new Error('This is a bug!');
++
+$ git add app.js
+$ git commit -m "Fixed bug"
+$ git log
+* 83ac3a3 Fixed bug
+* 308c96d Add bug
+</code></pre>
+
+<p>There you go. We forgot <code>Closes #issue</code>. What can we do about it? It's important that you don't push (otherwise you'll have to use <code>--force</code> and you should <strong>never</strong> do that).</p>
+
+<p>If you want to edit your last commit you can use:</p>
+
+<pre><code class="sh">$ git commit --amend -m "Fixed bug" -m "Closes #issue"
+[master f27a1ca] Fixed bug
+ Date: Wed Feb 1 12:31:29 2017 +0100
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre>
+
+<p>You should consider committing with <code>$ git commit --amend</code>. It opens a proper text editor (like <a href="http://vim.sourceforge.net/">vim</a>) to write a comprehensive message (instead of using <code>-m "message"</code>). Did you notice I used <code>-m</code> twice? You can read about it in <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">Some tips for a better Git history</a>.</p>
+
+<pre><code class="sh">$ git show f27a1ca
+ommit f27a1caac3ee33ac3b0ef81040cd2c2f877f13f4
+Author: Hans Ott &lt;hans.ott@clarabridge.be&gt;
+Date:   Wed Feb 1 12:31:29 2017 +0100
+
+    Fixed bug
+
+    Closes #issue
+
+diff --git a/app.js b/app.js
+index 128b630..8b13789 100644
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-throw new Error('This is a bug!');
++
+</code></pre>
+
+<p>Hooray! We did it. What if we added other commits before we realised we forgot? <a href="https://git-scm.com/book/tr/v2/Customizing-Git-Git-Configuration">I'll assume you got a decent text editor configured for git</a>.</p>
+
+<pre><code class="sh">$ git log
+* 889da98 Add leftpad
+* b1b364c Add library
+* 05e664c Fixed bug
+* 308c96d Add bug
+</code></pre>
+
+<p>We added 2 commits after our bug fix commit. Since <code>$ git commit --amend</code> can only change the last commit, we can't use it. Luckily, we know the secret behind the curtain: it's doing a git rebase of the last commit. Let's use git rebase for great good! Again, be careful, this won't work if you already pushed your work (you can inspect with <code>$ git log --decorate</code>).</p>
+
+<pre><code class="sh">$ git rebase -i 308c96d  # use the commit JUST before the bug fix commit
+</code></pre>
+
+<pre><code>.g/r/git-rebase-todo
+pick 05e664c Fixed bug
+pick b1b364c Add library
+pick 889da98 Add leftpad
+
+# Rebase 308c96d..889da98 onto 308c96d (3 commands)
+#
+# Commands:
+# p, pick = use commit
+# r, reword = use commit, but edit the commit message
+# e, edit = use commit, but stop for amending
+# s, squash = use commit, but meld into previous commit
+# f, fixup = like "squash", but discard this commit's log message
+# x, exec = run command (the rest of the line) using shell
+# d, drop = remove commit
+#
+# These lines can be re-ordered; they are executed from top to  bottom.
+#
+# If you remove a line here THAT COMMIT WILL BE LOST.
+#
+# However, if you remove everything, the rebase will be aborted.
+#
+# Note that empty commits are commented out
+</code></pre>
+
+<p>You'll have to replace <code>pick</code> before <code>05e664c Fixed bug</code> with <code>reword</code> and save it. Git will show the commit(s) you selected so you can edit it and save it.</p>
+
+<pre><code>.g/COMMIT_EDITMSG
+Fixed bug
+
+Closes #issue
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date: Wed Feb 1 12:31:29 2017 +0100
+#
+# interactive rebase in progress; onto 308c96d
+# Last command done (1 command done):
+#    reword 05e664c Fixed bug
+# Next commands to do (2 remaining commands):
+#    pick b1b364c Add library
+#    pick 889da98 Add leftpad
+# You are currently editing a commit while rebasing branch 'master' on '308c96d'.
+#
+# Changes to be committed:
+#       modified:   app.js
+</code></pre>
+
+<pre><code class="sh">$ git rebase -i 308c96d
+[detached HEAD 4225a9a] Fixed bug
+ Date: Wed Feb 1 12:31:29 2017 +0100
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Successfully rebased and updated refs/heads/master.
+</code></pre>
+
+<pre><code class="sh">$ git show 308c96d
+commit 4225a9a3eb74b42772297a2f4b67b58696e11410
+Author: Hans Ott &lt;hans.ott@clarabridge.be&gt;
+Date:   Wed Feb 1 12:31:29 2017 +0100
+
+    Fixed bug
+
+    Closes #issue
+
+diff --git a/app.js b/app.js
+index 128b630..8b13789 100644
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-throw new Error('This is a bug!');
++
+</code></pre>
+
+<p>Hooray! We did it again. Now pat yourself on the back.</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Git" class="tag">Git</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/03/15/vim-ide-quality-control">Vim As A PHP IDE - Quality Control</a></h1>
         </header>
         <div>
@@ -346,142 +522,6 @@ The agenda for these meetings is:</p>
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/GitHub" class="tag">GitHub</a>                        <a href="/blog/tags/Issues" class="tag">Issues</a>                        <a href="/blog/tags/Bug%20Tracking" class="tag">Bug Tracking</a>                        <a href="/blog/tags/Jenkins" class="tag">Jenkins</a>                        <a href="/blog/tags/Bug%20fixing" class="tag">Bug fixing</a>                        <a href="/blog/tags/By%20Design" class="tag">By Design</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/02/15/vim-ide-exploring-code">Vim As A PHP IDE - Exploring Code</a></h1>
-        </header>
-        <div>
-            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>As it turns out, finding things in a huge project is one of the main reasons people use an IDE. The most frequently used functionality seems to be</p>
-
-<ul>
-<li>searching for a file by its name;</li>
-<li>searching within the current file;</li>
-<li>searching for something arbitrary in the current project;</li>
-<li>searching for methods or classes;</li>
-<li>"jumping" to implementations of interfaces, child classes, definitions of methods;</li>
-<li>finding usages of a method;</li>
-</ul>
-
-<h2 id="finding-files-by-their-names">Finding files by their names</h2>
-
-<p>Finding files is something I'm very bad at. I mostly remember only part of the name, or nothing at all. That's why I want to search for files in a "fuzzy" way, if at all. For fuzzy file search, a feature found in most text editors and IDEs these days, I use <a href="https://github.com/kien/ctrlp.vim">CtrlP</a>, which does that just fine. It also has some nice extra commands that let you fuzzily find files in your open buffers, tags (more on that later), and bookmarks.</p>
-
-<p>Some people like to use <a href="https://github.com/scrooloose/nerdtree">NerdTree</a> to have a nice directory listing to the left of the screen, like in Sublime Text or similar editors. You can use it, and I sometimes do for its <code>:NERDTreeFind</code> command, but for most of your needs, the default file browser in Vim is great. You can open it like you open any file, just open a directory instead e.g. <code>:e src/</code>.</p>
-
-<h2 id="searching-within-the-current-file">Searching within the current file</h2>
-
-<p>To find something in the current file, Vim provides a huge number of options. There's the default forward search command, <code>/</code>, which can be pimped a bit to behave in a more "natural" way. In <code>.vimrc</code>:</p>
-
-<pre><code class="vim">set incsearch           " search as characters are entered
-set hlsearch            " highlight matches
-</code></pre>
-
-<p>And you can search backwards in exactly the same way by using <code>?</code>. Jump to next and previous hits with <code>n</code> and <code>N</code>. And of course you can use regex.</p>
-
-<p>Then there are some more "special" ways of searching in the current file:</p>
-
-<ul>
-<li>Hop to the next occurence of the word under cursor <code>*</code></li>
-<li>Hop to the previous occurence of the word under cursor <code>#</code></li>
-<li>Hop to the next method <code>]]</code></li>
-<li>Hop to the previous method <code>[[</code></li>
-<li>Hop to the definition of a variable under cursor <code>gd</code> (goto definition)</li>
-</ul>
-
-<h2 id="searching-for-arbitrary-text-in-the-current-project">Searching for arbitrary text in the current project</h2>
-
-<p>I use <code>ag</code> as my main code search engine. It's a great command line tool to search codebases really fast. I use it on the command line, as well as in Vim, to replace <code>:vimgrep</code> with something faster. It's also the basis for some more interesting stuff, which I'll talk about later.</p>
-
-<p>You'll need to have the <code>ag</code> binary for your operating system installed, using e.g. <code>brew install ag</code>. Check if it works by searching your codebase for a class, e.g. <code>ag HttpKernelInterface</code>.</p>
-
-<p>Install the <code>Ack.vim</code> plugin, that you can find <a href="https://github.com/mileszs/ack.vim">here</a>. Then set the default search engine for the plugin to <code>ag</code> in your <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" Ack -&gt; Ag
-if executable('ag')
-    let g:ackprg = 'ag --vimgrep'
-endif
-</code></pre>
-
-<p>Open Vim in your codebase's working directory and try it there, e.g. <code>:Ack HttpKernelInterface</code>. This should jump straight to the first match found.</p>
-
-<p>The problem with this is that you don't have a visual representation of what else was found. Luckily, and much like <code>:vimgrep</code>, <code>:Ack</code> fills the quickfix list with matches, so you can use <code>:cwindow</code> to show matches (and see also <code>:cnext</code>, <code>:cprev</code>, <code>:cclose</code>). If you want your quicklist to open automatically if anything was found you can add this to your <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" Automatically open &amp; close quickfix window
-autocmd QuickFixCmdPost [^l]* nested cwindow
-</code></pre>
-
-<h2 id="searching-for-methods-or-classes">Searching for methods or classes</h2>
-
-<p>Now this is where it gets interesting, and where people somewhat underestimate Vim. Using an external application to generate an index of your project's "tags" (classes, interfaces, methods, variables, etc), which Vim can interpret, it provides jumping to all these things and back! This is great. How to set it up?</p>
-
-<p>You'll need to have the <code>ctags</code> binary for your operating system installed, using e.g. <code>brew install ctags</code>. Check if it works by issueing this command <code>ctags --version</code>. I created a config file for it in my <code>$HOME</code> directory, called <code>.ctags</code> with this in it:</p>
-
-<pre><code class="ctags">--recurse=yes
---tag-relative=yes
---exclude=.git
---exclude=composer.phar
---exclude=*.js
---exclude=*.vim
---langmap=php:.engine.inc.module.theme.install.php
---PHP-kinds=+cfi-vj
-</code></pre>
-
-<p>The line with <code>--PHP-kinds</code> tells <code>ctags</code> to index classes, functions, interfaces, but not variables or javascript functions. You can tune this to your likings.</p>
-
-<p>If you now use <code>ctags</code> from the command line to generate the tags file for your project, using <code>ctags -R .</code>, a file that Vim can interpret, called <code>tags</code> will be created.</p>
-
-<ul>
-<li>You can now open Vim on a tag like so <code>vim -t HttpKernelInterface</code></li>
-<li>Or search for that tag from within Vim <code>:tag HttpKernelInterface</code></li>
-<li>Or jump to the tag under the cursor: <code>&lt;C-]&gt;</code> or <code>&lt;C-$&gt;</code> depending on keyboard layout</li>
-<li>if you jumped to some tags and you want to jump back, use <code>&lt;C-t&gt;</code></li>
-</ul>
-
-<p>Of course there are <a href="https://github.com/ludovicchabant/vim-gutentags">plugins</a> to manage your <code>tags</code> files for you.</p>
-
-<h2 id="finding-implementations-of-interfaces%2C-child-classes">Finding implementations of interfaces, child classes</h2>
-
-<p>So this is where the aforementioned <code>Ack</code> magic comes in handy, as it's not default Vim functionality, and I didn't find a plugin to do these things either. I basically just created some functions that find PHP implementations of an interface, and PHP subclassses of a class. I just put them in my <code>.vimrc</code>, but I'm planning on creating a very simple plugin for them.</p>
-
-<pre><code class="vim">" PHP Find Implementations
-function! PhpImplementations(word)
-    exe 'Ack "implements.*' . a:word . ' *($|{)"'
-endfunction
-
-" PHP Find Subclasses
-function! PhpSubclasses(word)
-    exe 'Ack "extends.*' . a:word . ' *($|{)"'
-endfunction
-
-noremap &lt;Leader&gt;fi :call PhpImplementations('&lt;cword&gt;')&lt;CR&gt;
-noremap &lt;Leader&gt;fe :call PhpSubclasses('&lt;cword&gt;')&lt;CR&gt;
-</code></pre>
-
-<p>As you can see, I added mappings to execute them for the word under cursor (<code>&lt;cword&gt;</code>). These key mappings should probably be done inside the PHP <code>augroup</code> we created in the previous post.</p>
-
-<h2 id="finding-usages-of-a-method">Finding usages of a method</h2>
-
-<p>Pretty much in the same spirit of the Vim functions I wrote to find implementations of an interface, I also wrote such a function to find usages of a method, which I also just added to my <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" PHP Find Usage
-function! PhpUsage(word)
-    exe 'Ack "::' . a:word . '\(|&gt;' . a:word . '\("'
-endfunction
-
-noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
-</code></pre>
-
-<h2 id="wrapping-up">Wrapping up</h2>
-
-<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to <a href="/blog/2017/03/15/vim-ide-quality-control">the next episode</a>!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/6" class="left">Newer Posts</a>        <a href="/page/8" class="right">Older Posts</a>    </nav>

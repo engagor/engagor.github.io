@@ -103,6 +103,140 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">Building a sliding window rate limiter with Redis</a></h1>
+        </header>
+        <div>
+            <p>For our Instagram crawler we needed a system to keep track of the amount of API calls we did to prevent us from hitting the rate limits. We could of course perform our HTTP requests without checking rate limits upfront, and wait until we get a <code>429 OAuthRateLimitException</code> from Instagram, but that would exhaust our tokens and block us from talking efficiently to their API.</p>
+
+<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/429.jpg" alt="Too many cats" /></p>
+
+<blockquote>
+  <p>All rate limits on the Instagram Platform are controlled separately for each access token, and on a sliding 1-hour window.</p>
+  
+  <p><a href="https://www.instagram.com/developer/limits">Instagram API rate Limits</a></p>
+</blockquote>
+
+<p>We're allowed to do 5000 API calls per access token each hour.</p>
+
+<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/slidingwindow.png" alt="Sliding window ratelimiting visualisation" /></p>
+
+<p>Every point on the axis represents an API call. The sliding window is an hour in this case. Every time we do an API call we add the timestamp (in microseconds) of the API call to a list. In pseudocode:</p>
+
+<pre><code class="js">timestamps.push(Date.now());
+</code></pre>
+
+<p>When we're about to do an API call in our crawler we need to check if we're allowed to do one:</p>
+
+<ol>
+<li>How many calls did we do in the last hour?</li>
+</ol>
+
+<pre><code class="js">callsInTheLastHour = timestamps.filter(timestamp =&gt; timestamp &gt; now - slidingWindow);
+count = callsInTheLastHour.length
+</code></pre>
+
+<ol start="2">
+<li>How many can we still do?</li>
+</ol>
+
+<p>After we calculated the amount of API calls we did in the last hour we can calculate the remaining API calls:</p>
+
+<pre><code class="js">remaining = maxCallsPerHour - count;
+</code></pre>
+
+<p>Let's say we did <code>4413</code> API calls in the last hour then we're allowed to do <code>587</code> more at this moment.</p>
+
+<p>Great, we got our algorithm. Now we need some kind of database to store a list of timestamps grouped per access token. Maybe we could use MySQL or PostgreSQL? Yes, we could but then we would need a system that periodically removes outdated timestamps since neither MySQL or PostgreSQL allow us to set a time to life on a row. What about <a href="http://memcached.org/">Memcached</a>? Yes, that's also an option. Sadly Memcached doesn't have the concept of an array or list (we could serialize an array using our favourite programming language). We can do better. What about <a href="https://redis.io/">Redis</a>? Yes, I like where this is going. Redis is a key/value store that supports lists, sets, sorted sets and more.</p>
+
+<p>We're ready to translate our algorithm to Redis commands. Assuming you already have Redis installed, start a server: <code>$ redis-server</code>. If you're on a mac, you can just <code>$ brew install redis</code> to get it.</p>
+
+<p>We're going to use a <a href="https://redis.io/commands/#sorted_set">sorted set</a> to hold our timestamps because it fits our needs.</p>
+
+<pre><code>&gt; MULTI
+&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
+&gt; ZRANGE $accessToken 0 -1
+&gt; ZADD $accessToken $now $now
+&gt; EXPIRE $accessToken $slidingWindow
+&gt; EXEC
+</code></pre>
+
+<p>Let's break it down:</p>
+
+<ul>
+<li><code>MULTI</code> to mark the start of a transaction block. Subsequent commands will be queued for atomic execution using <code>EXEC</code>.</li>
+<li><code>ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)</code> to remove API call timestamps that were done before the start of the window.</li>
+<li><code>ZRANGE $accessToken 0 -1</code> to get a list of all API call timestamps that happened during the window.</li>
+<li><code>ZADD $accessToken $now $now</code> to add a log for the current API call that we're about to do.</li>
+<li><code>EXPIRE $accessToken $slidingWindow</code> to reset the expiry date for this sorted set of timestamps (for the current OAuth Token).</li>
+<li><code>EXEC</code> will execute all previously queued commands and restore the connection state to normal.</li>
+</ul>
+
+<p>Instead of using the actual OAuth access tokens (and duplicating them to Redis), you might want to use an identifier or hash of the token instead as <code>$accessToken</code>. It serves as the key for our Redis sorted set. Also note that, in the same transaction as reading the list of timestamps, we <em>add</em> a new timestamp to the list (the <code>ZADD</code> command). We do this because this is being used in a distributed context (we have many workers performing API calls), and we don't want to write when we already exceeded our limits.</p>
+
+<p>In PHP this might look like this:</p>
+
+<pre><code class="php">// composer require predis/predis
+require_once __DIR__ . '/vendor/autoload.php';
+
+$maxCallsPerHour = 5000;
+$slidingWindow = 3600;
+
+$now = microtime(true);
+$accessToken = md5('access-token');
+
+$client = new Predis\Client();
+$client-&gt;multi();
+$client-&gt;zrangebyscore($accessToken, 0, $now - $slidingWindow);
+$client-&gt;zrange($accessToken, 0, -1);
+$client-&gt;zadd($accessToken, $now, $now);
+$client-&gt;expire($accessToken, $slidingWindow);
+$result = $client-&gt;exec();
+
+// The second command inside the transaction was ZRANGE,
+// which returns a list of timestamps within the last hour.
+$timestamps = $result[1];
+
+$remaining = max(0, $maxCallsPerHour - count($timestamps));
+
+if ($remaining &gt; 0) {
+    echo sprintf('%s: Allowed and %d remaining', $now, $remaining) . PHP_EOL;
+} else {
+    echo sprintf('%s: Not allowed', $now) . PHP_EOL;
+}
+</code></pre>
+
+<p>To conclude all of this, and to make this work within our codebase, we put this all nicely in a class, behind an interface <code>RateLimiter</code>:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CXSocial\RateLimiter;
+
+interface RateLimiter
+{
+    /**
+     * Request the remaining ratelimit points
+     *
+     * @param RateLimitedResource $rateLimitedResource
+     *
+     * @throws SorryRateLimitUnavailable
+     *
+     * @return int
+     */
+    public function remaining(RateLimitedResource $rateLimitedResource);
+}
+</code></pre>
+
+<p>This allows us to write code that doesn't couple to implemention too much. This has been working like a charm for us! We're huge fans.</p>
+
+<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/fan-limit.gif" alt="HUGE FAN" /></p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Redis" class="tag">Redis</a>                        <a href="/blog/tags/Rate%20Limiting" class="tag">Rate Limiting</a>                        <a href="/blog/tags/Sliding%20Window" class="tag">Sliding Window</a>                        <a href="/blog/tags/API" class="tag">API</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/04/18/vim-ide-git">Vim As A PHP IDE - Git</a></h1>
         </header>
         <div>
@@ -239,182 +373,6 @@ nmap &lt;Leader&gt;gb :Gblame&lt;CR&gt;
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Emoji" class="tag">Emoji</a>                        <a href="/blog/tags/Git" class="tag">Git</a>                        <a href="/blog/tags/Slack" class="tag">Slack</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/04/03/how-to-edit-commit-description">How to edit a commit message</a></h1>
-        </header>
-        <div>
-            <p>We use GitHub for hosting the code, and issue tracker behind CX Social. As you may already know, you can close issues automatically by adding <code>Closes #issue</code> to a commit message and merging it in the master branch. This is great because I always forget to close the fixed issue (it's also great for cross-linking between issues and commits).</p>
-
-<p>But what if you forgot to add <code>Closes #issue</code> to your commit? Let me teach you a trick to edit a commit message.</p>
-
-<p>Let's make a new directory to test it.</p>
-
-<pre><code class="sh">$ mkdir demo-git-edit
-$ cd demo-git-edit
-$ git init
-Initialized empty Git repository in /Users/hansott/Code/demo-git-edit/.git/
-</code></pre>
-
-<p>Okay great. We've got our repository ready. Let's add a file.</p>
-
-<pre><code class="sh">$ touch app.js
-</code></pre>
-
-<p>Then add the following contents:</p>
-
-<pre><code class="js">throw new Error('This is a bug!');
-</code></pre>
-
-<pre><code class="sh">$ git add app.js
-$ git commit -m "Add bug"
-[master (root-commit) 308c96d] Add bug
- 1 file changed, 1 insertion(+)
- create mode 100644 app.js
-</code></pre>
-
-<p>Let's fix the bug by removing it.</p>
-
-<pre><code class="sh">$ echo &gt; app.js
-$ git diff
-diff --git a/app.js b/app.js
-index 128b630..8b13789 100644
---- a/app.js
-+++ b/app.js
-@@ -1 +1 @@
--throw new Error('This is a bug!');
-+
-$ git add app.js
-$ git commit -m "Fixed bug"
-$ git log
-* 83ac3a3 Fixed bug
-* 308c96d Add bug
-</code></pre>
-
-<p>There you go. We forgot <code>Closes #issue</code>. What can we do about it? It's important that you don't push (otherwise you'll have to use <code>--force</code> and you should <strong>never</strong> do that).</p>
-
-<p>If you want to edit your last commit you can use:</p>
-
-<pre><code class="sh">$ git commit --amend -m "Fixed bug" -m "Closes #issue"
-[master f27a1ca] Fixed bug
- Date: Wed Feb 1 12:31:29 2017 +0100
- 1 file changed, 1 insertion(+), 1 deletion(-)
-</code></pre>
-
-<p>You should consider committing with <code>$ git commit --amend</code>. It opens a proper text editor (like <a href="http://vim.sourceforge.net/">vim</a>) to write a comprehensive message (instead of using <code>-m "message"</code>). Did you notice I used <code>-m</code> twice? You can read about it in <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">Some tips for a better Git history</a>.</p>
-
-<pre><code class="sh">$ git show f27a1ca
-ommit f27a1caac3ee33ac3b0ef81040cd2c2f877f13f4
-Author: Hans Ott &lt;hans.ott@clarabridge.be&gt;
-Date:   Wed Feb 1 12:31:29 2017 +0100
-
-    Fixed bug
-
-    Closes #issue
-
-diff --git a/app.js b/app.js
-index 128b630..8b13789 100644
---- a/app.js
-+++ b/app.js
-@@ -1 +1 @@
--throw new Error('This is a bug!');
-+
-</code></pre>
-
-<p>Hooray! We did it. What if we added other commits before we realised we forgot? <a href="https://git-scm.com/book/tr/v2/Customizing-Git-Git-Configuration">I'll assume you got a decent text editor configured for git</a>.</p>
-
-<pre><code class="sh">$ git log
-* 889da98 Add leftpad
-* b1b364c Add library
-* 05e664c Fixed bug
-* 308c96d Add bug
-</code></pre>
-
-<p>We added 2 commits after our bug fix commit. Since <code>$ git commit --amend</code> can only change the last commit, we can't use it. Luckily, we know the secret behind the curtain: it's doing a git rebase of the last commit. Let's use git rebase for great good! Again, be careful, this won't work if you already pushed your work (you can inspect with <code>$ git log --decorate</code>).</p>
-
-<pre><code class="sh">$ git rebase -i 308c96d  # use the commit JUST before the bug fix commit
-</code></pre>
-
-<pre><code>.g/r/git-rebase-todo
-pick 05e664c Fixed bug
-pick b1b364c Add library
-pick 889da98 Add leftpad
-
-# Rebase 308c96d..889da98 onto 308c96d (3 commands)
-#
-# Commands:
-# p, pick = use commit
-# r, reword = use commit, but edit the commit message
-# e, edit = use commit, but stop for amending
-# s, squash = use commit, but meld into previous commit
-# f, fixup = like "squash", but discard this commit's log message
-# x, exec = run command (the rest of the line) using shell
-# d, drop = remove commit
-#
-# These lines can be re-ordered; they are executed from top to  bottom.
-#
-# If you remove a line here THAT COMMIT WILL BE LOST.
-#
-# However, if you remove everything, the rebase will be aborted.
-#
-# Note that empty commits are commented out
-</code></pre>
-
-<p>You'll have to replace <code>pick</code> before <code>05e664c Fixed bug</code> with <code>reword</code> and save it. Git will show the commit(s) you selected so you can edit it and save it.</p>
-
-<pre><code>.g/COMMIT_EDITMSG
-Fixed bug
-
-Closes #issue
-# Please enter the commit message for your changes. Lines starting
-# with '#' will be ignored, and an empty message aborts the commit.
-#
-# Date: Wed Feb 1 12:31:29 2017 +0100
-#
-# interactive rebase in progress; onto 308c96d
-# Last command done (1 command done):
-#    reword 05e664c Fixed bug
-# Next commands to do (2 remaining commands):
-#    pick b1b364c Add library
-#    pick 889da98 Add leftpad
-# You are currently editing a commit while rebasing branch 'master' on '308c96d'.
-#
-# Changes to be committed:
-#       modified:   app.js
-</code></pre>
-
-<pre><code class="sh">$ git rebase -i 308c96d
-[detached HEAD 4225a9a] Fixed bug
- Date: Wed Feb 1 12:31:29 2017 +0100
- 1 file changed, 1 insertion(+), 1 deletion(-)
-Successfully rebased and updated refs/heads/master.
-</code></pre>
-
-<pre><code class="sh">$ git show 308c96d
-commit 4225a9a3eb74b42772297a2f4b67b58696e11410
-Author: Hans Ott &lt;hans.ott@clarabridge.be&gt;
-Date:   Wed Feb 1 12:31:29 2017 +0100
-
-    Fixed bug
-
-    Closes #issue
-
-diff --git a/app.js b/app.js
-index 128b630..8b13789 100644
---- a/app.js
-+++ b/app.js
-@@ -1 +1 @@
--throw new Error('This is a bug!');
-+
-</code></pre>
-
-<p>Hooray! We did it again. Now pat yourself on the back.</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Git" class="tag">Git</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/5" class="left">Newer Posts</a>        <a href="/page/7" class="right">Older Posts</a>    </nav>
