@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/CSS.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-10-16T07:43:10+00:00</updated>
+    <updated>2017-10-16T12:06:48+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -27,7 +27,7 @@
 <small>CX Social Inbox canned responses gallery view in Internet Explorer 10</small>
 </center></p>
 
-<p>Ideally you only use javascript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list to be styled, as the default is not as pretty as in other browsers. This requires a javascript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default <code>&lt;select&gt;</code> dropdowns and it's not worth adding the extra javascript to your website. It's important to weigh up where your javascript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
+<p>Ideally you only use javascript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a javascript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra javascript to your website. It's important to weigh up where your javascript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
 
 <h2 id="useful-plugins">Useful Plugins</h2>
 
