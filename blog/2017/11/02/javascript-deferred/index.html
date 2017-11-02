@@ -154,10 +154,10 @@ var combinedResult = $.Deferred();
 var combinedCalls = $.when.apply($, calls);
 
 combinedCalls.done(function() {
-    var relations = {};
 
     var resultsOfDefferedAjaxCalls = _.toArray(arguments).slice(0, calls.length);
-    _.map(resultsOfDefferedAjaxCalls, function(ajaxResult) {
+
+    var relations = _.map(resultsOfDefferedAjaxCalls, function(ajaxResult) {
         return ajaxResult.result.data;
     });
 
