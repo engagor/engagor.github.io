@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Refactoring to Collections &mdash; CX Social Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="robots" content="index, follow">
+        <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="CX Social Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+        <header>
+            <nav class="navbar navbar-inverse navbar-fixed-top">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" id="logo" href="http://developers.engagor.com">
+                            <img src="/images/logo_cxsocial.png" />
+                            <span class="dev-tagline">developers</span>
+                        </a>
+                    </div>
+                    <div id="navbar" class="collapse navbar-collapse">
+                        <ul class="nav navbar-nav">
+                            <li>
+                                <a href="https://developers.engagor.com/">
+                                    <span class="en-icon en-icon-document"></span> API Documentation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="http://engagor.github.io/" class="active">
+                                    <span class="en-icon en-icon-bubble-2"> Blog
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://developers.engagor.com/team">
+                                    <span class="en-icon en-icon-users"></span> Team
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <div class="mainContent container">
+            <div class="row-fluid">
+                <div class="span4 sidebar">
+                    <div class="well sidebar-nav">
+                        <ul class="dev-nav">
+                            <li>
+                                <a href="/blog">
+                                    <span class="en-icon en-icon-clock"></span> Posts Archive
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/blog/categories">
+                                    <span class="en-icon en-icon-folder-open"></span> Categories
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/blog/tags">
+                                    <span class="en-icon en-icon-tag"></span> Tags
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="hiring-block">
+                        <a href="http://cxsocial.clarabridge.com/jobs" target="blank" class="clearfix">
+                            <h2>we're</h2>
+                            <h1>Hiring!</h1>
+                            <span>Join The Team</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="span8 dev-content">
+                        <article>
+        <header class="page-header">
+            <h1>Refactoring to Collections</h1>
+        </header>
+
+        <div class="post-details">
+                        <div class="author-avatar">
+                <img src="https://www.gravatar.com/avatar/37d852cb5b9e8d571fa295feb0b4a3cc" alt="Toon Daelman avatar" />
+            </div>
+                                    <div class="author-name">
+                Toon Daelman
+            </div>
+                        <div class="post-publish-date">
+                on
+                <time class="post-publish-date" datetime="2017-11-15T10:00:00+00:00" pubdate>
+                    <span class='month'>Nov</span> <span class='day'>15th</span> <span class='year'>2017</span>
+                </time>
+            </div>
+        </div>
+
+        <div>
+            <p>How many times have you seen code like this?</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Our office is very close to a <a href="http://simon-says.be/">great coffee bar</a>, and people are going there from time to time to get coffee for everyone in the office. Keeping track of who's going for coffee and who wants which coffee can be daunting, which is why I'm making this app. Let's take a closer look at that piece of code.</p>
+
+<p>We're manually traversing an array of <code>CoffeeRun</code> objects that we got out of the Repository to filter out those who are open for orders. If we find one, we add it to a new array. This way we build a list of <code>CoffeeRuns</code> that are still accepting orders.</p>
+
+<h2 id="to-iterator-or-not%2C-that%27s-the-question">To Iterator or not, that's the question</h2>
+
+<p>Now, there's nothing very wrong with this, but it could be made a whole lot better, I think. Let's say that the Repository contains 1000 <code>CoffeeRun</code>s. We're now forcing the Repository to return an array of 1000 <code>CoffeeRun</code> objects when we call <code>getAll()</code>. That's not great. But let's think about it... The Repository already represents a list of all <code>CoffeeRun</code> objects. Why can't we just iterate over it? Something like this:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository;
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Having a repository we can iterate over like that would already be a first step. We could implement the <code>Iterator</code> interface within the Repository, and have this functionality immediately. But that would leave the foreach out there, and that would also present a problem for our dependency injection: the class where this <code>displayCoffeeRunsOpenForOrders</code> is a controller, and it has the Repository injected in its constructor, like this:</p>
+
+<pre><code class="php">public function __construct(CoffeeRunsRepository $repository)
+{
+    $this-&gt;coffeeRunsRepository = $repository;
+}
+</code></pre>
+
+<p>If we'd count on the fact that the Repository is now an <code>Iterator</code>, we should either typehint on it, but then we lose our typehint for <code>CoffeeRunsRepository</code>, which we don't want. Or we could make the <code>CoffeeRunsRepository</code> interface extend the <code>Iterator</code> interface, but then we get a really big interface we need to implement for every implementation of the Repository. Both of which are annoying to say the least.</p>
+
+<h2 id="think-solidly-different">Think SOLIDly Different</h2>
+
+<p>Let's try something completely different. In fact, the <code>foreach</code> in that method, is blocking progress for us right now; Let's extract that whole block to a method. This is what was in the controller before the extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>In the Repository we added a new method <code>openForOrders()</code>, and we kept the same implementation as before, which now resides in the implementation of that method:</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    // ...
+
+    /**
+     * @return CoffeeRun[] A list of CoffeeRuns open for orders
+     */
+    public function openForOrders();
+
+    // ...
+}
+</code></pre>
+
+<pre><code class="php">final class CoffeeRunsRepositoryInMemory implements CoffeeRunsRepository
+{
+    // ...
+
+    public function openForOrders()
+    {
+        $coffeeRuns = $this-&gt;getAll();
+        $openForOrders = array();
+
+        foreach ($coffeeRuns as $coffeeRun) {
+            if ($coffeeRun-&gt;ordersCanBeMade()) {
+                $openForOrders[] = $coffeeRun;
+            }
+        }
+
+        return $openForOrders;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>This is what's left in the controller after extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeRunsRepository-&gt;openForOrders();
+}
+</code></pre>
+
+<p>I don't like the <code>Repository</code> word in there, while we're thinking about the Repository as just being a Collection. Let's rename the variable in our controller. Notice how well this reads:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeruns-&gt;openForOrders();
+}
+</code></pre>
+
+<p>"Return CoffeeRuns that are Open For Orders". I like it. What's even better, is that the filtering of the Collection is now happening in the object that worries about the Collection, namely the Repository. This means that the specific implementations can optimize for their own benifits. E.g. the database implementation of the Repository can use a specific <code>WHERE</code> query so that it doesn't need to filter <code>CoffeeRun</code>s in PHP, and as a result of that it doesn't need to load a whole list of <code>CoffeeRun</code> objects into memory.</p>
+
+<h2 id="bump-your-head-twice">Bump your head twice</h2>
+
+<p>What if we want a second method in our controller that displays all CoffeeRuns that are open for orders, and will happen before noon? The <code>openForOrders()</code> method won't be enough. We could use it, and then use a <code>foreach</code> as in the first example of the blog post, but then we're back to square one. We could also make it a Repository method, and that would be okay, but only if we don't have to do it too many times. Let's look for a different solution.</p>
+
+<p>It looks like we now have two problems:</p>
+
+<ol>
+<li>We want to encapsulate the "looping over a list and picking out specific items"</li>
+<li>We want to combine several of these actions on a list, or at least do them in succession</li>
+</ol>
+
+<p>The problems always come up when we're talking to the Repository. We made two changes to it, that were both half solutions. The Repository has too many responsibilities (Storage and Collection). What would happen if we'd return an object representing a list of CoffeeRun objects from the Repository, and use that to iterate over? The Repository only takes care of the storage, and the Collection object takes care of the Collection stuff.</p>
+
+<p>What we want to do is "filter" CoffeeRuns so that we get CoffeeRuns that are open for orders, and then filter those again so that we get those open for orders that are happening before noon. In pseudo code:</p>
+
+<pre><code class="php">coffeeRuns = repository.getAll
+coffeeRuns
+    .thatAre(openForOrders)
+    .thatAre(happeningBeforeNoon)
+</code></pre>
+
+<p>If we can express <code>openForOrders</code> and <code>happeningBeforeNoon</code> as functions that take a <code>CoffeeRun</code> object and return a boolean (we'll call them predicates), then the <code>thatAre()</code> implementation could be very generic! Let's check it out:</p>
+
+<pre><code class="php">$openForOrders = function (CoffeeRun $coffeeRun)
+{
+    return $coffeeRun-&gt;ordersCanBeMade();
+};
+
+$noon = new DateTime('today noon');
+$happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+{
+    return $coffeeRun-&gt;getDate() &lt; $noon;
+};
+</code></pre>
+
+<p>Now we'll create the <code>CoffeeRuns</code> Collection object, with a <code>thatAre</code> method:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param callable function that takes a CoffeeRun and returns a boolean
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(callable $matchingPredicate);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>Let's create a naïve <code>array</code> based implementation of it:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                $matchingPredicate
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>Right now, we can have our <code>CoffeeRunsRepository</code> return a <code>CoffeeRuns</code> Collection object for the <code>getAll()</code> method instead of <code>CoffeeRun[]</code> (an array of CoffeeRun) objects, and remove the specific methods we created, like <code>openForOrders()</code>.</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    /**
+     * @return CoffeeRuns A collection of CoffeeRuns
+     */
+    public function getAll();
+}
+</code></pre>
+
+<p>In the controller, we now get this:</p>
+
+<pre><code class="php">final class CoffeeController
+{
+    private $coffeeRuns;
+    private $openForOrders;
+    private $happeningBeforeNoon;
+
+    public function __construct(CoffeeRunsRepository $repository)
+    {
+        $this-&gt;coffeeRuns = $repository;
+
+        $this-&gt;openForOrders = function (CoffeeRun $coffeeRun)
+        {
+            return $coffeeRun-&gt;ordersCanBeMade();
+        };
+
+        $noon = new DateTime('today noon');
+        $this-&gt;happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+        {
+            return $coffeeRun-&gt;getDate() &lt; $noon;
+        };
+    }
+
+    public function displayCoffeeRunsOpenForOrders()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+
+    public function displayCoffeeRunsOpenForOrdersAndBeforeNoon()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders)
+            -&gt;thatAre($this-&gt;happeningBeforeNoon);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+}
+</code></pre>
+
+<p>As you can see, the individual methods got very readable. The operations on the Collections are encapsulated. I extracted the <code>$openForOrders</code> and <code>$happeningBeforeNoon</code> predicates to class variables, because I didn't like the duplication in both controller methods, however, I'm not satisfied with their presence in the constructor. We could create a <code>Predicate</code> interface and make the <code>thatAre()</code> method accept <code>Predicate</code> instances. As a result our controller would just do something like <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>. But let's leave it like this for now. I've got some critical questions coming in:</p>
+
+<h2 id="wait-a-minute%21-you-didn%27t-solve-the-memory-problem%21">Wait a minute! You didn't solve the memory problem!</h2>
+
+<p>Exactly. Let's do that right now.</p>
+
+<pre><code class="php">final class CoffeeRunsWithIterator implements CoffeeRuns
+{
+    private $coffeeRuns;
+    private $predicates;
+
+    public function __construct(Iterator $coffeeRuns, array $predicates = array())
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+        $this-&gt;predicates = $predicates;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        $predicates = $this-&gt;predicates;
+        $predicates[] = $matchingPredicate;
+
+        return new static(
+            $this-&gt;coffeeRuns,
+            $predicates
+        );
+    }
+
+    public function asArray()
+    {
+        $collectionAsArray = array();
+
+        foreach ($this-&gt;coffeeRuns as $coffeeRun) {
+            foreach ($this-&gt;predicates as $predicate) {
+                if (call_user_func($predicate, $coffeeRun) !== true) {
+                    continue 2;
+                }
+            }
+
+            $collectionAsArray[] = $coffeeRun;
+        }
+
+        return $collectionAsArray;
+    }
+}
+</code></pre>
+
+<p>This is an implementation of the <code>CoffeeRuns</code> Collection interface that takes an <code>Iterator</code>. Whenever the <code>thatAre()</code> method gets called with a predicate, we don't do anything, except for creating a new instance of the Collection class with the same <code>Iterator</code> in it, but with the predicate addedd to the list of predicates that must be matched for each element in the Collection. It's only at the last step, when we try to extract the contents of the collection, that we run the <code>Iterator</code> and check every value against the given predicates. We still need to run the predicates against the whole collection, but because they are within an <code>Iterator</code>, the <code>Iterator</code> can e.g. get them from the database one by one. That's an implementation detail of the Repository.</p>
+
+<h2 id="what-if-we-want-to-be-able-to-use-mysql-%60where%60-statements-in-our-repositories%3F">What if we want to be able to use MySQL <code>WHERE</code> statements in our Repositories?</h2>
+
+<p>Let's say that we want to create a MySQL implementation of the Repository. We don't really want to write a query that will get the whole list of CoffeeRuns, even though we worked with an <code>Iterator</code> before (and thus preserving memory issues), so just passing closures to the <code>thatAre()</code> method will not help us a whole lot to write efficient queries. To improve on that, we could start passing our predicates as objects instead of closures, like this:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>A predicate could look something like this:</p>
+
+<pre><code class="php">interface Predicate
+{
+    /**
+     * @param CoffeeRun the CoffeeRun we want to check
+     *
+     * @return bool if the Predicate is satisfied by given CoffeeRun
+     */
+    public function isSatisfiedBy(CoffeeRun $coffeeRun);
+}
+</code></pre>
+
+<p>And to get the same functionality as before we can implement it like this:</p>
+
+<pre><code class="php">final class OpenForOrders implements Predicate
+{
+    public function isSatisfiedBy(CoffeeRun $coffeeRun)
+    {
+        return $coffeeRun-&gt;ordersCanBeMade();
+    }
+}
+</code></pre>
+
+<p>When we have this in place, implementing a repository that can translate these predicates to the correct <code>WHERE</code> statements is pretty much trivial: without doing an actual query, the Repository returns a <code>CoffeeRuns</code> collection object that can be filtered using <code>Predicate</code>s and when that is done, the query can be built by translating the Predicates to the appropriate <code>WHERE</code> statements. Now the <code>Predicate</code> object can still be used to check if a given <code>CoffeeRun</code> satisfies the rule encapsulated within it, but within the Repository, a more efficient way is used against the whole database table full of CoffeeRuns. Eric Evans calls this concept <code>Specification</code>, and you can read all about it in his great book <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>.</p>
+
+<h2 id="doing-something-with-all-objects-in-our-collection">Doing something with all objects in our collection</h2>
+
+<p>Let's say we want people to <code>stopOrdering()</code> for all <code>CoffeeRun</code>s that are happening before noon.</p>
+
+<pre><code class="php">$stopOrdering = function (CoffeeRun $coffeeRun)
+{
+    $coffeeRun-&gt;stopOrdering();
+
+    return $coffeeRun;
+};
+
+$coffeeRuns = $repository-&gt;getAll();
+$stoppedOrderingForTheseRuns = $coffeeRuns
+    -&gt;thatAre($happeningBeforeNoon)
+    -&gt;updateEach($stopOrdering);
+</code></pre>
+
+<p>Let's add it to the Collection interface:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @param callable function that takes a CoffeeRun and returns an updated one
+     *
+     * @return CoffeeRuns that got updated
+     */
+    public function updateEach(callable $update);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>The implementation for the <code>CoffeeRunsArray</code> could be something like this:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(Predicate $predicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                function (CoffeeRun $run) use ($predicate) {
+                    return $predicate-&gt;isSatisfiedBy($run);
+                }
+            )
+        );
+    }
+
+    public function updateEach(callable $update)
+    {
+        return new static(
+            array_map(
+                $update,
+                $this-&gt;coffeeRuns
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>As you can see, the implementation is trivial in this case, but again it provides us with a powerful abstraction. The code that operates on the Collection doesn't have to know anything about how the Collection is implemented, it just knows about the methods we provided for interacting with it. For those that are into functional programming, we just implemented <code>filter</code> and <code>map</code> here.</p>
+
+<p>I hope you see the value in this. For pieces of code where a lot of actions need to happen on Collections of objects, this might be the way to go. Since the code doesn't have to know anything about the implementation of the Collection, you can change it at any time. For instance, when you start out, you can just use a simple <code>Array</code> implementation, and swap it out for an <code>Iterator</code> later on when you notice memory consumption going up. It can also make things pretty readable, as demonstrated above with the <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>.</p>
+
+<p>You can also choose to go A LOT further, or less far into this, as you desire. Good luck on your explorations!</p>
+
+<p>PS: I gave a talk on this subject at the <a href="http://php.gent/">PHP.GENT meetup</a>, you can find the slides <a href="https://speakerdeck.com/turanct/the-language-of-collections">here</a>.</p>
+
+        </div>
+
+        <hr />
+
+                    <p class="categories">
+                <strong>Categories:</strong>
+                                <a href="/blog/categories/PHP">PHP</a>                            </p>
+                            <p class="tags">
+                <strong>Tags:</strong>
+                                    <a href="/blog/tags/PHP" class="tag">PHP</a>                                    <a href="/blog/tags/OOP" class="tag">OOP</a>                                    <a href="/blog/tags/SOLID" class="tag">SOLID</a>                                    <a href="/blog/tags/Collections" class="tag">Collections</a>                                    <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                                    <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                            </p>
+        
+                    <nav class="article">
+                <ul>
+                                                                <li>Previous: <a class="previous" href="/blog/2017/11/02/javascript-deferred" title="When too many API calls are breaking your app"><span class="title">When too many API calls are breaking your app</span></a></li>
+                                    </ul>
+            </nav>
+            </article>
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'engagor-dev-blog'; // required: replace example with your forum shortname
+
+
+    
+    
+    
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the
+    <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+</noscript>
+
+                </div>
+            </div>
+        </div>
+        <footer class="container">
+            &copy; 2017 CX Social Dev Blog
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>

@@ -103,6 +103,95 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/04/18/vim-ide-git">Vim As A PHP IDE - Git</a></h1>
+        </header>
+        <div>
+            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>As developers we use Git <strong>a lot</strong>. I mean the whole time.</p>
+
+<blockquote>
+  <p>Why did I do that?</p>
+</blockquote>
+
+<p>A.k.a <code>git blame</code></p>
+
+<blockquote>
+  <p>What am I doing?</p>
+</blockquote>
+
+<p>A.k.a. <code>git status</code></p>
+
+<blockquote>
+  <p>What did I change?</p>
+</blockquote>
+
+<p>A.k.a. <code>git diff</code></p>
+
+<blockquote>
+  <p>This is why I did this!</p>
+</blockquote>
+
+<p>A.k.a. <code>git commit</code></p>
+
+<p>I wouldn't know how to work without git anymore, and it has also found its way into my "IDE" workflow, even though I used it "purely" from the cli for a long time. Let's see how to work with git from Vim. I'm assuming you have the git binary installed on your system.</p>
+
+<h2 id="seeing-what-changed-in-the-current-file">Seeing what changed in the current file</h2>
+
+<p>There's this neat little plugin called <a href="https://github.com/airblade/vim-gitgutter">GitGutter</a>, which just shows you the classic <code>+</code> and <code>-</code> signs next to added and deleted code in open files. As an added bonus, it lets you jump between changed blocks of code within a file, using the <code>:GitGutterNextHunk</code> and <code>:GitGutterPrevHunk</code> commands, which you can bind to a key in your <code>.vimrc</code>, e.g.:</p>
+
+<pre><code class="vim">" Hop from gitgutter hunk to hunk
+nmap &lt;Leader&gt;v :GitGutterNextHunk&lt;CR&gt;
+nmap &lt;Leader&gt;b :GitGutterPrevHunk&lt;CR&gt;
+</code></pre>
+
+<p><img src="/images/2017-04-18-vim-ide-git/git-gutter.png" alt="Git Annotations In Gutter" /></p>
+
+<h2 id="the-real-deal">The Real Deal</h2>
+
+<p>Using git from Vim couldn't be more intuitive (and powerful) than with <a href="http://github.com/tpope/vim-fugitive">Fugitive</a>. I do everything from Vim now.</p>
+
+<h3 id="why-did-i-do-that%3F-%60%3Agblame%60">Why did I do that? <code>:Gblame</code></h3>
+
+<p>Using the Fugitive <code>:Gblame</code> command, you quickly annotate the current file with <code>git blame</code> information, which lets you jump through history. From the annotation, you can just press <code>Enter</code> and see the complete commit in which that line was changed. From that commit view, you can again use <code>Enter</code> to dive in the history of that file even further, until you found what you were looking for.</p>
+
+<p><img src="/images/2017-04-18-vim-ide-git/git-blame.png" alt="Git Blame With Fugitive" /></p>
+
+<h3 id="what-am-i-doing%3F-%60%3Agstatus%60">What am I doing? <code>:Gstatus</code></h3>
+
+<p>The <code>:Gstatus</code> command opens a split window in Vim, which is an interactive wrapper around the output of <code>git status</code>. From there, you can jump between files in the list using <code>&lt;C-n&gt;</code> and <code>&lt;C-p&gt;</code>, press <code>Enter</code> to open the file under cursor, and use <code>-</code> to <code>git add</code> files or <code>git reset</code> them. You can also press <code>p</code> to <code>git add --patch</code> them and see what you're doing. When you're done, you can press <code>C</code> to commit.</p>
+
+<p><img src="/images/2017-04-18-vim-ide-git/git-status.png" alt="Git Status With Fugitive" /></p>
+
+<h3 id="the-rest-of-git">The rest of git</h3>
+
+<ul>
+<li>Fugitive has <strong>really</strong> extensive support for resolving merge conflicts and diffing files, using Vim's built-in diff view. Here's some <a href="http://vimcasts.org/episodes/fugitive-vim-resolving-merge-conflicts-with-vimdiff/">great info about how that works</a>.</li>
+<li>There's the <strong>great</strong> <code>:Gbrowse</code>, which opens the current file on GitHub (or other configurable host), and you can even use a Vim Visual mode selection and use <code>:Gbrowse</code> to directly link to those lines on GitHub.</li>
+<li>There's a proxy command called <code>:Git</code> which just proxies everything to the command line git. This means you can <code>:Git pull</code> and other commands, just like you used to.</li>
+</ul>
+
+<h2 id="hotkeys">Hotkeys</h2>
+
+<p>I created some hotkeys in <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Git leader hotkeys
+nmap &lt;Leader&gt;gs :Gstatus&lt;CR&gt;
+nmap &lt;Leader&gt;gc :Gcommit&lt;CR&gt;
+nmap &lt;Leader&gt;gb :Gblame&lt;CR&gt;
+</code></pre>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>That's it really, super easy integration of git. Of course you could e.g. also integrate your current branch into your Vim statusline. Just check Fugitive's documentation! I don't feel the need for that, as I <code>:Gstatus</code> practically the whole time, and as a result, I see which branch I'm on the whole time! See you in <a href="/blog/2017/05/15/vim-ide-testing">the next episode</a>!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/04/06/emoji-conversations">Emoji as conversation enhancement</a></h1>
         </header>
         <div>
@@ -326,110 +415,6 @@ index 128b630..8b13789 100644
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Git" class="tag">Git</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/03/15/vim-ide-quality-control">Vim As A PHP IDE - Quality Control</a></h1>
-        </header>
-        <div>
-            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>So it seems that people find it really handy that their IDEs tell them when things are going wrong, and I can't really disagree with that. So let's see how we can get pretty much the same thing in Vim, for PHP.</p>
-
-<ul>
-<li>I need to be warned of syntax errors.</li>
-<li>I need to be warned of unused variables, methods, fields, etc.</li>
-<li>Every language has their own rules for indenting and tabs vs. spaces, and maybe even every project.</li>
-<li>What about coding standards like PSR-2?</li>
-</ul>
-
-<p>Basically I do two things here:</p>
-
-<ol>
-<li>I make sure that my editor is configured correctly for the language and the project, using a simple default configuration in my <code>.vimrc</code> which I overwrite on a project basis using <a href="http://editorconfig.org/">EditorConfig</a>.</li>
-<li>I use some static analysis tools for the other parts.</li>
-</ol>
-
-<h2 id="1.-basic-setup">1. Basic setup</h2>
-
-<h3 id="filetype-plugin">Filetype plugin</h3>
-
-<p>Depending on your taste, you might want to update your PHP filetype plugin in Vim, with a more modern version, for instance if you'd like <code>@param</code> highlighted differently in your PHPDoc blocks. You can find a more up-to-date plugin <a href="https://github.com/StanAngeloff/php.vim">here</a>.</p>
-
-<h3 id="editor-config">Editor Config</h3>
-
-<p>To properly configure my editor, I use the simple snippet in my <code>~/.vim/ftplugin/php.vim</code> that I also posted in the first episode of this blog series:</p>
-
-<pre><code class="vim">" Some basic PSR code style rules
-set tabstop=4           " Tab width
-set softtabstop=4       " Soft tab width
-set shiftwidth=4        " Shift width
-set expandtab           " Use spaces instead of tabs
-</code></pre>
-
-<p>I override this with project settings, using <a href="http://editorconfig.org/">EditorConfig</a>. It's as easy as installing the <a href="https://github.com/editorconfig/editorconfig-vim">EditorConfig plugin</a> for Vim.</p>
-
-<p>In my projects I then have a <code>.editorconfig</code> file that might look like this:</p>
-
-<pre><code class="editorconfig">; This file is for unifying the coding style for different editors and IDEs.
-; More information at http://editorconfig.org
-
-root = true
-
-[**.{php,js,scss,html}]
-charset = utf-8
-indent_size = 4
-indent_style = space
-end_of_line = lf
-insert_final_newline = true
-trim_trailing_whitespace = true
-</code></pre>
-
-<h2 id="2.-static-analysis">2. Static Analysis</h2>
-
-<p>On to more interesting stuff, for the rest of our list: syntax errors, coding guideline violations, unused variables, and the like. The cool part of this, is that many of these things are covered by great PHP tools:</p>
-
-<ul>
-<li>syntax errors: <code>php -l</code></li>
-<li>coding guideline violations: <a href="https://pear.php.net/package/PHP_CodeSniffer/">PHP Code Sniffer</a></li>
-<li>unused variables and other possible issues with code: <a href="https://phpmd.org/">PHP Mess Detector</a></li>
-</ul>
-
-<p>Even greater is that there's a great Vim plugin that combines all of these quality control tools into one great automated package: <a href="https://github.com/vim-syntastic/syntastic">Syntastic</a>, and it's fantastically easy to install. Use your Vim package manager, and put some lines into your <code>.vimrc</code> to configure it:</p>
-
-<pre><code class="vim">" Syntastic configuration
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-</code></pre>
-
-<p>Now to configure the PHP specific tools, that I mentioned above, I do it like this:</p>
-
-<pre><code class="vim">" Syntastic configuration for PHP
-let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
-let g:syntastic_php_phpcs_exec = './bin/phpcs'
-let g:syntastic_php_phpcs_args = '--standard=psr2'
-let g:syntastic_php_phpmd_exec = './bin/phpmd'
-let g:syntastic_php_phpmd_post_args = 'cleancode,codesize,controversial,design,unusedcode'
-</code></pre>
-
-<p>This works because the <code>phpcs</code> and <code>phpmd</code> binaries live in a <code>bin/</code> directory inside my project's directory (I installed them using composer). If you have global installs of these tools, you can just leave out these config lines, Syntastic knows where to find them. As we now have the <code>php -l</code> linter as a Syntastic checker, we can remove the <code>autocmd</code> from our <code>.vimrc</code>.</p>
-
-<p>Some screenshots for the visually minded people:</p>
-
-<p><img src="/images/2017-03-15-vim-ide-quality-control/syntax-error.png" alt="Syntax error detection with php -l" /></p>
-
-<p><img src="/images/2017-03-15-vim-ide-quality-control/psr-violation.png" alt="PSR-2 violation" /></p>
-
-<h2 id="wrapping-up">Wrapping up</h2>
-
-<p>Now I get live feedback about the quality of my code! Great! On to <a href="/blog/2017/04/18/vim-ide-git">the next episode</a>.</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/6" class="left">Newer Posts</a>        <a href="/page/8" class="right">Older Posts</a>    </nav>
