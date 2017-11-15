@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-11-15T08:32:54+00:00</updated>
+    <updated>2017-11-15T09:31:50+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -319,7 +319,7 @@ $happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
 }
 </code></pre>
 
-<p>This is an implementation of the <code>CoffeeRuns</code> Collection interface that takes an <code>Iterator</code>. Whenever the <code>thatAre()</code> method gets called with a predicate, we don't do anything, except for creating a new instance of the Collection class with the same <code>Iterator</code> in it, but with the predicate addedd to the list of predicates that must be matched for each element in the Collection. It's only at the last step, when we try to extract the contents of the collection, that we run the <code>Iterator</code> and check every value against the given predicates. We still need to run the predicates against the whole collection, but because they are within an <code>Iterator</code>, the <code>Iterator</code> can e.g. get them from the database one by one. That's an implementation detail of the Repository.</p>
+<p>This is an implementation of the <code>CoffeeRuns</code> Collection interface that takes an <code>Iterator</code>. Whenever the <code>thatAre()</code> method gets called with a predicate, we don't do anything, except for creating a new instance of the Collection class with the same <code>Iterator</code> in it, but with the predicate added to the list of predicates that must be matched for each element in the Collection. It's only at the last step, when we try to extract the contents of the collection, that we run the <code>Iterator</code> and check every value against the given predicates. We still need to run the predicates against the whole collection, but because they are within an <code>Iterator</code>, the <code>Iterator</code> can e.g. get them from the database one by one. That's an implementation detail of the Repository.</p>
 
 <h2 id="what-if-we-want-to-be-able-to-use-mysql-%60where%60-statements-in-our-repositories%3F">What if we want to be able to use MySQL <code>WHERE</code> statements in our Repositories?</h2>
 
