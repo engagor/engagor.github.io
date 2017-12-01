@@ -3,9 +3,274 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2017-11-15T09:31:50+00:00</updated>
+    <updated>2017-12-01T08:37:54+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Parse Your Way Through Errors]]></title>
+            <link href="/blog/2017/12/01/parse-your-way-through-errors"/>
+            <updated>2017-12-01T10:00:00+00:00</updated>
+            <id>/blog/2017/12/01/parse-your-way-through-errors</id>
+            <content type="html"><![CDATA[<p>In our code base there's a static function to log an error:</p>
+
+<pre><code class="php">final class Debug
+{
+    public static function error(
+        $msg,
+        $obj = false,
+        $category = 'user',
+        $type = 'user'
+    ) {
+        // ...
+    }
+}
+</code></pre>
+
+<pre><code class="php">Debug::error('API call failed', $response, 'facebook', 'api-call-failed');
+</code></pre>
+
+<p>The first argument is a message, the second argument can be a value of any type, the third and fourth argument are used for grouping errors by category and type. This is very useful for analytics.</p>
+
+<p>Ignore for a second that we should use the <a href="http://www.php-fig.org/psr/psr-3/">PSR-3: Logger Interface</a>. We could easily move this <code>Debug</code> class behind an implementation of that interface if we ever wanted to.</p>
+
+<h2 id="the-problem">The problem</h2>
+
+<p>Did you notice that the category and type have a default value <code>"user"</code>? I don't know when or why this was introduced in our code base but it's bad. When the category and type is not set the errors will get lost in the category <code>"user"</code> and the type <code>"user"</code>.</p>
+
+<p>How can we find these <code>Debug::error</code> statements without a category and a type? We don't want to ignore these errors.</p>
+
+<h2 id="use-a-regex%3F">Use a regex?</h2>
+
+<p>Maybe... If the arguments are simple:</p>
+
+<p><img src="/images/2017-12-01-parse-your-way-through-errors/regex.png" alt="RegExr experiment to find Debug::error's" /></p>
+
+<p>(<a href="http://regexr.com/3h8th">RegExr</a>)</p>
+
+<p>Note that this is the first regex that came to my mind. We could improve that regex but let's not waste our time. We need a better way. We need something that truly understands our code.</p>
+
+<h2 id="nikita%27s-php-parser-to-the-rescue">Nikita's PHP Parser to the rescue</h2>
+
+<blockquote>
+  <p>A parser is useful for <a href="http://en.wikipedia.org/wiki/Static_program_analysis">static analysis</a>, manipulation of code and basically any other application dealing with code programmatically. A parser constructs an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax Tree</a> (AST) of the code and thus allows dealing with it in an abstract and robust way.</p>
+  
+  <p><a href="https://github.com/nikic/PHP-Parser/blob/master/doc/0_Introduction.markdown">https://github.com/nikic/PHP-Parser</a></p>
+</blockquote>
+
+<p>Parsing a programming language is hard. This package makes it easy!</p>
+
+<p>Let's see how we can use the package to find <code>Debug::error</code>'s without a category and type.</p>
+
+<ul>
+<li><code>$ mkdir parser-demo</code></li>
+<li><code>$ cd parser-demo</code></li>
+<li><code>$ composer require nikic/php-parser</code></li>
+</ul>
+
+<p>This package is bundled with a binary (<code>php-parse</code>) to play with the parser:</p>
+
+<pre><code class="sh">$ vendor/bin/php-parse '&lt;?php Debug::error("message", $var);'
+====&gt; Code &lt;?php Debug::error("message", $var);
+==&gt; Node dump:
+array(
+    0: Expr_StaticCall(
+        class: Name(
+            parts: array(
+                0: Debug
+            )
+        )
+        name: error
+        args: array(
+            0: Arg(
+                value: Scalar_String(
+                    value: message
+                )
+                byRef: false
+                unpack: false
+            )
+            1: Arg(
+                value: Expr_Variable(
+                    name: var
+                )
+                byRef: false
+                unpack: false
+            )
+        )
+    )
+)
+</code></pre>
+
+<p>The abstract syntax tree is a list of statements. The first statement is an <a href="https://github.com/nikic/PHP-Parser/blob/master/lib/PhpParser/Node/Expr/StaticCall.php"><code>Expr_StaticCall</code></a>. A static call has a <code>class</code>, <code>name</code> and <code>args</code>. If the count of <code>args</code> is not equal to 4 we know that the category and/or type is missing. Let's translate that in some code:</p>
+
+<p><code>$ touch find.php</code></p>
+
+<p>First, we'll need a way to find all PHP files in our code base:</p>
+
+<pre><code class="php">&lt;?php
+
+$directory = $argv[1];
+$directoryIterator = new RecursiveDirectoryIterator($directory);
+$directoryIterator = new RecursiveIteratorIterator($directoryIterator);
+$files = new RegexIterator($directoryIterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+</code></pre>
+
+<p>We can now pass a path to our code base as a command line argument:</p>
+
+<p><code>$ php find.php ~/path/to/code</code></p>
+
+<p>Secondly, we'll need a way to traverse all nodes of an AST. Meet the <a href="https://github.com/nikic/PHP-Parser/blob/master/doc/2_Usage_of_basic_components.markdown#node-traversation"><code>NodeTraverser</code></a>.</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// ... directory iterator
+
+$parser = (new ParserFactory)-&gt;create(ParserFactory::PREFER_PHP7);
+
+foreach ($files as $file) {
+    try {
+        $code = file_get_contents($file[0]);
+        $statements = $parser-&gt;parse($code);
+        $traverser = new NodeTraverser;
+        $traverser-&gt;addVisitor(new NameResolver);
+        $traverser-&gt;addVisitor(new DebugErrorVisitor($file[0]));
+        $traverser-&gt;traverse($statements);
+    } catch (Error $e) {
+        echo 'Parse Error: ', $e-&gt;getMessage(), PHP_EOL;
+    }
+}
+</code></pre>
+
+<p>The <code>NodeTraverser</code> will call a method (<code>enterNode</code>) on each visitor for each node in the AST. Let's implement <code>DebugErrorVisitor</code>:</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Node;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\Node\Expr\StaticCall;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final class DebugErrorVisitor extends NodeVisitorAbstract
+{
+    private $file;
+
+    public function __construct($file)
+    {
+        $this-&gt;file = $file;
+    }
+
+    public function enterNode(Node $node)
+    {
+        if (!$node instanceof StaticCall) {
+            return;
+        }
+
+        if ($node-&gt;class instanceof Name &amp;&amp; $node-&gt;class-&gt;toString !== 'Debug') {
+            return;
+        } elseif ($node-&gt;class !== 'Debug') {
+            return;
+        }
+
+        if ($node-&gt;name !== 'error') {
+            return;
+        }
+
+        if (count($node-&gt;args) !== 4) {
+            echo "Found {$node-&gt;class}::{$node-&gt;name} in {$this-&gt;file} on line {$node-&gt;getLine()}", PHP_EOL;
+        }
+    }
+}
+
+// ... directory iterator
+</code></pre>
+
+<ol>
+<li>If <code>$node</code> is not a <code>StaticCall</code> we'll return.</li>
+<li>If the class name is not <code>Debug</code> we'll return (The class will be a <code>Name</code> instance if it's in a namespace).</li>
+<li>If the name of the method we're calling is not <code>error</code> we'll return.</li>
+<li>If the count of arguments is not 4, we found an <code>Debug::error</code> we're interested in.</li>
+</ol>
+
+<p>Let's put it all together:</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Node;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final class DebugErrorVisitor extends NodeVisitorAbstract
+{
+    private $file;
+
+    public function __construct($file)
+    {
+        $this-&gt;file = $file;
+    }
+
+    public function enterNode(Node $node)
+    {
+        if (!$node instanceof StaticCall) {
+            return;
+        }
+
+        if ($node-&gt;class instanceof Name &amp;&amp; $node-&gt;class-&gt;toString !== 'Debug') {
+            return;
+        } elseif ($node-&gt;class !== 'Debug') {
+            return;
+        }
+
+        if ($node-&gt;name !== 'error') {
+            return;
+        }
+
+        if (count($node-&gt;args) !== 4) {
+            echo "Found {$node-&gt;class}::{$node-&gt;name} in {$this-&gt;file} on line {$node-&gt;getLine()}", PHP_EOL;
+        }
+    }
+}
+
+$directory = $argv[1];
+$directoryIterator = new RecursiveDirectoryIterator($directory);
+$directoryIterator = new RecursiveIteratorIterator($directoryIterator);
+$files = new RegexIterator($directoryIterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+
+$parser = (new ParserFactory)-&gt;create(ParserFactory::PREFER_PHP7);
+
+foreach ($files as $file) {
+    try {
+        $code = file_get_contents($file[0]);
+        $statements = $parser-&gt;parse($code);
+        $traverser = new NodeTraverser;
+        $traverser-&gt;addVisitor(new NameResolver);
+        $traverser-&gt;addVisitor(new DebugErrorVisitor($file[0]));
+        $traverser-&gt;traverse($statements);
+    } catch (Error $e) {
+        echo 'Parse Error: ', $e-&gt;getMessage(), PHP_EOL;
+    }
+}
+</code></pre>
+
+<p>We can now call the script with a path to our code base and it will find <code>Debug::error</code>'s without a category and a type accurately. Perhaps we can use this script in our Jenkins setup to let a build fail if there's a <code>Debug::error</code> without a category and type.</p>
+
+<p>We could take this one step further and ask for a category and type on the command line (using <code>readline</code>) and replace it automatically but I'll leave that as an exercise for the reader. 😏</p>
+
+<p>Happy programming!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Refactoring to Collections]]></title>
             <link href="/blog/2017/11/15/refactoring-to-collections"/>
@@ -1290,138 +1555,6 @@ let g:syntastic_php_phpmd_post_args = 'cleancode,codesize,controversial,design,u
 <h2 id="wrapping-up">Wrapping up</h2>
 
 <p>Now I get live feedback about the quality of my code! Great! On to <a href="/blog/2017/04/18/vim-ide-git">the next episode</a>.</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Vim As A PHP IDE - Exploring Code]]></title>
-            <link href="/blog/2017/02/15/vim-ide-exploring-code"/>
-            <updated>2017-02-15T09:30:00+00:00</updated>
-            <id>/blog/2017/02/15/vim-ide-exploring-code</id>
-            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>As it turns out, finding things in a huge project is one of the main reasons people use an IDE. The most frequently used functionality seems to be</p>
-
-<ul>
-<li>searching for a file by its name;</li>
-<li>searching within the current file;</li>
-<li>searching for something arbitrary in the current project;</li>
-<li>searching for methods or classes;</li>
-<li>"jumping" to implementations of interfaces, child classes, definitions of methods;</li>
-<li>finding usages of a method;</li>
-</ul>
-
-<h2 id="finding-files-by-their-names">Finding files by their names</h2>
-
-<p>Finding files is something I'm very bad at. I mostly remember only part of the name, or nothing at all. That's why I want to search for files in a "fuzzy" way, if at all. For fuzzy file search, a feature found in most text editors and IDEs these days, I use <a href="https://github.com/kien/ctrlp.vim">CtrlP</a>, which does that just fine. It also has some nice extra commands that let you fuzzily find files in your open buffers, tags (more on that later), and bookmarks.</p>
-
-<p>Some people like to use <a href="https://github.com/scrooloose/nerdtree">NerdTree</a> to have a nice directory listing to the left of the screen, like in Sublime Text or similar editors. You can use it, and I sometimes do for its <code>:NERDTreeFind</code> command, but for most of your needs, the default file browser in Vim is great. You can open it like you open any file, just open a directory instead e.g. <code>:e src/</code>.</p>
-
-<h2 id="searching-within-the-current-file">Searching within the current file</h2>
-
-<p>To find something in the current file, Vim provides a huge number of options. There's the default forward search command, <code>/</code>, which can be pimped a bit to behave in a more "natural" way. In <code>.vimrc</code>:</p>
-
-<pre><code class="vim">set incsearch           " search as characters are entered
-set hlsearch            " highlight matches
-</code></pre>
-
-<p>And you can search backwards in exactly the same way by using <code>?</code>. Jump to next and previous hits with <code>n</code> and <code>N</code>. And of course you can use regex.</p>
-
-<p>Then there are some more "special" ways of searching in the current file:</p>
-
-<ul>
-<li>Hop to the next occurence of the word under cursor <code>*</code></li>
-<li>Hop to the previous occurence of the word under cursor <code>#</code></li>
-<li>Hop to the next method <code>]]</code></li>
-<li>Hop to the previous method <code>[[</code></li>
-<li>Hop to the definition of a variable under cursor <code>gd</code> (goto definition)</li>
-</ul>
-
-<h2 id="searching-for-arbitrary-text-in-the-current-project">Searching for arbitrary text in the current project</h2>
-
-<p>I use <code>ag</code> as my main code search engine. It's a great command line tool to search codebases really fast. I use it on the command line, as well as in Vim, to replace <code>:vimgrep</code> with something faster. It's also the basis for some more interesting stuff, which I'll talk about later.</p>
-
-<p>You'll need to have the <code>ag</code> binary for your operating system installed, using e.g. <code>brew install ag</code>. Check if it works by searching your codebase for a class, e.g. <code>ag HttpKernelInterface</code>.</p>
-
-<p>Install the <code>Ack.vim</code> plugin, that you can find <a href="https://github.com/mileszs/ack.vim">here</a>. Then set the default search engine for the plugin to <code>ag</code> in your <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" Ack -&gt; Ag
-if executable('ag')
-    let g:ackprg = 'ag --vimgrep'
-endif
-</code></pre>
-
-<p>Open Vim in your codebase's working directory and try it there, e.g. <code>:Ack HttpKernelInterface</code>. This should jump straight to the first match found.</p>
-
-<p>The problem with this is that you don't have a visual representation of what else was found. Luckily, and much like <code>:vimgrep</code>, <code>:Ack</code> fills the quickfix list with matches, so you can use <code>:cwindow</code> to show matches (and see also <code>:cnext</code>, <code>:cprev</code>, <code>:cclose</code>). If you want your quicklist to open automatically if anything was found you can add this to your <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" Automatically open &amp; close quickfix window
-autocmd QuickFixCmdPost [^l]* nested cwindow
-</code></pre>
-
-<h2 id="searching-for-methods-or-classes">Searching for methods or classes</h2>
-
-<p>Now this is where it gets interesting, and where people somewhat underestimate Vim. Using an external application to generate an index of your project's "tags" (classes, interfaces, methods, variables, etc), which Vim can interpret, it provides jumping to all these things and back! This is great. How to set it up?</p>
-
-<p>You'll need to have the <code>ctags</code> binary for your operating system installed, using e.g. <code>brew install ctags</code>. Check if it works by issueing this command <code>ctags --version</code>. I created a config file for it in my <code>$HOME</code> directory, called <code>.ctags</code> with this in it:</p>
-
-<pre><code class="ctags">--recurse=yes
---tag-relative=yes
---exclude=.git
---exclude=composer.phar
---exclude=*.js
---exclude=*.vim
---langmap=php:.engine.inc.module.theme.install.php
---PHP-kinds=+cfi-vj
-</code></pre>
-
-<p>The line with <code>--PHP-kinds</code> tells <code>ctags</code> to index classes, functions, interfaces, but not variables or javascript functions. You can tune this to your likings.</p>
-
-<p>If you now use <code>ctags</code> from the command line to generate the tags file for your project, using <code>ctags -R .</code>, a file that Vim can interpret, called <code>tags</code> will be created.</p>
-
-<ul>
-<li>You can now open Vim on a tag like so <code>vim -t HttpKernelInterface</code></li>
-<li>Or search for that tag from within Vim <code>:tag HttpKernelInterface</code></li>
-<li>Or jump to the tag under the cursor: <code>&lt;C-]&gt;</code> or <code>&lt;C-$&gt;</code> depending on keyboard layout</li>
-<li>if you jumped to some tags and you want to jump back, use <code>&lt;C-t&gt;</code></li>
-</ul>
-
-<p>Of course there are <a href="https://github.com/ludovicchabant/vim-gutentags">plugins</a> to manage your <code>tags</code> files for you.</p>
-
-<h2 id="finding-implementations-of-interfaces%2C-child-classes">Finding implementations of interfaces, child classes</h2>
-
-<p>So this is where the aforementioned <code>Ack</code> magic comes in handy, as it's not default Vim functionality, and I didn't find a plugin to do these things either. I basically just created some functions that find PHP implementations of an interface, and PHP subclassses of a class. I just put them in my <code>.vimrc</code>, but I'm planning on creating a very simple plugin for them.</p>
-
-<pre><code class="vim">" PHP Find Implementations
-function! PhpImplementations(word)
-    exe 'Ack "implements.*' . a:word . ' *($|{)"'
-endfunction
-
-" PHP Find Subclasses
-function! PhpSubclasses(word)
-    exe 'Ack "extends.*' . a:word . ' *($|{)"'
-endfunction
-
-noremap &lt;Leader&gt;fi :call PhpImplementations('&lt;cword&gt;')&lt;CR&gt;
-noremap &lt;Leader&gt;fe :call PhpSubclasses('&lt;cword&gt;')&lt;CR&gt;
-</code></pre>
-
-<p>As you can see, I added mappings to execute them for the word under cursor (<code>&lt;cword&gt;</code>). These key mappings should probably be done inside the PHP <code>augroup</code> we created in the previous post.</p>
-
-<h2 id="finding-usages-of-a-method">Finding usages of a method</h2>
-
-<p>Pretty much in the same spirit of the Vim functions I wrote to find implementations of an interface, I also wrote such a function to find usages of a method, which I also just added to my <code>.vimrc</code>:</p>
-
-<pre><code class="vim">" PHP Find Usage
-function! PhpUsage(word)
-    exe 'Ack "::' . a:word . '\(|&gt;' . a:word . '\("'
-endfunction
-
-noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
-</code></pre>
-
-<h2 id="wrapping-up">Wrapping up</h2>
-
-<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to <a href="/blog/2017/03/15/vim-ide-quality-control">the next episode</a>!</p>
 ]]></content>
         </entry>
     </feed>

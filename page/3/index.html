@@ -103,6 +103,166 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/09/22/using-decorators-for-debugging">Using decorators for debugging</a></h1>
+        </header>
+        <div>
+            <p>When you're writing SOLID code, you probably hide some implementation details behind interfaces in many parts of your codebase. In this post, we'll talk about an HTTP client, which is hidden behind an interface. The exact implementation we use doesn't matter. It could be a simple cURL call, or we could be using a more advance package like <a href="https://github.com/guzzle/guzzle/">Guzzle</a> or <a href="https://github.com/kriswallsmith/Buzz">Buzz</a>. In any case, our application knows only about the <code>HttpClient</code> interface that it defined, like this.</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+interface HttpClient
+{
+    /**
+     * @param Request $request An HTTP Request
+     *
+     * @throws ClientException if the request failed
+     *
+     * @return Response a response instance
+     */
+    public function execute(Request $request): Response;
+}
+</code></pre>
+
+<p>Our code will ask the <code>HttpClient</code> implementation to <code>execute()</code> a <code>Request</code> and expects a <code>Response</code> if the call succeeded, or a <code>ClientException</code> if something unexpected happens.</p>
+
+<p>The cool thing about this, is that our whole codebase needs to only know about this one interface, and not about the specific package that we're going to use. Plus, we can use another (fake) implementation of the <code>HttpClient</code> interface during testing.</p>
+
+<h2 id="decorators">Decorators</h2>
+
+<p>Now let's say that we want our application to make all HTTP calls with a certain User-Agent header. We don't want to go into our code and change every occurrence of <code>new Request</code> to also include that specific header. This is where decorators come in. We can "wrap" the <code>HttpClient</code> instance in a shell that acts as if it's the original <code>HttpClient</code>, but just takes the incoming <code>Request</code> and adds that header to it, and then passes on the call to the wrapped <code>HttpClient</code>. Like this:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+final class ClientWithUserAgent implements HttpClient
+{
+    private $wrappedClient;
+    private $userAgentString;
+
+    public function __construct(HttpClient $wrappedClient, $userAgentString = 'Coffee Bot 1.0')
+    {
+        $this-&gt;wrappedClient = $wrappedClient;
+        $this-&gt;userAgentString = (string) $userAgentString;
+    }
+
+    public function execute(Request $request): Response
+    {
+        $request = $request-&gt;withHeader('User-Agent', $this-&gt;userAgentString);
+
+        return $this-&gt;wrappedClient-&gt;execute($request);
+    }
+}
+</code></pre>
+
+<p>Creating an instance looks something like this:</p>
+
+<pre><code>&lt;?php
+
+$httpClient = new ClientWithUserAgent(
+    new ClientCurl(),
+    'ROBOCOP'
+);
+</code></pre>
+
+<p>As this Decorator also implements the same <code>HttpClient</code> interface, the application doesn't even know this is happening, because from the outside it looks and behaves exactly the same. This change essentially now is a change in the configuration file of our Dependency Injection Container, no other files needed to be changed to make this happen.</p>
+
+<h2 id="using-decorators-for-investigation">Using decorators for investigation</h2>
+
+<p>Now, if we want to investigate the requests and responses that we get from a service while the application is running, e.g. when an unidentified bug is happening, we could do it with a decorator. The rest of the application won't know about it and should just keep on working as usual, while we get logs of the data that we want:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+final class LoggingClient implements HttpClient
+{
+    private $wrappedClient;
+    private $logger;
+
+    public function __construct(HttpClient $wrappedClient, LoggerInterface $logger)
+    {
+        $this-&gt;wrappedClient = $wrappedClient;
+        $this-&gt;logger = $logger;
+    }
+
+    public function execute(Request $request): Response
+    {
+        $this-&gt;logger-&gt;debug('request', $request);
+
+        $response = $this-&gt;wrappedClient-&gt;execute($request);
+
+        $this-&gt;logger-&gt;debug('response', $response);
+
+        return $response;
+    }
+}
+</code></pre>
+
+<p>The request and response are logged in our logs now, and they look good to us, but we still haven't found what we're looking for and we want to see if the requests our app is making work from the command line using <code>curl</code>. What if we made our application also log the complete curl commands? Then we could just copy paste them in our terminal to test them locally.</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CoffeeRun;
+
+final class CurlCommandLoggingClient implements HttpClient
+{
+    private $wrappedClient;
+    private $logger;
+
+    public function __construct(HttpClient $wrappedClient, LoggerInterface $logger)
+    {
+        $this-&gt;wrappedClient = $wrappedClient;
+        $this-&gt;logger = $logger;
+    }
+
+    public function execute(Request $request): Response
+    {
+        $method = $request-&gt;getMethod();
+        $url = $request-&gt;getUrl();
+        $params = $request-&gt;getParams();
+        $headers = $request-&gt;getHeaders();
+
+        $curlString = 'curl';
+        $curlString .= ' --' . strtolower($method);
+
+        foreach ($params as $key =&gt; $value) {
+            $curlString .= ' --data "' . $key . '=' . $value . '"';
+        }
+
+        foreach ($headers as $key =&gt; $value) {
+            $curlString .= ' --header "' . $key . '=' . $value . '"';
+        }
+
+        $curlString .= ' "' . $url . '"';
+
+        $this-&gt;logger-&gt;debug('curl command', $curlString);
+
+        return $this-&gt;client-&gt;execute($request);
+    }
+}
+</code></pre>
+
+<p>Of course, this is an oversimplified way of building the <code>curl</code> command, but this will help you debug your HTTP calls by copy/pasting them to your terminal! Easy as that, and still no changes to the existing code. It takes one line to change it, and one line to delete and bring it back to production values.</p>
+
+<h2 id="concerns">Concerns</h2>
+
+<ul>
+<li>Liskov Substition Principle: It's very important that our decorators still adhere to the original contract of the wrapped instance (in this case the <code>HttpClient</code> interface). If the decorator would produce another return value, or take different method parameters, it wouldn't work.</li>
+<li>Applying a decorator that logs a lot of data in production might have an impact on your host. This is just an example of using your existing interfaces to create some plug &amp; play debugging solutions. If you do something like this in production, use the same caution as with other changes in production.</li>
+</ul>
+
+<p>That's it! Have fun.</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                        <a href="/blog/tags/Decorators" class="tag">Decorators</a>                        <a href="/blog/tags/Bug%20fixing" class="tag">Bug fixing</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/09/15/nordicjs">A trip to Nordic.js ✈️</a></h1>
         </header>
         <div>
@@ -250,114 +410,6 @@ Not something that I would choose on a multi-track conference but super glad I s
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                        <a href="/blog/tags/Code%20Smells" class="tag">Code Smells</a>                        <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                        <a href="/blog/tags/Git" class="tag">Git</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/08/21/simple-rules-for-simpler-code">5 simple rules for simpler code</a></h1>
-        </header>
-        <div>
-            <p>We as developers care about simple code. Simple code makes it easier to read and debug code which will allow you to build new features and fix bugs faster.</p>
-
-<p>In this blogpost I would like to explain a few simple rules to get simpler code. The code examples will be written in PHP and are therefore more suited to procedural programming languages.</p>
-
-<h2 id="1.-avoid-else">1. Avoid else</h2>
-
-<p>This is probably my favourite rule. Avoiding else can drastically improve the readability of your code. For example:</p>
-
-<pre><code class="php">if ($isAllowedToReadAutomationRecipes) {
-  $automationRecipes = $this-&gt;repository-&gt;getByAccountId($accountId);
-} else {
-  $automationRecipes = [];
-}
-</code></pre>
-
-<p>You can almost always simplify this to:</p>
-
-<pre><code class="php">$automationRecipes = [];
-if ($isAllowedToReadAutomationRecipes) {
-  $automationRecipes = $this-&gt;repository-&gt;getByAccountId($accountId);
-}
-</code></pre>
-
-<p>Look ma, no else!</p>
-
-<h2 id="2.-use-early-returns">2. Use early returns</h2>
-
-<p>Early returns are a nice way to simplify code. Using early returns goes hand in hand with avoiding else. For example:</p>
-
-<pre><code class="php">class PostController
-{
-    public function delete()
-    {
-        $post = $this-&gt;repository-&gt;getById($postId);
-        if ($post) {
-            if ($isConfirmed) {
-                $user-&gt;deletePost($post);
-                $success = $this-&gt;repository-&gt;persist($post);
-                if ($success) {
-                    return $this-&gt;success('The post was successfully deleted');
-                } else {
-                    return $this-&gt;error('Something went wrong.');
-                }
-            } else {
-                return $this-&gt;confirm('Are you sure you want to delete this post?');
-            }
-        } else {
-            return $this-&gt;error('The post was not found.');
-        }
-    }
-}
-</code></pre>
-
-<p>It's really hard to see the flow of the code, don't you think? Let's refactor the example to use early returns:</p>
-
-<pre><code class="php">class PostController
-{
-    public function delete()
-    {
-        $post = $this-&gt;repository-&gt;getById($postId);
-        if ($post === null) {
-            return $this-&gt;error('The post was not found.');
-        }
-        if ($isConfirmed === false) {
-            return $this-&gt;confirm('Are you sure you want to delete this post?');
-        }
-
-        $user-&gt;deletePost($post);
-        $success = $this-&gt;repository-&gt;persist($post);
-        if ($success === false) {
-            return $this-&gt;error('Something went wrong. Try again.');
-        }
-
-        return $this-&gt;success('The post was successfully deleted');
-    }
-}
-</code></pre>
-
-<p>What do you prefer? I surely prefer the latter. Early returns keep the level of indentation low and make the happy path of the code visible.</p>
-
-<h2 id="3.-use-meaningful-variables-names">3. Use meaningful variables names</h2>
-
-<p>If you abbreviate the names of variables you probably don't have a good IDE (autocompletion). It might make sense to use abbreviations while writing some quick code but it will eventually shoot you in the back when you need to fix a bug. You'll lose valuable time by deciphering the code.</p>
-
-<h2 id="4.-avoid-code-comments">4. Avoid code comments</h2>
-
-<p>Each time you're commenting code you're failing to express yourself. This rule goes hand in hand with meaningful variable names. Code comments can get outdated and nothing is as damaging as lies and misinformation. The code is the only source of truth. If you find yourself writing a code comment think of ways to make it clear in the code by extracting variables and functions with meaningful names. Sometimes a well placed comment can be helpful. They'll likely explain the why while the code explains the what/how.</p>
-
-<h2 id="5.-follow-a-consistent-coding-standard">5. Follow a consistent coding standard</h2>
-
-<p>Following a consistent coding standard makes sure all code is formatted in the same way. Which makes it easier to read code because you expect it to be formatted in a specific way. For PHP this is <a href="http://www.php-fig.org/psr/psr-2/">PSR-2</a>. I don't like every rule in <a href="http://www.php-fig.org/psr/psr-2/">PSR-2</a> but it doesn't matter as long as everyone writes the same code. Please don't invent your own coding standard. It's a good practice to <a href="http://cs.sensiolabs.org/">lint and fix</a> coding style automatically.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>I hope these simple rules will inspire you to leave the campground cleaner than you found it. Which rules do you think are important? Leave a comment (on disqus they are allowed)! If you want to know more, <a href="https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882">Clean Code</a> is good read.</p>
-
-<p>"Avoiding else" is a rule from <a href="https://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf">Object Calisthenics</a>. If you want to become a better developer, read it.</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/2" class="left">Newer Posts</a>        <a href="/page/4" class="right">Older Posts</a>    </nav>
