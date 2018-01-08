@@ -3,11 +3,11 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-01-08T09:12:00+00:00</updated>
+    <updated>2018-01-08T09:15:37+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
-            <title type="html"><![CDATA[On the fly API&#039;s using Xinetd]]></title>
+            <title type="html"><![CDATA[On-the-fly API&#039;s using Xinetd]]></title>
             <link href="/blog/2018/01/08/xinetd-APIs"/>
             <updated>2018-01-08T10:00:00+00:00</updated>
             <id>/blog/2018/01/08/xinetd-APIs</id>
