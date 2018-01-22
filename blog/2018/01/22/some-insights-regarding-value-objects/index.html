@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Home &mdash; CX Social Dev Blog</title>
+        <title>Some insights regarding Value Objects &mdash; CX Social Dev Blog</title>
         <meta charset="utf-8">
         <meta name="theme-color" content="#ffffff">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <meta name="robots" content="noindex, follow">
-                <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+            <meta name="robots" content="index, follow">
+        <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
         <link href="/css/style.css" rel="stylesheet" type="text/css" />
         <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
         <!--[if lt IE 9]>
@@ -103,8 +103,24 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
-            <h1><a href="/blog/2018/01/22/some-insights-regarding-value-objects">Some insights regarding Value Objects</a></h1>
+            <h1>Some insights regarding Value Objects</h1>
         </header>
+
+        <div class="post-details">
+                        <div class="author-avatar">
+                <img src="https://www.gravatar.com/avatar/37d852cb5b9e8d571fa295feb0b4a3cc" alt="Toon Daelman avatar" />
+            </div>
+                                    <div class="author-name">
+                Toon Daelman
+            </div>
+                        <div class="post-publish-date">
+                on
+                <time class="post-publish-date" datetime="2018-01-22T15:00:00+00:00" pubdate>
+                    <span class='month'>Jan</span> <span class='day'>22nd</span> <span class='year'>2018</span>
+                </time>
+            </div>
+        </div>
+
         <div>
             <p>We've been using Value Objects more and more over the years, and although there's a lot of info out there, there are some things that we found particularly interesting to talk about in a blog post.</p>
 
@@ -447,302 +463,47 @@ final class LineSegment
 <p>So, these were our take-aways after introducing Value Objects into our codebase. Did we forget something?</p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                        <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                        </p>
+
+        <hr />
+
+                    <p class="categories">
+                <strong>Categories:</strong>
+                                <a href="/blog/categories/PHP">PHP</a>                            </p>
+                            <p class="tags">
+                <strong>Tags:</strong>
+                                    <a href="/blog/tags/PHP" class="tag">PHP</a>                                    <a href="/blog/tags/Development" class="tag">Development</a>                                    <a href="/blog/tags/OOP" class="tag">OOP</a>                                    <a href="/blog/tags/SOLID" class="tag">SOLID</a>                                    <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                                    <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                                    <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                            </p>
+        
+                    <nav class="article">
+                <ul>
+                                                                <li>Previous: <a class="previous" href="/blog/2018/01/08/xinetd-APIs" title="On-the-fly API&#039;s using Xinetd"><span class="title">On-the-fly API&#039;s using Xinetd</span></a></li>
+                                    </ul>
+            </nav>
             </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/01/08/xinetd-APIs">On-the-fly API&#039;s using Xinetd</a></h1>
-        </header>
-        <div>
-            <p>As developers, we often rely on exposing services in our software as an HTTP
-API. Traditionally, our code would be executed from within a webserver
-container. For example, PHP apps might run in
-<a href="https://httpd.apache.org/">Apache</a>, or Java apps might run in
-<a href="https://tomcat.apache.org/">Tomcat</a>.</p>
 
-<p>In modern apps that strive to be self-contained, you might add a webserver
-library and handle requests directly in your code instead.
-<a href="http://www.tornadoweb.org">Tornado</a> for Python,
-<a href="https://golang.org/pkg/net/http/">net/http</a> for Golang,
-<a href="http://puma.io/">Puma</a> for Ruby or <a href="https://www.eclipse.org/jetty/">Jetty</a> for
-JVM languages are examples of libraries for this.</p>
 
-<p>Any of these options are typically fine, but sometimes you just want something
-much, much simpler. Fortunately, it turns out Linux already comes with
-everything you need. First, we need a problem to solve though.</p>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'engagor-dev-blog'; // required: replace example with your forum shortname
+
+
+    
+    
+    
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the
+    <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+</noscript>
 
-<p>At CX Social we deal with a lot of data. We need to do some maintenance work in
-order to keep this data relevant and efficient. What we don't want is to
-interfere with the processing we do for our users. We'd rather err on the side
-of caution and only run these maintenance jobs when we are sure that servers
-aren't currently experiencing high loads. One way to know is by looking at load
-averages.</p>
-
-<p>Let's build a simple HTTP API that tells us whether a server is currently busy
-or not.</p>
-
-<p>The tools we'll use here are <code>xinetd</code> and plain old <code>bash</code>. Xinetd is a
-replacement for the original <code>inetd</code>. This is old software. The <a href="https://github.com/xinetd-org/xinetd">GitHub
-mirror</a> of Xinetd has a history going 15
-years back. It is simple: it lets you write a server program where you only
-need to care about the output. All the other details, like networking, logging,
-access control, are taken care of.</p>
-
-<p>First, we'll have to install Xinetd which nowadays isn't installed by default:</p>
-
-<pre><code class="bash">$ apt-get install xinetd  # on debian
-$ pacman -S xinetd        # on arch
-$ yum -y install xinetd   # on those other distros
-</code></pre>
-
-<p>Next, we'll need to do some configuration. I added following line to my
-<code>/etc/services</code>:</p>
-
-<pre><code>load_avg   9876/tcp
-</code></pre>
-
-<p>Then I added a file <code>/etc/xinet.d/load_avg</code> with the following contents:</p>
-
-<pre><code>service load_avg
-{
-  flags = REUSE
-  socket_type = stream
-  protocol = tcp
-  port = 9876
-  wait = no
-  user = nobody
-  server = /data/load_avg
-  log_on_failure += USERID
-  disable = no
-}
-</code></pre>
-
-<p>Some comments here. The <code>service load_avg</code> maps to what I added in
-<code>/etc/services</code>, the <code>server = ...</code> will be the script that will be called when
-a connection is made.</p>
-
-<p>So, let's write the script itself. We'll be using plain bash. If the load
-average is fine we'll return a <code>200 OK response</code>. If not, we'll return a <code>503
-Service Unavailable</code> instead.</p>
-
-<pre><code class="bash">#!/bin/bash
-
-http_response() {
-  local http_code="$1"
-  local message="$2"
-
-  local length=${#message}
-
-  echo -en "${http_code}\r\n"
-  echo -en "Content-Type: text/plain\r\n"
-  echo -en "Content-Length: ${length}\r\n"
-  echo -en "\r\n"
-  echo -en "${message}"
-  echo -en "\r\n"
-}
-
-http_200() {
-  http_response "HTTP/1.1 200 OK" "200; $1"
-}
-
-http_503() {
-  http_response "HTTP/1.1 503 Service Unavailable" "503; $1"
-}
-
-load_average=$(uptime | awk '{print $8 * 100}')
-acceptable_load=$(nproc | awk '{print $1 * 100}')
-
-if [ ${load_average} -gt ${acceptable_load} ]; then
-  http_503 ${load_average}
-else
-  http_200 ${load_average}
-fi
-</code></pre>
-
-<p>Let's break it up piece by piece. We start with a couple of functions that help
-us construct a valid HTTP response. We can get the length of a value in bash
-with <code>${#variable}</code> which is how we set the <code>length</code> variable. For the
-rest, nothing particularly interesting is going on.</p>
-
-<p>Next, we get the load average from the <code>uptime</code> command. Bash doesn't have good
-support for float values so we get around that by multiplying with <code>100</code> which
-lets us compare with <code>-gt</code> later on.</p>
-
-<p>To calculate the acceptable load we cut some corners and simplify things a
-little bit: <code>nproc</code> gives us the number of cores in the system so we use that
-again multiplying by <code>100</code> so we can compare. So a <code>4</code> core machine would
-accept a load of <code>4</code>. I don't love that solution but as an example it's good
-enough. In a real setup you would add a little bit of extra margin.</p>
-
-<p>After reloading Xinetd you can use any web client to access
-<a href="http://hostname:9876">http://hostname:9876</a>.</p>
-
-<h2 id="improvements">Improvements</h2>
-
-<p>There are a couple of things we can do to improve upon this. We can extract the
-<code>http_*</code> functions so we can easily source them as a library in other scripts.
-We could render the response as JSON to make parsing the result neater on the
-client side.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>Often we really do require the capabilities of a full-blown development
-environment to implement the features we need. In other situations we can get
-away with a simple approach. Xinetd has been around for a very long time and
-hides exactly the complexities we'd rather avoid having to deal with.</p>
-
-<p>This technique can be used in interesting combinations. For example, you could
-use it with <a href="http://www.haproxy.org/">HAProxy</a> health checks by using a
-<code>httpchk</code> rather than a regular <code>tcp-check</code>. Say you have HAProxy in front of
-an <a href="https://www.elastic.co/">Elasticsearch</a> cluster to automatically spread
-searches. You could use our <code>load_avg</code> script above to exclude busy nodes
-automatically.  Or say you have a MySQL setup with a handful of replicas for
-reading and you use HAProxy to load balance these. You can write a simple
-script that checks the <code>seconds_behind_master</code> value and excludes replicas that
-are lagging.</p>
-
-<p>Give it a try, see what you can come up with, and share your experiences in the
-comment section below!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Webserver" class="tag">Webserver</a>                        <a href="/blog/tags/Xinetd" class="tag">Xinetd</a>                        <a href="/blog/tags/API" class="tag">API</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/12/22/our-favorite-content-of-2017">Our Favorite Content Of 2017</a></h1>
-        </header>
-        <div>
-            <p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. We asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
-
-<h1 id="people-%26-community">People &amp; Community</h1>
-
-<p><img src="https://media.giphy.com/media/pTY9EtkiakcU/giphy.gif" alt="The Blind" /></p>
-
-<h3 id="in-the-kingdom-of-the-blind"><a href="https://bridgetkromhout.com/blog/in-the-kingdom-of-the-blind/">In The Kingdom Of The Blind</a></h3>
-
-<blockquote>
-  <p>As you can imagine, there are plenty of reasons that under-represented people in tech aren't going to jump the second your event's CFP opens. But submissions will pour in nonetheless... from the folks whose (devrel/marketing/field engineer) vendor job includes public speaking (and on-the-job time to fine-tune their abstracts). And spoiler alert, many of them will fall into the majority cis het white male demographic.</p>
-</blockquote>
-
-<p>Ursula recommends this for the great ideas on how to improve diversity at conferences, and an excellent candid overview of the reasons why underrepresented minorities do not speak at or attend tech conferences as often.</p>
-
-<h3 id="we-fired-our-top-talent.-best-decision-we-ever-made."><a href="https://medium.freecodecamp.org/we-fired-our-top-talent-best-decision-we-ever-made-4c0a99728fde">We fired our top talent. Best decision we ever made.</a></h3>
-
-<blockquote>
-  <p>Your team's strength is not a function of the talent of individual members. It's a function of their collaboration, tenacity, and mutual respect.</p>
-</blockquote>
-
-<p>Hans likes this because when there's a smart guy around, you'll find it tempting to just go ask him instead of trying to do the research yourself and learn something new. He doesn't like developers who think that they know everything. They don't. In fact, you'll never know everything. Sharing knowledge and working together as a team is something we should focus on instead. Each person has their own strengths.</p>
-
-<h3 id="the-myth-of-the-%22cool-tech-girl%22"><a href="https://code.likeagirl.io/the-myth-of-the-cool-tech-girl-7868fa63769b">The myth of the "cool tech girl"</a></h3>
-
-<blockquote>
-  <p>Don't reward good behaviour with scotch, don't tap kegs at 12pm, and don't host video game or ping pong tournaments. Don't call your employees "rockstars". Shine a harsh light on some of your internal slack channels. If your company doesn't perpetuate the kind of culture that makes women feel like they need to be 'one of the boys', they won't need the coping mechanism of the "cool tech girl".</p>
-</blockquote>
-
-<p>Ursula has seen this type of behaviour from women in tech in many countries. "I would almost go as far as to say that if you don't fit into the 'cool tech girl' box, it's difficult to survive. As a woman in tech I think you have a responsibility to speak up for diversity in the industry. It's really hard, and it's great to hear viewpoints that identify that."</p>
-
-<h1 id="engineering">Engineering</h1>
-
-<p><img src="https://pbs.twimg.com/media/C3G2KYAWYAEj9km.jpg" alt="Stickies on the wall kind of engineering" /></p>
-
-<h3 id="transactions-redefined"><a href="https://www.youtube.com/watch?v=NqKNqIsB8_k">Transactions Redefined</a></h3>
-
-<blockquote>
-  <p>Event Storming is my pizza, you can add your toppings, as long as it's not database tables or pineapple</p>
-</blockquote>
-
-<p>Toon recommends this because Alberto Brandolini is a great speaker, and his vision on Domain Driven Design and software development in general is really clear and deep. He goes a long way to understand the business, and the problems associated with the business. He goes out of his way to find out how he can solve them.</p>
-
-<h3 id="modern-software-over-engineering-mistakes"><a href="https://medium.com/@rdsubhas/10-modern-software-engineering-mistakes-bc67fbef4fc8">Modern Software Over-Engineering Mistakes</a></h3>
-
-<blockquote>
-  <p>Duplication is better than the wrong abstraction</p>
-</blockquote>
-
-<p>Jurriaan likes this because too much of technical literature is about how you should start doing things, and how everything you’ve done in the past is probably wrong. This article captures the essence of trying to architect real-life development projects.</p>
-
-<h3 id="kubernetes-at-github"><a href="https://githubengineering.com/kubernetes-at-github/">Kubernetes at Github</a></h3>
-
-<blockquote>
-  <p>With a self-service application provisioning workflow in place, SRE can devote more of our time to delivering infrastructure products to the rest of the engineering organisation in support of our best practices, building toward a faster and more resilient GitHub experience for everyone.</p>
-</blockquote>
-
-<p>Jeffry liked this because everybody and their dog are rethinking how to do platform now that the technology to do so has matured. This write-up from Github offers a great look into the decision making and preparation that goes into gradually building up confidence. He gives the author additional points for sprinkling snippets of inspiration throughout the post: e.g. chatops-rpc to make our hubot do more than offer drunk commentary, Kelsey Hightower's "Kubernetes the hard way" which he has set his mind to working through over the holidays, flipper and mission control bar and simulating kernel panics with sysrq-trigger.</p>
-
-<h1 id="think-differently">Think Differently</h1>
-
-<p><img src="https://media.giphy.com/media/ximCDHoBlx4UU/giphy.gif" alt="Excel on mobile, epic experience" /></p>
-
-<h3 id="exploring-time"><a href="https://www.youtube.com/watch?v=Zm95cYAtAa8">Exploring Time</a></h3>
-
-<blockquote>
-  <p>It’s impossible to know if this talk started on time</p>
-</blockquote>
-
-<p>Toon recommends this because Eric Evans uses his own Domain Driven Design to explore better ways to think about time. Very inspiring. He shows how "generic" subdomains of software development are not generally "solved problems", and how you can make a difference there, as a programmer.</p>
-
-<h3 id="clojure-for-the-brave-and-true"><a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a></h3>
-
-<blockquote>
-  <p>Humor has a certain relationship to seriousness. It is appropriate to joke about serious things, but only after the right amount of time has passed. For example, it took years for me to be able to crack a smile when I remember my favorite uncle’s last words: "Hold my beer".</p>
-  
-  <p>I'm so proud of you, little teapot. You've run your first Clojure program! Not only that, but you've become acquainted with the REPL, one of the most important tools for developing Clojure software. Amazing!</p>
-</blockquote>
-
-<p>Niek thinks this book is a hilarious and down-to-earth explanation of yet another programming language to learn. Clojure is a Lisp dialect and will melt your brain with its elegance!</p>
-
-<h3 id="you-suck-at-excel"><a href="https://www.youtube.com/watch?v=0nbkaYsR94c">You Suck At Excel</a></h3>
-
-<blockquote>
-  <p>This material is -I guess- kinda like basic to intermediate, but for you all it's going to be stupid hard, so try paying attention and don't slow me down.</p>
-</blockquote>
-
-<p>Toon enjoyed this because this guy solves real world problems for people using Excel. "I learned a 100 things from seeing him work like this." He knows Excel inside out.</p>
-
-<h3 id="lemme-tell-you-about-the-most-successful-program-i-ever-wrote"><a href="https://twitter.com/revin/status/940700486117634050">Lemme tell you about the most successful program I ever wrote</a></h3>
-
-<h6 id="twitter-thread">(twitter thread)</h6>
-
-<blockquote>
-  <p>It was the first time I genuinely understood that users don't care how something is implemented; they care how it makes them feel</p>
-</blockquote>
-
-<p>Hans thinks we put so much effort in making our application code clean and future-proof while just a tiny poorly written program (that works) can make someone really happy. Software can seem magical for some people.</p>
-
-<h1 id="big-data">Big Data</h1>
-
-<p><img src="https://media.giphy.com/media/xydGi3nSTlkqs/giphy.gif" alt="Ben Stiller as Big Data" /></p>
-
-<h3 id="wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen%3F"><a href="https://medium.com/@ransbottyn/wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen-e25a703668b4">Wat als Tomorrowland alles met je data en privacy zou mogen doen?</a></h3>
-
-<blockquote>
-  <p>Zo'n bracelet (gelinkt aan je identiteitsbewijs trouwens) is dus een mes dat aan twee kanten snijdt: handig, maar misschien ook de reden waarom u de volgende keer net iets minder "gewenst" bent.</p>
-</blockquote>
-
-<p>Jasper likes this because it's incredible how much data a festival organizer track and save about you with just a bracelet, and also, what they (can possibly) do with it.</p>
-
-<h3 id="deep-learning-for-chatbots"><a href="http://www.wildml.com/2016/07/deep-learning-for-chatbots-2-retrieval-based-model-tensorflow/">Deep Learning for Chatbots</a></h3>
-
-<blockquote>
-  <p>Generative models are an active area of research, but we’re not quite there yet. If you want to build a conversational agent today your best bet is most likely a retrieval-based model.</p>
-</blockquote>
-
-<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for CX Social.</p>
-
-<p>Those were our highlights for 2017, let us know if we missed something!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/Frontend" class="tag">Frontend</a>                        <a href="/blog/tags/Diversity" class="tag">Diversity</a>                        <a href="/blog/tags/People" class="tag">People</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        </p>
-            </article>
-    <nav class="pager">
-                <a href="/page/2" class="right">Older Posts</a>    </nav>
                 </div>
             </div>
         </div>
