@@ -363,6 +363,73 @@ footer.container {
     background: linear-gradient(90deg,#00b4d0,#266782);
 }
 
+.post-listing {
+    margin-bottom: 20px;
+}
+
+.categories-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.categories-grid > li {
+    float: left;
+    position: relative;
+    width: 100%;
+    height: 100px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    padding: 0;
+    -webkit-transition: 0.25s linear;
+    -moz-transition: 0.25s linear;
+    -o-transition: 0.25s linear;
+    transition: 0.25s linear;
+}
+.categories-grid > li:hover {
+    background: #e5e8ed;
+}
+.categories-grid > li > h3 {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 80px;
+    text-align: center;
+}
+.categories-grid > li > .post-count {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: #abbac3;
+    text-align: center;
+}
+.categories-grid > li > h3 > a {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+@media (min-width: 767px) {
+    .categories-grid > li {
+        width: 48%;
+    }
+    .categories-grid > li:nth-child(2n) {
+        margin-right: 0;
+    }
+}
+
+@media (min-width: 980px) {
+    .categories-grid > li {
+        width: 23%;
+    }
+    .categories-grid > li:nth-child(2n) {
+        margin-right: 20px;
+    }
+    .categories-grid > li:nth-child(4n) {
+        margin-right: 0;
+    }
+}
 
 @media (max-width: 767px) {
     .mainContent {
@@ -427,6 +494,7 @@ footer.container {
         padding: 15px !important;
     }
 }
+
 @media (min-width: 980px) {
     body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
