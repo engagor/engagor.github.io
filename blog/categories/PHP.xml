@@ -3,9 +3,157 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/categories/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-01-23T14:13:10+00:00</updated>
+    <updated>2018-02-05T12:51:09+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Wishful Development]]></title>
+            <link href="/blog/2018/02/05/wishful-development"/>
+            <updated>2018-02-05T14:00:00+00:00</updated>
+            <id>/blog/2018/02/05/wishful-development</id>
+            <content type="html"><![CDATA[<p>In this blogpost I'm going to try and explain the main way I solve problems by delaying things that I don't want to think about at the time that I'm solving them. I use "wishful thinking" for that (hence the title of this blog post), but I guess this could also be called <em>Interface Discovery</em>. Let's look at a specific problem:
+For the CoffeeRun application that we used as an example in <a href="/blog/2017/11/15/refactoring-to-collections/">previous posts</a>, we want to make a tool that compares prices of a given drink between a list of shops in our neighbourhood. What's interesting to us is the comparison logic:</p>
+
+<ol>
+<li>We ask the tool to find the cheapest {drink of a certain type}</li>
+<li>The tool shows us the cheapest coffee shop in our neighbourhood where we can get a {drink of that type}</li>
+</ol>
+
+<h2 id="wishful-thinking">Wishful Thinking</h2>
+
+<p>Let's write that in a very naïve way: I wish there was a comparison class with a method to find the cheapest drink.</p>
+
+<pre><code class="php">final class CompareCoffeeShops
+{
+    public function findCheapest(Drink $drink): CoffeeShop
+    {
+        $cheapestShop = array_reduce(
+            $this-&gt;shops,
+            function($cheapestShop, $nextShop) use ($drink) {
+                $cheapestPrice = $cheapestShop-&gt;getPriceFor($drink);
+                $nextPrice = $nextShop-&gt;getPriceFor($drink);
+
+                if ($nextPrice-&gt;lowerThan($cheapestPrice)) {
+                    return $nextShop;
+                }
+
+                return $cheapestShop;
+            },
+            reset($this-&gt;shops)
+        );
+
+        return $cheapestShop;
+    }
+}
+</code></pre>
+
+<p>We just made assumptions about <em>everything</em>. Let's see.</p>
+
+<ol>
+<li><p>We assumed there was a <code>Drink</code> class. There wasn't, so let's make it happen:</p>
+
+<pre><code class="php">final class Drink
+{
+    private $name;
+
+    public function __construct(string $name)
+    {
+        $this-&gt;name = $name;
+    }
+}
+</code></pre></li>
+<li><p>We assumed there was a list of coffee shops, oops, there was no such thing. Let's fix that by adding a constructor parameter:</p>
+
+<pre><code class="php">final class CompareCoffeeShops
+{
+    private $shops;
+
+    public function __construct(array $shops)
+    {
+        $this-&gt;shops = $shops;
+    }
+
+    public function findCheapest(Drink $drink): CoffeeShop
+    {
+        // ...
+    }
+}
+</code></pre></li>
+<li><p>Each <code>CoffeeShop</code> in the list seems to have a <code>getPriceFor(Drink)</code> method which returns a <code>Price</code>...</p>
+
+<pre><code class="php">interface CoffeeShop
+{
+    public function getPriceFor(Drink $drink): Price;
+}
+</code></pre></li>
+<li><p>Talking about <code>Price</code>, how do prices look? They certainly seem to have a <code>lowerThan(Price)</code> method</p>
+
+<pre><code class="php">final class Price
+{
+    private $price;
+
+    public function __construct(int $price)
+    {
+        $this-&gt;price = $price;
+    }
+
+    public function lowerThan(Price $other): bool
+    {
+        return $this-&gt;price &lt; $other-&gt;price;
+    }
+}
+</code></pre></li>
+</ol>
+
+<p>Let's write a test too:</p>
+
+<pre><code class="php">&lt;?php
+
+use PHPUnit\Framework\TestCase;
+
+class CompareCoffeeShopsTest extends TestCase
+{
+    public function test_it_finds_the_cheapest_cappuccino()
+    {
+        $shop1 = $this-&gt;createMock('CoffeeShop');
+        $shop1-&gt;method('getPriceFor')-&gt;willReturn(new Price(200));
+
+        $shop2 = $this-&gt;createMock('CoffeeShop');
+        $shop2-&gt;method('getPriceFor')-&gt;willReturn(new Price(195));
+
+        $shop3 = $this-&gt;createMock('CoffeeShop');
+        $shop3-&gt;method('getPriceFor')-&gt;willReturn(new Price(250));
+
+        $shops = array($shop1, $shop2, $shop3);
+
+        $comparisons = new CompareCoffeeShops($shops);
+
+        $cheapest = $comparisons-&gt;findCheapest(new Drink('Cappuccino'));
+
+        $this-&gt;assertEquals($shop2, $cheapest);
+    }
+}
+</code></pre>
+
+<p>Wait, what? The test passes! (I know, I know, it's not complete...)</p>
+
+<h2 id="why-is-this-great%3F">Why is this great?</h2>
+
+<p>We just tested and implemented most of the comparison logic through "wishful thinking" (although in a very naïve way). The details about looking up the real prices of a cappuccino in all shops in our neighbourhood were left out. We didn't need them! We actually wrote the most important thing first, how to compare drinks in multiple shops and find the cheapest place to buy our cappuccino! Nothing even hints at trying to scrape their websites (god forbid) and we can actually give up on that temporarily and implement a hardcoded list of shops and their inventories until we find the courage needed to scrape coffeeshop websites 😱!</p>
+
+<p>In fact, look at the interface that we need to implement to get this to work:</p>
+
+<pre><code class="php">interface CoffeeShop
+{
+    public function getPriceFor(Drink $drink): Price;
+}
+</code></pre>
+
+<p>It's so simple! We could implement this however we want, e.g. have some shops with hardcoded inventories, others with webscrapers. None of our code needs to know about the specific implementation of the shops, it already knows about the available methods. And as a bonus, we didn't write any code we didn't need.</p>
+
+<p>Think about it: if you can imagine it, it already works. Have fun programming! 🖖</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Some insights regarding Value Objects]]></title>
             <link href="/blog/2018/01/22/some-insights-regarding-value-objects"/>
