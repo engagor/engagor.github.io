@@ -3,9 +3,110 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/categories/IDE.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-02-05T12:51:09+00:00</updated>
+    <updated>2018-02-21T08:32:09+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Why Vim Doesn&#039;t Need Multiple Cursors]]></title>
+            <link href="/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors"/>
+            <updated>2018-02-21T10:00:00+00:00</updated>
+            <id>/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors</id>
+            <content type="html"><![CDATA[<p>We're back with a Vim Special! A lot of people that get to the point where they want to learn Vim often start looking for a plugin to do something like the Multiple Cursors feature that they're used to from other text editors. This post will try to show you why you don't need this feature in Vim.</p>
+
+<p>Let's jump right in with the first basic feature that Vim provides us to make life simple.</p>
+
+<h2 id="%60%3B.%60-repeat-movement%2C-repeat-command"><code>;.</code> Repeat movement, Repeat command</h2>
+
+<p>As you know, almost all <em>movements</em> in Vim can be done efficiently and fast, using e.g. <code>h j k l w b e f t F T ( ) { }</code>. The cool thing is, Vim remembers the last movement you made and makes it available to repeat immediately using the <code>;</code> key. If you just jumped to the last word beginning with <code>I</code> by typing <code>FI</code>, you can jump back even more by using <code>;</code>.</p>
+
+<p>Next up is the <em>command</em>. For instance, we want to lowercase the letter we jumped to: <code>gul</code>. Vim also remembers this command and makes it available using the dot operator: <code>.</code>.</p>
+
+<p>You can now combine those to repeat movement and action over multiple occurences.</p>
+
+<h2 id="%60%2F%60-search%2C-%60gn%60-text-object%2C-dot-operator"><code>/</code> Search, <code>gn</code> Text object, Dot operator</h2>
+
+<p>If you want to combine the power of Vim's search with the dot operator, that's perfectly possible. Let's say you searched for <code>/ruby\|php\|python\|javascript\|java</code> and want to replace some of the matches with <code>Haskell</code>. Just jump to the first one using <code>n</code> and replace it using the <code>gn</code> text object, like this: <code>cgn</code> type <code>Haskell</code> and then hit <code>&lt;Esc&gt;</code>. Since <code>cgn</code> is a command, we can now use <code>.</code> the dot operator to repeat that. If you want to skip an occurrence or undo what you did you can use <code>n</code> and <code>u</code> respectively.</p>
+
+<h2 id="search-%26-replace-with-confirm">Search &amp; Replace with confirm</h2>
+
+<ul>
+<li><p>You most probably know you can search &amp; replace in your whole file by using</p>
+
+<pre><code>:%s/search goes here/replace goes here/g
+</code></pre></li>
+<li><p>or in a visual selection by making a visual selection using <code>v</code> or <code>V</code> and then typing</p>
+
+<pre><code>:s/search goes here/replace goes here/g
+</code></pre>
+
+<p>you should see something like <code>:'&lt;, '&gt;s/search/replace/</code> which is again some Vim magic. <code>'&lt;</code> points to the beginning of the last visual select, and <code>'&gt;</code> to the end of it. The <code>,</code> that separates them is making a range of it. It's like saying <code>:1,5</code> if you want to do something with the first 5 lines of your file.</p></li>
+</ul>
+
+<p>Now, this is really nice, but you might want to skip some matches, or you want to be sure that you don't replace matches that you didn't want to replace. You can use the <code>c</code> modifier to your search, and Vim will ask you to confirm every match using <code>y</code> or <code>n</code>. E.g.:</p>
+
+<pre><code>:'&lt;, '&gt;s/search/replace/gc
+</code></pre>
+
+<h2 id="visual-block-mode">Visual Block mode</h2>
+
+<p>If the things you want to change are neatly aligned with each other, you can make a Visual Block change:</p>
+
+<pre><code>point 1
+point 2
+point 3
+point 4
+</code></pre>
+
+<p>I want to uppercase those first <code>p</code>'s of the words, and I want to make this an enumeration using <code>-</code>. Let's make a Visual Block selection in the beginning of those lines using <code>0&lt;C-v&gt;3j</code> and then use <code>U</code> to uppercase the first letters. Then <code>gv</code> to go back to the visual select and <code>I- &lt;Esc&gt;</code> to make the enumeration happen.</p>
+
+<pre><code>- Point 1
+- Point 2
+- Point 3
+- Point 4
+</code></pre>
+
+<h2 id="macro%27s">Macro's</h2>
+
+<p>If you need to do more than just a few inserts or updates on multiple lines or more complicated edits in json, for instance, Vim's macro's can really come in handy. They allow you to "record" a sequence of edits and movements, and replay that sequence as many times as you want. Let's see how we can use this to convert some copied JSON to a PHP array:</p>
+
+<pre><code class="json">{
+    "foo": "bar",
+    "baz": "qux",
+    "vim": "sexy",
+    "rest": "lazy"
+}
+</code></pre>
+
+<ul>
+<li>We'll start with the cursor on the first <code>:</code> of the file. We'll start recording to register <code>i</code> by pressing <code>qi</code>.</li>
+<li>As a standard practice, and to increase our chances to reproduce this on the following lines, the first thing I do is move the cursor to the first character of the row: <code>^</code>.</li>
+<li>Then, we'll replace the double quotes we're on with single quotes using <code>r'</code> and look for the next one using <code>f"</code>. This can now be repeated using the dot operator <code>.</code> and the repeat movement operator <code>;</code>.</li>
+<li>We return to the <code>:</code> by using <code>F:</code> and replace it with <code>=&gt;</code> by issuing this command: <code>cw =&gt;</code></li>
+<li>We did all changes to the first line, so we can end our recording by going to the next line using <code>j</code> (again, to increase our chances of repeating this easily), and ending the recording with <code>q</code>.</li>
+<li>repeating this is as easy as executing the register <code>i</code> to which we recorded this using <code>@i</code>. You can also use a multiplyer if you need to do this 100 times: <code>100@i</code>.</li>
+</ul>
+
+<p>We now have</p>
+
+<pre><code>{
+    'foo' =&gt; 'bar',
+    'baz' =&gt; 'qux',
+    'vim' =&gt; 'sexy',
+    'rest' =&gt; 'lazy'
+}
+</code></pre>
+
+<p>Changing the brackets to PHP's <code>array()</code> should be easy.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hear you: you now need to learn 5 different ways of doing replaces which could all be solved by using multiple cursors. But all of these have some great benefits. They are deliberately executed on a piece of text, you can undo them easily (and one by one), and they are faster and less error-prone than multiple cursors (when you know them by heart). Also, Vim's autocompletion keeps working when using them, as opposed to all multiple cursor plugins that I've tried.</p>
+
+<p>That said, I still have <a href="https://github.com/terryma/vim-multiple-cursors">a multiple cursors plugin</a> installed, for when I'm doing pair programming.</p>
+
+<p>Have fun Vimming! 🎹⌨️</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Vim As A PHP IDE - Debugging]]></title>
             <link href="/blog/2017/10/02/vim-ide-debugging"/>

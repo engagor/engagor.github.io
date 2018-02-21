@@ -2,9 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc></loc>
-    <lastmod>2018-02-05</lastmod>
+    <lastmod>2018-02-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+    <url>
+    <loc>/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors</loc>
+    <lastmod>2018-02-21T10:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
     <url>
     <loc>/blog/2018/02/05/wishful-development</loc>
