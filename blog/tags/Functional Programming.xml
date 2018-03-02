@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Functional Programming.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-03-02T10:33:51+00:00</updated>
+    <updated>2018-03-02T10:48:13+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -13,7 +13,7 @@
             <id>/blog/2018/03/02/lambda-lists-to-wrap-failure</id>
             <content type="html"><![CDATA[<p><strong>This is the first post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Hang tight for more.</strong></p>
 
-<h2 id="readablility">Readablility</h2>
+<h2 id="readability">Readability</h2>
 
 <p>When we're reading code, one of the most important blocking factors is cognitive overhead. Minimize it, and your code instantly becomes easier to read and understand. Or is it the other way 'round? After some years of playing with functional programming languages in my spare time, I saw some things that functional programming does great in this field. One of them involves lists.</p>
 
