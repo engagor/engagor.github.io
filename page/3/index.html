@@ -103,6 +103,275 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/12/01/parse-your-way-through-errors">Parse Your Way Through Errors</a></h1>
+        </header>
+        <div>
+            <p>In our code base there's a static function to log an error:</p>
+
+<pre><code class="php">final class Debug
+{
+    public static function error(
+        $msg,
+        $obj = false,
+        $category = 'user',
+        $type = 'user'
+    ) {
+        // ...
+    }
+}
+</code></pre>
+
+<pre><code class="php">Debug::error('API call failed', $response, 'facebook', 'api-call-failed');
+</code></pre>
+
+<p>The first argument is a message, the second argument can be a value of any type, the third and fourth argument are used for grouping errors by category and type. This is very useful for analytics.</p>
+
+<p>Ignore for a second that we should use the <a href="http://www.php-fig.org/psr/psr-3/">PSR-3: Logger Interface</a>. We could easily move this <code>Debug</code> class behind an implementation of that interface if we ever wanted to.</p>
+
+<h2 id="the-problem">The problem</h2>
+
+<p>Did you notice that the category and type have a default value <code>"user"</code>? I don't know when or why this was introduced in our code base but it's bad. When the category and type is not set the errors will get lost in the category <code>"user"</code> and the type <code>"user"</code>.</p>
+
+<p>How can we find these <code>Debug::error</code> statements without a category and a type? We don't want to ignore these errors.</p>
+
+<h2 id="use-a-regex%3F">Use a regex?</h2>
+
+<p>Maybe... If the arguments are simple:</p>
+
+<p><img src="/images/2017-12-01-parse-your-way-through-errors/regex.png" alt="RegExr experiment to find Debug::error's" /></p>
+
+<p>(<a href="http://regexr.com/3h8th">RegExr</a>)</p>
+
+<p>Note that this is the first regex that came to my mind. We could improve that regex but let's not waste our time. We need a better way. We need something that truly understands our code.</p>
+
+<h2 id="nikita%27s-php-parser-to-the-rescue">Nikita's PHP Parser to the rescue</h2>
+
+<blockquote>
+  <p>A parser is useful for <a href="http://en.wikipedia.org/wiki/Static_program_analysis">static analysis</a>, manipulation of code and basically any other application dealing with code programmatically. A parser constructs an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax Tree</a> (AST) of the code and thus allows dealing with it in an abstract and robust way.</p>
+  
+  <p><a href="https://github.com/nikic/PHP-Parser/blob/master/doc/0_Introduction.markdown">https://github.com/nikic/PHP-Parser</a></p>
+</blockquote>
+
+<p>Parsing a programming language is hard. This package makes it easy!</p>
+
+<p>Let's see how we can use the package to find <code>Debug::error</code>'s without a category and type.</p>
+
+<ul>
+<li><code>$ mkdir parser-demo</code></li>
+<li><code>$ cd parser-demo</code></li>
+<li><code>$ composer require nikic/php-parser</code></li>
+</ul>
+
+<p>This package is bundled with a binary (<code>php-parse</code>) to play with the parser:</p>
+
+<pre><code class="sh">$ vendor/bin/php-parse '&lt;?php Debug::error("message", $var);'
+====&gt; Code &lt;?php Debug::error("message", $var);
+==&gt; Node dump:
+array(
+    0: Expr_StaticCall(
+        class: Name(
+            parts: array(
+                0: Debug
+            )
+        )
+        name: error
+        args: array(
+            0: Arg(
+                value: Scalar_String(
+                    value: message
+                )
+                byRef: false
+                unpack: false
+            )
+            1: Arg(
+                value: Expr_Variable(
+                    name: var
+                )
+                byRef: false
+                unpack: false
+            )
+        )
+    )
+)
+</code></pre>
+
+<p>The abstract syntax tree is a list of statements. The first statement is an <a href="https://github.com/nikic/PHP-Parser/blob/master/lib/PhpParser/Node/Expr/StaticCall.php"><code>Expr_StaticCall</code></a>. A static call has a <code>class</code>, <code>name</code> and <code>args</code>. If the count of <code>args</code> is not equal to 4 we know that the category and/or type is missing. Let's translate that in some code:</p>
+
+<p><code>$ touch find.php</code></p>
+
+<p>First, we'll need a way to find all PHP files in our code base:</p>
+
+<pre><code class="php">&lt;?php
+
+$directory = $argv[1];
+$directoryIterator = new RecursiveDirectoryIterator($directory);
+$directoryIterator = new RecursiveIteratorIterator($directoryIterator);
+$files = new RegexIterator($directoryIterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+</code></pre>
+
+<p>We can now pass a path to our code base as a command line argument:</p>
+
+<p><code>$ php find.php ~/path/to/code</code></p>
+
+<p>Secondly, we'll need a way to traverse all nodes of an AST. Meet the <a href="https://github.com/nikic/PHP-Parser/blob/master/doc/2_Usage_of_basic_components.markdown#node-traversation"><code>NodeTraverser</code></a>.</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// ... directory iterator
+
+$parser = (new ParserFactory)-&gt;create(ParserFactory::PREFER_PHP7);
+
+foreach ($files as $file) {
+    try {
+        $code = file_get_contents($file[0]);
+        $statements = $parser-&gt;parse($code);
+        $traverser = new NodeTraverser;
+        $traverser-&gt;addVisitor(new NameResolver);
+        $traverser-&gt;addVisitor(new DebugErrorVisitor($file[0]));
+        $traverser-&gt;traverse($statements);
+    } catch (Error $e) {
+        echo 'Parse Error: ', $e-&gt;getMessage(), PHP_EOL;
+    }
+}
+</code></pre>
+
+<p>The <code>NodeTraverser</code> will call a method (<code>enterNode</code>) on each visitor for each node in the AST. Let's implement <code>DebugErrorVisitor</code>:</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Node;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\Node\Expr\StaticCall;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final class DebugErrorVisitor extends NodeVisitorAbstract
+{
+    private $file;
+
+    public function __construct($file)
+    {
+        $this-&gt;file = $file;
+    }
+
+    public function enterNode(Node $node)
+    {
+        if (!$node instanceof StaticCall) {
+            return;
+        }
+
+        if ($node-&gt;class instanceof Name &amp;&amp; $node-&gt;class-&gt;toString !== 'Debug') {
+            return;
+        } elseif ($node-&gt;class !== 'Debug') {
+            return;
+        }
+
+        if ($node-&gt;name !== 'error') {
+            return;
+        }
+
+        if (count($node-&gt;args) !== 4) {
+            echo "Found {$node-&gt;class}::{$node-&gt;name} in {$this-&gt;file} on line {$node-&gt;getLine()}", PHP_EOL;
+        }
+    }
+}
+
+// ... directory iterator
+</code></pre>
+
+<ol>
+<li>If <code>$node</code> is not a <code>StaticCall</code> we'll return.</li>
+<li>If the class name is not <code>Debug</code> we'll return (The class will be a <code>Name</code> instance if it's in a namespace).</li>
+<li>If the name of the method we're calling is not <code>error</code> we'll return.</li>
+<li>If the count of arguments is not 4, we found an <code>Debug::error</code> we're interested in.</li>
+</ol>
+
+<p>Let's put it all together:</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Node;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final class DebugErrorVisitor extends NodeVisitorAbstract
+{
+    private $file;
+
+    public function __construct($file)
+    {
+        $this-&gt;file = $file;
+    }
+
+    public function enterNode(Node $node)
+    {
+        if (!$node instanceof StaticCall) {
+            return;
+        }
+
+        if ($node-&gt;class instanceof Name &amp;&amp; $node-&gt;class-&gt;toString !== 'Debug') {
+            return;
+        } elseif ($node-&gt;class !== 'Debug') {
+            return;
+        }
+
+        if ($node-&gt;name !== 'error') {
+            return;
+        }
+
+        if (count($node-&gt;args) !== 4) {
+            echo "Found {$node-&gt;class}::{$node-&gt;name} in {$this-&gt;file} on line {$node-&gt;getLine()}", PHP_EOL;
+        }
+    }
+}
+
+$directory = $argv[1];
+$directoryIterator = new RecursiveDirectoryIterator($directory);
+$directoryIterator = new RecursiveIteratorIterator($directoryIterator);
+$files = new RegexIterator($directoryIterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+
+$parser = (new ParserFactory)-&gt;create(ParserFactory::PREFER_PHP7);
+
+foreach ($files as $file) {
+    try {
+        $code = file_get_contents($file[0]);
+        $statements = $parser-&gt;parse($code);
+        $traverser = new NodeTraverser;
+        $traverser-&gt;addVisitor(new NameResolver);
+        $traverser-&gt;addVisitor(new DebugErrorVisitor($file[0]));
+        $traverser-&gt;traverse($statements);
+    } catch (Error $e) {
+        echo 'Parse Error: ', $e-&gt;getMessage(), PHP_EOL;
+    }
+}
+</code></pre>
+
+<p>We can now call the script with a path to our code base and it will find <code>Debug::error</code>'s without a category and a type accurately. Perhaps we can use this script in our Jenkins setup to let a build fail if there's a <code>Debug::error</code> without a category and type.</p>
+
+<p>We could take this one step further and ask for a category and type on the command line (using <code>readline</code>) and replace it automatically but I'll leave that as an exercise for the reader. 😏</p>
+
+<p>Happy programming!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/AST" class="tag">AST</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/11/15/refactoring-to-collections">Refactoring to Collections</a></h1>
         </header>
         <div>
@@ -634,116 +903,6 @@ return combinedResult.promise();
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Javascript" class="tag">Javascript</a>                        <a href="/blog/tags/Performance" class="tag">Performance</a>                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                        <a href="/blog/tags/Deferred" class="tag">Deferred</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/10/16/coding-web-design-tips">Tips on coding a web design close to reality</a></h1>
-        </header>
-        <div>
-            <p>Throughout my experience as a front end developer I've often heard designers complain about how developers fail to code a design accurately. Many designers ask their developers to make a webpage "pixel perfect". Queue developers rolling their eyes! Here I'll share my tips for bringing your code as close as possible to that psd.</p>
-
-<h2 id="setting-expectations">Setting expectations</h2>
-
-<p>One of the most impactful changes you can do is to make sure to set expectations with your designer. At the start it's a good idea to get your team together and figure out which parts of the design will or will not work in reality. If you're lucky you'll have an amazing product team that has done this for you. In reality the developer usually comes up with a technical pain point in the design. For example, if you find that some of the design won't translate in all browsers, you could come up with a compromise with your designer. For example, our gallery of canned responses uses a masonry layout. This layout doesn't look as perfect in Internet Explorer, but we were willing to put up with this because it meant we could use CSS for the masonry layout and not require to use a heavy javascript polyfill plugin. This slight compromise means our website will not have to forsake any page speed for the design.</p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-modern.png" alt="Canned responses gallery view in a modern browser" /><br />
-<small>CX Social Inbox canned responses gallery view in a modern browser</small>
-</center></p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-ie.png" alt="Canned responses gallery view in a Internet Explorer" /><br />
-<small>CX Social Inbox canned responses gallery view in Internet Explorer 10</small>
-</center></p>
-
-<p>Ideally you only use javascript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a javascript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra javascript to your website. It's important to weigh up where your javascript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
-
-<h2 id="useful-plugins">Useful Plugins</h2>
-
-<p>Let's check out some plugins that can come in handy to keep you and your designer happy!</p>
-
-<h3 id="pixel-perfect">Pixel Perfect</h3>
-
-<p>Designers love when I use <a href="https://addons.mozilla.org/en-US/firefox/addon/pixel-perfect/">this plugin</a>! You can pop in your design image and then overlay it on top of your webpage. Then you can use the inspector to adjust margins and padding in between elements.</p>
-
-<p>My main advice when using this plugin is to be careful about fonts. Use the plugin to measure the distance <em>between</em> elements rather than making the entire page a perfect copy of the PSD. This is because the font in a PSD will not look the same in every browser. The most important part is getting the line height, margins and padding correct between the text and the next element. In this example you can see that the "Canned Responses" title is not the exact same in the PSD layover.</p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/canned-responses-pixel-perfect.png" alt="Using the pixel perfect plugin" /><br />
-<small>Using the pixel perfect plugin</small>
-</center></p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/canned-responses-pixel-perfect-inspector.png" alt="Using the pixel perfect plugin with the inspector" /><br />
-<small>Using the pixel perfect plugin and adjusting padding to match the overlay mockup</small>
-</center></p>
-
-<h3 id="ruler-plugin">Ruler plugin</h3>
-
-<p>A good <a href="https://addons.mozilla.org/en-US/firefox/addon/page-ruler/">ruler plugin</a> is great for when you want to maintain a consistent guttering/spacing between elements in your design. It also prevents arguments with the designer over whether some spacing is 15px or 20px ;)</p>
-
-<p>Usually spacing between elements is consistent in the design - so if you do spot an inconsistency, ask your designer. E.g. If your webpage <code>h1</code> headings are normally 16px, but in the design they are 15px, this could be a slight mistake!</p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/using-the-ruler-plugin.png" alt="Using the ruler plugin" /><br />
-<small>Using a ruler plugin to maintain consistent spacing</small>
-</center></p>
-
-<h2 id="useful-software">Useful software</h2>
-
-<h3 id="zeplin">Zeplin</h3>
-
-<p><a href="https://zeplin.io/">Zeplin</a> is a program that acts as a middleman between developers and designers. The designer can input the font sizes, spacing between elements and content for the developer to copy. This prevents the developer having to guess the dimensions of the design. It also generates a little bit of CSS - although in my experience you don't end up using most of that. Some CSS properties like <code>box-shadow</code> are useful. It's also useful for translating hex colours.</p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/spacing-between-elements-in-zeplin.png" alt="Examining the spacing between elements in Zeplin" /><br />
-<small>Examining the spacing between elements in Zeplin</small>
-</center></p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/font-details-in-zeplin.png" alt="Examining font details in Zeplin" /><br />
-<small>Examining font details in Zeplin</small>
-</center></p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/css-rules-in-zeplin.png" alt="Examining CSS rules in Zeplin" /><br />
-<small>Examining CSS rules in Zeplin</small>
-</center></p>
-
-<h3 id="invision">Invision</h3>
-
-<p><a href="https://www.invisionapp.com/">Invision</a> is an alternative to Zeplin, but it also includes project mockups. The inspector tool is very similar to Zeplin, so it depends on if you need software for your mockups in addition to software for being the "middleman" between developers and designers.</p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/using-invision-inspector.png" alt="Using the inspector in Invision" /><br />
-<small>Using the inspector in Invision</small>
-</center></p>
-
-<h3 id="using-the-browser-inspector">Using the browser inspector</h3>
-
-<p>This is the most important tool of course! Using the up and down keys in the CSS rules section you can tweak the width of elements until you get it right. Editing the styles in the inspector is where I spend most of my time when coding a design.</p>
-
-<p><center>
-<img src="/images/2017-10-16-coding-web-design-tips/using-the-inspector.png" alt="Using the browser inspector" /><br />
-<small>Using the browser inspector</small>
-</center></p>
-
-<p>Utilize the device toolbar to get a preview of your site in other devices. When you're working on compatibility for Internet Explorer, I recommend utilizing the inspector on IE11 (or the latest IE version) as it will give you a preview back to IE8. The inspector in IE11 for compatibility mode gives you a pretty good idea of what something looks like in older versions. When you've done enough tweaking using the compatibility mode you can double check the <em>real</em> IE browser in a tool like <a href="https://www.browserstack.com/" target="_blank">Browserstack</a>. If you don't have BrowserStack you can <a href="https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/" target="_blank">download a VM on modern.ie</a>.</p>
-
-<h2 id="always-account-for-responsiveness">Always account for responsiveness</h2>
-
-<p>It's likely your designer will give you a separate spec for the mobile version of your webpage. If they don't, you can ask them if they'd like you to improvise one. But whether you have a mockup for mobile or not, you should always write your code to be responsive. Responsive design is a whole other article, but <a href="https://www.w3schools.com/css/css_rwd_intro.asp" target="_blank">I recommend reading up on it</a>!</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>As a frontend developer you need to work amicably with your designer to find the best technical solutions when implementing a design. Graceful degredation and user experience are the most important, but hopefully these tips also help you to come to a solution that works well for both the designer and the developer!</p>
-
-<p>What developer tools do you use to help you implement designs?</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/HTML" class="tag">HTML</a>                        <a href="/blog/tags/CSS" class="tag">CSS</a>                        <a href="/blog/tags/UX" class="tag">UX</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/2" class="left">Newer Posts</a>        <a href="/page/4" class="right">Older Posts</a>    </nav>
