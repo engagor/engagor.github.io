@@ -112,7 +112,7 @@
 
 <p>When we're reading code, one of the most important blocking factors is cognitive overhead. Minimize it, and your code instantly becomes easier to read and understand. Or is it the other way 'round? After some years of playing with functional programming languages in my spare time, I saw some things that functional programming does great in this field. One of them involves lists.</p>
 
-<p>As you might know, lists are among the most important datastructures in functional programming, if not the most important. There's even a whole family of programming languages that took their name from them. Looking at you <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> 😘! But today, we'll use <a href="https://www.haskell.org/">Haskell</a> as an example.</p>
+<p>As you might know, lists are among the most important datastructures in functional programming, if not the most important. There's even a whole family of programming languages that took their name from them. Looking at you <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> 😘!</p>
 
 <p>Let's dive in with a typical legacy PHP method discovered in the wild:</p>
 
@@ -257,7 +257,7 @@ function words($string)
 
 <p>You saw me wrap the empty string in an array, to be able to use <code>array_bind</code>. This is an act of "providing context". The array serves as a context wrapper for results of the chained functions <code>words</code> and <code>chars</code>. We'll always get our result as an array. If anywhere in the process something fails, we get an empty array, otherwise we get an array with value(s) in it.</p>
 
-<p>I must admit, this doesn't look really great. Let's take a look at how this works in Haskell.</p>
+<p>I must admit, this doesn't look really great. Let's take a look at how this works in <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
 
 <p>Now, this is the equivalent of what we wrote earlier on in PHP:</p>
 
