@@ -103,6 +103,158 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/02/05/wishful-development">Wishful Development</a></h1>
+        </header>
+        <div>
+            <p>In this blogpost I'm going to try and explain the main way I solve problems by delaying things that I don't want to think about at the time that I'm solving them. I use "wishful thinking" for that (hence the title of this blog post), but I guess this could also be called <em>Interface Discovery</em>. Let's look at a specific problem:
+For the CoffeeRun application that we used as an example in <a href="/blog/2017/11/15/refactoring-to-collections/">previous posts</a>, we want to make a tool that compares prices of a given drink between a list of shops in our neighbourhood. What's interesting to us is the comparison logic:</p>
+
+<ol>
+<li>We ask the tool to find the cheapest {drink of a certain type}</li>
+<li>The tool shows us the cheapest coffee shop in our neighbourhood where we can get a {drink of that type}</li>
+</ol>
+
+<h2 id="wishful-thinking">Wishful Thinking</h2>
+
+<p>Let's write that in a very naïve way: I wish there was a comparison class with a method to find the cheapest drink.</p>
+
+<pre><code class="php">final class CompareCoffeeShops
+{
+    public function findCheapest(Drink $drink): CoffeeShop
+    {
+        $cheapestShop = array_reduce(
+            $this-&gt;shops,
+            function($cheapestShop, $nextShop) use ($drink) {
+                $cheapestPrice = $cheapestShop-&gt;getPriceFor($drink);
+                $nextPrice = $nextShop-&gt;getPriceFor($drink);
+
+                if ($nextPrice-&gt;lowerThan($cheapestPrice)) {
+                    return $nextShop;
+                }
+
+                return $cheapestShop;
+            },
+            reset($this-&gt;shops)
+        );
+
+        return $cheapestShop;
+    }
+}
+</code></pre>
+
+<p>We just made assumptions about <em>everything</em>. Let's see.</p>
+
+<ol>
+<li><p>We assumed there was a <code>Drink</code> class. There wasn't, so let's make it happen:</p>
+
+<pre><code class="php">final class Drink
+{
+    private $name;
+
+    public function __construct(string $name)
+    {
+        $this-&gt;name = $name;
+    }
+}
+</code></pre></li>
+<li><p>We assumed there was a list of coffee shops, oops, there was no such thing. Let's fix that by adding a constructor parameter:</p>
+
+<pre><code class="php">final class CompareCoffeeShops
+{
+    private $shops;
+
+    public function __construct(array $shops)
+    {
+        $this-&gt;shops = $shops;
+    }
+
+    public function findCheapest(Drink $drink): CoffeeShop
+    {
+        // ...
+    }
+}
+</code></pre></li>
+<li><p>Each <code>CoffeeShop</code> in the list seems to have a <code>getPriceFor(Drink)</code> method which returns a <code>Price</code>...</p>
+
+<pre><code class="php">interface CoffeeShop
+{
+    public function getPriceFor(Drink $drink): Price;
+}
+</code></pre></li>
+<li><p>Talking about <code>Price</code>, how do prices look? They certainly seem to have a <code>lowerThan(Price)</code> method</p>
+
+<pre><code class="php">final class Price
+{
+    private $price;
+
+    public function __construct(int $price)
+    {
+        $this-&gt;price = $price;
+    }
+
+    public function lowerThan(Price $other): bool
+    {
+        return $this-&gt;price &lt; $other-&gt;price;
+    }
+}
+</code></pre></li>
+</ol>
+
+<p>Let's write a test too:</p>
+
+<pre><code class="php">&lt;?php
+
+use PHPUnit\Framework\TestCase;
+
+class CompareCoffeeShopsTest extends TestCase
+{
+    public function test_it_finds_the_cheapest_cappuccino()
+    {
+        $shop1 = $this-&gt;createMock('CoffeeShop');
+        $shop1-&gt;method('getPriceFor')-&gt;willReturn(new Price(200));
+
+        $shop2 = $this-&gt;createMock('CoffeeShop');
+        $shop2-&gt;method('getPriceFor')-&gt;willReturn(new Price(195));
+
+        $shop3 = $this-&gt;createMock('CoffeeShop');
+        $shop3-&gt;method('getPriceFor')-&gt;willReturn(new Price(250));
+
+        $shops = array($shop1, $shop2, $shop3);
+
+        $comparisons = new CompareCoffeeShops($shops);
+
+        $cheapest = $comparisons-&gt;findCheapest(new Drink('Cappuccino'));
+
+        $this-&gt;assertEquals($shop2, $cheapest);
+    }
+}
+</code></pre>
+
+<p>Wait, what? The test passes! (I know, I know, it's not complete...)</p>
+
+<h2 id="why-is-this-great%3F">Why is this great?</h2>
+
+<p>We just tested and implemented most of the comparison logic through "wishful thinking" (although in a very naïve way). The details about looking up the real prices of a cappuccino in all shops in our neighbourhood were left out. We didn't need them! We actually wrote the most important thing first, how to compare drinks in multiple shops and find the cheapest place to buy our cappuccino! Nothing even hints at trying to scrape their websites (god forbid) and we can actually give up on that temporarily and implement a hardcoded list of shops and their inventories until we find the courage needed to scrape coffeeshop websites 😱!</p>
+
+<p>In fact, look at the interface that we need to implement to get this to work:</p>
+
+<pre><code class="php">interface CoffeeShop
+{
+    public function getPriceFor(Drink $drink): Price;
+}
+</code></pre>
+
+<p>It's so simple! We could implement this however we want, e.g. have some shops with hardcoded inventories, others with webscrapers. None of our code needs to know about the specific implementation of the shops, it already knows about the available methods. And as a bonus, we didn't write any code we didn't need.</p>
+
+<p>Think about it: if you can imagine it, it already works. Have fun programming! 🖖</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/01/22/some-insights-regarding-value-objects">Some insights regarding Value Objects</a></h1>
         </header>
         <div>
@@ -610,136 +762,6 @@ comment section below!</p>
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Webserver" class="tag">Webserver</a>                        <a href="/blog/tags/Xinetd" class="tag">Xinetd</a>                        <a href="/blog/tags/API" class="tag">API</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/12/22/our-favorite-content-of-2017">Our Favorite Content Of 2017</a></h1>
-        </header>
-        <div>
-            <p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. We asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
-
-<h1 id="people-%26-community">People &amp; Community</h1>
-
-<p><img src="https://media.giphy.com/media/pTY9EtkiakcU/giphy.gif" alt="The Blind" /></p>
-
-<h3 id="in-the-kingdom-of-the-blind"><a href="https://bridgetkromhout.com/blog/in-the-kingdom-of-the-blind/">In The Kingdom Of The Blind</a></h3>
-
-<blockquote>
-  <p>As you can imagine, there are plenty of reasons that under-represented people in tech aren't going to jump the second your event's CFP opens. But submissions will pour in nonetheless... from the folks whose (devrel/marketing/field engineer) vendor job includes public speaking (and on-the-job time to fine-tune their abstracts). And spoiler alert, many of them will fall into the majority cis het white male demographic.</p>
-</blockquote>
-
-<p>Ursula recommends this for the great ideas on how to improve diversity at conferences, and an excellent candid overview of the reasons why underrepresented minorities do not speak at or attend tech conferences as often.</p>
-
-<h3 id="we-fired-our-top-talent.-best-decision-we-ever-made."><a href="https://medium.freecodecamp.org/we-fired-our-top-talent-best-decision-we-ever-made-4c0a99728fde">We fired our top talent. Best decision we ever made.</a></h3>
-
-<blockquote>
-  <p>Your team's strength is not a function of the talent of individual members. It's a function of their collaboration, tenacity, and mutual respect.</p>
-</blockquote>
-
-<p>Hans likes this because when there's a smart guy around, you'll find it tempting to just go ask him instead of trying to do the research yourself and learn something new. He doesn't like developers who think that they know everything. They don't. In fact, you'll never know everything. Sharing knowledge and working together as a team is something we should focus on instead. Each person has their own strengths.</p>
-
-<h3 id="the-myth-of-the-%22cool-tech-girl%22"><a href="https://code.likeagirl.io/the-myth-of-the-cool-tech-girl-7868fa63769b">The myth of the "cool tech girl"</a></h3>
-
-<blockquote>
-  <p>Don't reward good behaviour with scotch, don't tap kegs at 12pm, and don't host video game or ping pong tournaments. Don't call your employees "rockstars". Shine a harsh light on some of your internal slack channels. If your company doesn't perpetuate the kind of culture that makes women feel like they need to be 'one of the boys', they won't need the coping mechanism of the "cool tech girl".</p>
-</blockquote>
-
-<p>Ursula has seen this type of behaviour from women in tech in many countries. "I would almost go as far as to say that if you don't fit into the 'cool tech girl' box, it's difficult to survive. As a woman in tech I think you have a responsibility to speak up for diversity in the industry. It's really hard, and it's great to hear viewpoints that identify that."</p>
-
-<h1 id="engineering">Engineering</h1>
-
-<p><img src="https://pbs.twimg.com/media/C3G2KYAWYAEj9km.jpg" alt="Stickies on the wall kind of engineering" /></p>
-
-<h3 id="transactions-redefined"><a href="https://www.youtube.com/watch?v=NqKNqIsB8_k">Transactions Redefined</a></h3>
-
-<blockquote>
-  <p>Event Storming is my pizza, you can add your toppings, as long as it's not database tables or pineapple</p>
-</blockquote>
-
-<p>Toon recommends this because Alberto Brandolini is a great speaker, and his vision on Domain Driven Design and software development in general is really clear and deep. He goes a long way to understand the business, and the problems associated with the business. He goes out of his way to find out how he can solve them.</p>
-
-<h3 id="modern-software-over-engineering-mistakes"><a href="https://medium.com/@rdsubhas/10-modern-software-engineering-mistakes-bc67fbef4fc8">Modern Software Over-Engineering Mistakes</a></h3>
-
-<blockquote>
-  <p>Duplication is better than the wrong abstraction</p>
-</blockquote>
-
-<p>Jurriaan likes this because too much of technical literature is about how you should start doing things, and how everything you’ve done in the past is probably wrong. This article captures the essence of trying to architect real-life development projects.</p>
-
-<h3 id="kubernetes-at-github"><a href="https://githubengineering.com/kubernetes-at-github/">Kubernetes at Github</a></h3>
-
-<blockquote>
-  <p>With a self-service application provisioning workflow in place, SRE can devote more of our time to delivering infrastructure products to the rest of the engineering organisation in support of our best practices, building toward a faster and more resilient GitHub experience for everyone.</p>
-</blockquote>
-
-<p>Jeffry liked this because everybody and their dog are rethinking how to do platform now that the technology to do so has matured. This write-up from Github offers a great look into the decision making and preparation that goes into gradually building up confidence. He gives the author additional points for sprinkling snippets of inspiration throughout the post: e.g. chatops-rpc to make our hubot do more than offer drunk commentary, Kelsey Hightower's "Kubernetes the hard way" which he has set his mind to working through over the holidays, flipper and mission control bar and simulating kernel panics with sysrq-trigger.</p>
-
-<h1 id="think-differently">Think Differently</h1>
-
-<p><img src="https://media.giphy.com/media/ximCDHoBlx4UU/giphy.gif" alt="Excel on mobile, epic experience" /></p>
-
-<h3 id="exploring-time"><a href="https://www.youtube.com/watch?v=Zm95cYAtAa8">Exploring Time</a></h3>
-
-<blockquote>
-  <p>It’s impossible to know if this talk started on time</p>
-</blockquote>
-
-<p>Toon recommends this because Eric Evans uses his own Domain Driven Design to explore better ways to think about time. Very inspiring. He shows how "generic" subdomains of software development are not generally "solved problems", and how you can make a difference there, as a programmer.</p>
-
-<h3 id="clojure-for-the-brave-and-true"><a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a></h3>
-
-<blockquote>
-  <p>Humor has a certain relationship to seriousness. It is appropriate to joke about serious things, but only after the right amount of time has passed. For example, it took years for me to be able to crack a smile when I remember my favorite uncle’s last words: "Hold my beer".</p>
-  
-  <p>I'm so proud of you, little teapot. You've run your first Clojure program! Not only that, but you've become acquainted with the REPL, one of the most important tools for developing Clojure software. Amazing!</p>
-</blockquote>
-
-<p>Niek thinks this book is a hilarious and down-to-earth explanation of yet another programming language to learn. Clojure is a Lisp dialect and will melt your brain with its elegance!</p>
-
-<h3 id="you-suck-at-excel"><a href="https://www.youtube.com/watch?v=0nbkaYsR94c">You Suck At Excel</a></h3>
-
-<blockquote>
-  <p>This material is -I guess- kinda like basic to intermediate, but for you all it's going to be stupid hard, so try paying attention and don't slow me down.</p>
-</blockquote>
-
-<p>Toon enjoyed this because this guy solves real world problems for people using Excel. "I learned a 100 things from seeing him work like this." He knows Excel inside out.</p>
-
-<h3 id="lemme-tell-you-about-the-most-successful-program-i-ever-wrote"><a href="https://twitter.com/revin/status/940700486117634050">Lemme tell you about the most successful program I ever wrote</a></h3>
-
-<h6 id="twitter-thread">(twitter thread)</h6>
-
-<blockquote>
-  <p>It was the first time I genuinely understood that users don't care how something is implemented; they care how it makes them feel</p>
-</blockquote>
-
-<p>Hans thinks we put so much effort in making our application code clean and future-proof while just a tiny poorly written program (that works) can make someone really happy. Software can seem magical for some people.</p>
-
-<h1 id="big-data">Big Data</h1>
-
-<p><img src="https://media.giphy.com/media/xydGi3nSTlkqs/giphy.gif" alt="Ben Stiller as Big Data" /></p>
-
-<h3 id="wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen%3F"><a href="https://medium.com/@ransbottyn/wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen-e25a703668b4">Wat als Tomorrowland alles met je data en privacy zou mogen doen?</a></h3>
-
-<blockquote>
-  <p>Zo'n bracelet (gelinkt aan je identiteitsbewijs trouwens) is dus een mes dat aan twee kanten snijdt: handig, maar misschien ook de reden waarom u de volgende keer net iets minder "gewenst" bent.</p>
-</blockquote>
-
-<p>Jasper likes this because it's incredible how much data a festival organizer track and save about you with just a bracelet, and also, what they (can possibly) do with it.</p>
-
-<h3 id="deep-learning-for-chatbots"><a href="http://www.wildml.com/2016/07/deep-learning-for-chatbots-2-retrieval-based-model-tensorflow/">Deep Learning for Chatbots</a></h3>
-
-<blockquote>
-  <p>Generative models are an active area of research, but we’re not quite there yet. If you want to build a conversational agent today your best bet is most likely a retrieval-based model.</p>
-</blockquote>
-
-<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for CX Social.</p>
-
-<p>Those were our highlights for 2017, let us know if we missed something!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/Frontend" class="tag">Frontend</a>                        <a href="/blog/tags/Diversity" class="tag">Diversity</a>                        <a href="/blog/tags/People" class="tag">People</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/." class="left">Newer Posts</a>        <a href="/page/3" class="right">Older Posts</a>    </nav>
