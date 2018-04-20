@@ -103,6 +103,110 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/03/15/vim-ide-quality-control">Vim As A PHP IDE - Quality Control</a></h1>
+        </header>
+        <div>
+            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>So it seems that people find it really handy that their IDEs tell them when things are going wrong, and I can't really disagree with that. So let's see how we can get pretty much the same thing in Vim, for PHP.</p>
+
+<ul>
+<li>I need to be warned of syntax errors.</li>
+<li>I need to be warned of unused variables, methods, fields, etc.</li>
+<li>Every language has their own rules for indenting and tabs vs. spaces, and maybe even every project.</li>
+<li>What about coding standards like PSR-2?</li>
+</ul>
+
+<p>Basically I do two things here:</p>
+
+<ol>
+<li>I make sure that my editor is configured correctly for the language and the project, using a simple default configuration in my <code>.vimrc</code> which I overwrite on a project basis using <a href="http://editorconfig.org/">EditorConfig</a>.</li>
+<li>I use some static analysis tools for the other parts.</li>
+</ol>
+
+<h2 id="1.-basic-setup">1. Basic setup</h2>
+
+<h3 id="filetype-plugin">Filetype plugin</h3>
+
+<p>Depending on your taste, you might want to update your PHP filetype plugin in Vim, with a more modern version, for instance if you'd like <code>@param</code> highlighted differently in your PHPDoc blocks. You can find a more up-to-date plugin <a href="https://github.com/StanAngeloff/php.vim">here</a>.</p>
+
+<h3 id="editor-config">Editor Config</h3>
+
+<p>To properly configure my editor, I use the simple snippet in my <code>~/.vim/ftplugin/php.vim</code> that I also posted in the first episode of this blog series:</p>
+
+<pre><code class="vim">" Some basic PSR code style rules
+set tabstop=4           " Tab width
+set softtabstop=4       " Soft tab width
+set shiftwidth=4        " Shift width
+set expandtab           " Use spaces instead of tabs
+</code></pre>
+
+<p>I override this with project settings, using <a href="http://editorconfig.org/">EditorConfig</a>. It's as easy as installing the <a href="https://github.com/editorconfig/editorconfig-vim">EditorConfig plugin</a> for Vim.</p>
+
+<p>In my projects I then have a <code>.editorconfig</code> file that might look like this:</p>
+
+<pre><code class="editorconfig">; This file is for unifying the coding style for different editors and IDEs.
+; More information at http://editorconfig.org
+
+root = true
+
+[**.{php,js,scss,html}]
+charset = utf-8
+indent_size = 4
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+</code></pre>
+
+<h2 id="2.-static-analysis">2. Static Analysis</h2>
+
+<p>On to more interesting stuff, for the rest of our list: syntax errors, coding guideline violations, unused variables, and the like. The cool part of this, is that many of these things are covered by great PHP tools:</p>
+
+<ul>
+<li>syntax errors: <code>php -l</code></li>
+<li>coding guideline violations: <a href="https://pear.php.net/package/PHP_CodeSniffer/">PHP Code Sniffer</a></li>
+<li>unused variables and other possible issues with code: <a href="https://phpmd.org/">PHP Mess Detector</a></li>
+</ul>
+
+<p>Even greater is that there's a great Vim plugin that combines all of these quality control tools into one great automated package: <a href="https://github.com/vim-syntastic/syntastic">Syntastic</a>, and it's fantastically easy to install. Use your Vim package manager, and put some lines into your <code>.vimrc</code> to configure it:</p>
+
+<pre><code class="vim">" Syntastic configuration
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+</code></pre>
+
+<p>Now to configure the PHP specific tools, that I mentioned above, I do it like this:</p>
+
+<pre><code class="vim">" Syntastic configuration for PHP
+let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
+let g:syntastic_php_phpcs_exec = './bin/phpcs'
+let g:syntastic_php_phpcs_args = '--standard=psr2'
+let g:syntastic_php_phpmd_exec = './bin/phpmd'
+let g:syntastic_php_phpmd_post_args = 'cleancode,codesize,controversial,design,unusedcode'
+</code></pre>
+
+<p>This works because the <code>phpcs</code> and <code>phpmd</code> binaries live in a <code>bin/</code> directory inside my project's directory (I installed them using composer). If you have global installs of these tools, you can just leave out these config lines, Syntastic knows where to find them. As we now have the <code>php -l</code> linter as a Syntastic checker, we can remove the <code>autocmd</code> from our <code>.vimrc</code>.</p>
+
+<p>Some screenshots for the visually minded people:</p>
+
+<p><img src="/images/2017-03-15-vim-ide-quality-control/syntax-error.png" alt="Syntax error detection with php -l" /></p>
+
+<p><img src="/images/2017-03-15-vim-ide-quality-control/psr-violation.png" alt="PSR-2 violation" /></p>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>Now I get live feedback about the quality of my code! Great! On to <a href="/blog/2017/04/18/vim-ide-git">the next episode</a>.</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/03/01/batman-chatman">Bug Fixing: Creating Synergy Between Dev and Support</a></h1>
         </header>
         <div>
@@ -378,84 +482,6 @@ noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/01/24/some-tips-for-a-better-git-history">Some tips for a better Git history</a></h1>
-        </header>
-        <div>
-            <p>We're all heavy Git users in the CX Social development team. Honestly, we couldn't survive without it, as some of us are located across the planet, and we also use GitHub as our primary source of information, even when talking to other teams like the "Customer Support" team. Here's some small tips we learned along the way, when it comes to keeping your Git history clean.</p>
-
-<h2 id="%60git-log%60-like-a-boss"><code>git log</code> like a boss</h2>
-
-<p>I personally like to see everything there is to see about my git history. That's why I have an alias for <code>git log</code> that upgrades it with two default flags:</p>
-
-<pre><code class="sh">git log --decorate --name-status
-</code></pre>
-
-<p>The <code>--decorate</code> flag shows ref names next to commits, meaning that you can see where <code>HEAD</code> points, and where your current (and remote) branches are pointing.</p>
-
-<p>The <code>--name-status</code> flag activates the functionality to display which files were changed in that commit, below your commit message. This is great to see what changed in a commit, at first glance.</p>
-
-<h2 id="writing-proper-commit-messages">Writing proper commit messages</h2>
-
-<p>Another great tip, and maybe the best thing you'll take away from this blog post, actually comes from <a href="http://chris.beams.io/posts/git-commit/">another blogpost</a> which talks about writing great <code>git commit</code> messages. If you haven't read that post, go read it now, it's awesome. The main things I took away from it are these:</p>
-
-<ul>
-<li>use a proper text editor (like Vim) for writing your commit messages</li>
-<li>write a commit subject as the first line, which complete this sentence:
-<code>if applied, this commit will...</code></li>
-<li>keep a blank line between the subject and what follows</li>
-<li><strong>always</strong> write a commit body with <strong>what</strong> changed, and <strong>why</strong> you changed it.</li>
-</ul>
-
-<p>If you're too stubborn to write your commit messages using a decent text editor, here's a trick for you: you can use the <code>-m</code> flag on your command line more than once, to create paragraphs, e.g.:</p>
-
-<pre><code class="sh">git commit \
--m "Add a second Hyperdrive as a backup" \
--m "When being followed by an imperial fighter, we want to be able to jump to hyperspace even though our first drive fails." \
--m "We're afraid this might cause some more radiation than expected."
-</code></pre>
-
-<p>But still, really consider using a text editor.</p>
-
-<h2 id="distributed-versioning">Distributed versioning</h2>
-
-<p>Git is a distributed versioning system, which means that it's designed to work offline, without a connection to the remote. We might as well exploit that to have great git history.</p>
-
-<ul>
-<li><code>git checkout</code> your own feature branch to work on something</li>
-<li>don't <code>push</code> or <code>pull</code> while working on your feature. This gives you the advantage that you can <code>amend</code> your commit messages if you made a mistake, or that you can even <code>rebase</code> or <code>squash</code> your commits for clarity.</li>
-<li>when you're done, push your branch. If you're working alone on your feature branch, this will work fine and you're done. If there are other people working on the same branch, don't panic and proceed to the next step</li>
-<li><code>git pull --rebase origin {branch-name}</code> and then push</li>
-</ul>
-
-<p>As I mentioned before, <strong>not</strong> pushing or pulling, and still being able to work is a great feature of git. It means that you can work offline and do everything as if you were the only developer working on a project. You can undo mistakes you made in git, say, you forgot to include a file in a commit. Just <code>git commit --amend</code> it to your liking. Just don't go around and change parts of history that were already pushed.</p>
-
-<p>Now the <code>--rebase</code> part in the <code>git pull</code> step is where it gets interesting. What this does, is undo everything you did since the last time you pulled the branch. Then it pulls from the remote, so that it's a fast-forward without conflicts with 100% certainty. And then it will apply your commits to that. This means that if you changed something, and someone else changed the same thing, you will have a rebase conflict. Which is great! You can now just fix your own conflict, and the history will still be linear! This also means that you will have to fix your own conflicts from now, instead of fixing other people's conflicts. Go on and push your branch when your done.</p>
-
-<h2 id="merging-master-in-your-feature-branch">Merging master in your feature branch</h2>
-
-<p>In analogy with what I said before, you can look at your feature branch as an "isolated" place where you can work on your feature in separation of everything that happens in other branches. Just do what you wanted to do, and never merge any branch into it, or at least minimize the amount of times you merge in case you really really have to.</p>
-
-<p>The advantage this gives you, is great linear history in your feature branch, which <strong>only</strong> applies to that feature, which makes it easy to review or merge into other branches. This is even more true if you use the <code>git pull --rebase</code> feature from the previous tip.</p>
-
-<p>Now, when your feature is ready and there are merge conflicts between your feature branch, and the branch you want to merge it into, e.g. <code>master</code>, you can solve that easily. Merge master in your branch once, and fix your own conflicts. Then merge your branch into master. There are some rebase tricks you can do here to keep linear history too, but I prefer to still merge branches when a feature is done.</p>
-
-<h2 id="further-reading">Further Reading</h2>
-
-<ul>
-<li><a href="http://chris.beams.io/posts/git-commit/">How to Write a Git Commit Message</a></li>
-<li><a href="https://git-scm.com/book/en/v2/Distributed-Git-Distributed-Workflows">GitBook chapter on Distributed Workflows</a></li>
-<li><a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful Git branching model</a></li>
-</ul>
-
-<p>That's it! Enjoy your clean git logs!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Git" class="tag">Git</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/10" class="left">Newer Posts</a>        <a href="/page/12" class="right">Older Posts</a>    </nav>

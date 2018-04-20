@@ -3,9 +3,64 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/UI.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-04-09T15:04:25+00:00</updated>
+    <updated>2018-04-20T08:35:29+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Async Publishing: Making Clients Feel Like They Don’t Have To Wait]]></title>
+            <link href="/blog/2018/04/20/async-publishing"/>
+            <updated>2018-04-20T10:30:00+00:00</updated>
+            <id>/blog/2018/04/20/async-publishing</id>
+            <content type="html"><![CDATA[<p>A few months ago, we were asked whether it was possible to publish posts to hundreds of Facebook Pages at the same time. This use case is not something we had foreseen, the client just has <em>A LOT</em> of owned profiles; one social profile per physical location that they're in. They wanted to be able to share promotions to those locations (i.e. happy-hour promotions for participating bars).
+Of course we can make that happen. It's an important part of our product. Ammm, right?</p>
+
+<h2 id="shaking-the-walls">Shaking the walls</h2>
+
+<p>How can we facilitate this use case, and at the same time make sure this feature is used for genuine, valuable communication?</p>
+
+<p>Posting the exact same message a thousand times will likely trigger spam detection algorithms of certain social networks we support. And e.g. Twitter specifically changed their rules about posting, reposting and retweeting the exact messages on multiple profiles (read <a href="https://blog.twitter.com/developer/en_us/topics/tips/2018/automation-and-the-use-of-multiple-accounts.html">the blogpost</a>). Because Twitter allows you to reach out to others by @mentioning them, this behavior is certainly not desirable on their platform, and we don't allow to post the same content to several profiles at once.
+For Facebook however, the re-posting is limited to owned, authorized place pages, so the use case is genuine.</p>
+
+<h2 id="what-we-had-...">What we had ...</h2>
+
+<p>The first thing we were worried about was: "What breaks if we would do this with our current implementation?" After a quick experiment, the answer seemed to be <em>nothing</em>; we just needed patience, a lot of patience. And as a user, the only UI feedback you got while a post got published to your 100 pages was a loading icon, for several minutes.</p>
+
+<p>In fact, we're just looping the list of profiles.
+And in that loop, we're doing API calls for each profile.</p>
+
+<p>For 99% of our users, this was good enough and it works like a charm. But with this new use case, our UX had to improve.</p>
+
+<h2 id="life-is-more-than-a-loading-icon">Life is more than a loading icon</h2>
+
+<p>Asking our hamster to run a little faster was not possible. We had to think about another solution in the backend.</p>
+
+<p>We came up with an <code>In progress</code> section in our tool. When a user wants to publish to more than 10 profiles, the post goes into this section.
+What changed in the backend? We still loop all the profiles, but we create tasks for each profile and put them on a queue.
+That queue will be processed asynchronously, in the background.</p>
+
+<p>Our users can do other tasks in our tool while the post is publishing to all those profiles, and users can follow along in the section <code>In progress</code>.</p>
+
+<p>What I really like about that new section, is that you see the publishing status of every profile.
+You have 3 statuses:
+- In progress
+- Successful
+- Failed</p>
+
+<p><code>In progress</code> and <code>Successful</code> are quite obvious. If publishing on a single profile failed, we see the reason why it failed and there's an option to retry posting on that profile.
+The <code>Retry</code> button is also a timesaver because you don't have to create the same post with only the failed profiles.</p>
+
+<p>Every time we get a result from the API call, we update the status of the current profile. The user interface is updated in real time so from a user's standpoint, the progress is clearly visible.</p>
+
+<p>The user knows the status of every single profile. This makes the user feel in control of all of the profile actions.
+Before we did this change, the user only saw a loading icon. Now, they receive an estimation for when the publishing will be completed.</p>
+
+<p><img src="/images/2018-03-13-async-publishing:-making-clients-feel-like-they-don't-have-to-wait/async-posting.png" alt="In progress section in publisher" /></p>
+
+<p>The impact that this small improvement has, really makes a big difference. It feels snappy, you can just go on with your work while your 100+ profiles are updated, you don't feel held back by the user interface.</p>
+
+<p>Have you done something like this? Feel free to comment below!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[When too many API calls are breaking your app]]></title>
             <link href="/blog/2017/11/02/javascript-deferred"/>
