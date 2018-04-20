@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-04-20T08:35:29+00:00</updated>
+    <updated>2018-04-20T08:41:51+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -54,7 +54,7 @@ The <code>Retry</code> button is also a timesaver because you don't have to crea
 <p>The user knows the status of every single profile. This makes the user feel in control of all of the profile actions.
 Before we did this change, the user only saw a loading icon. Now, they receive an estimation for when the publishing will be completed.</p>
 
-<p><img src="/images/2018-03-13-async-publishing:-making-clients-feel-like-they-don't-have-to-wait/async-posting.png" alt="In progress section in publisher" /></p>
+<p><img src="/images/2018-04-20-async-publishing/async-posting.png" alt="In progress section in publisher" /></p>
 
 <p>The impact that this small improvement has, really makes a big difference. It feels snappy, you can just go on with your work while your 100+ profiles are updated, you don't feel held back by the user interface.</p>
 
