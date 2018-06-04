@@ -103,6 +103,101 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/06/04/lambda-pure-functions">Lambda To The Rescue: Pure Functions</a></h1>
+        </header>
+        <div>
+            <p><strong>This is the second post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<p>Whenever you read up on functional programming on the internet, it's common to come across words like "pure" and "transparent", and for good reason. Let's explore their meaning in the functional programming world. 🕵️‍♂️</p>
+
+<h2 id="%F0%9F%92%8E-purity">💎 Purity</h2>
+
+<p>Let's pretend we need to represent the number of cylinders in an engine <code>2</code> in our code. In a normal scenario, we would assign it to a variable and be done with it. We'll use <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>In the example, we start with a type annotation. You can read the first line as "cylinders <strong>is an</strong> Int". Then we write our statement.</p>
+
+<p>Now, whenever we need the number of cylinders for computation, we could just get it from the variable right? Sure! Let's try something else, since we're talking about "pure" functions. Let's try to use a function that doesn't take any input and always returns the number of cylinders, instead of a variable:</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>Wait? WAT? That is exactly the same?</p>
+
+<p>Yes, in Haskell, a function without parameters is the same as a value. And that's logical right? No computation needs to happen when there's no input... right?</p>
+
+<p>Well... Let me disappoint you:</p>
+
+<pre><code class="php">function cylinders()
+{
+    echo rand();
+
+    return 2;
+}
+</code></pre>
+
+<p>In PHP, and in practically any other language, you can do things in functions that have side effects. In this case</p>
+
+<ul>
+<li>we created output on the <code>stdout</code></li>
+<li>we called <code>rand()</code> which in turn tried to create a random number by reading from a randomness source</li>
+</ul>
+
+<p>Of course this can result in A LOT of unexpected behaviour. By just looking at the function, you can't always immediately see what's going to happen. And this is what the word <code>pure</code> refers to. This function has "side effects", so it's not "pure".</p>
+
+<p>In Haskell though, if you want to do side effects within a function it will be marked with an <code>IO</code> tag. In fact, this is a type that behaves a bit like an environment. Getting a random number and echo'ing it requires <code>IO</code>, so the type can't just be <code>Int</code>, it's <code>IO Int</code>.</p>
+
+<pre><code class="haskell">cylinders :: IO Int
+</code></pre>
+
+<p>This way, you can always clearly see, just by looking at the types, that the function has side effects, and thus is not "pure".</p>
+
+<h2 id="%F0%9F%91%93-transparency">👓 Transparency</h2>
+
+<p>While these terms are used interchangibly, in my book the word "transparency" makes this very clear: you can "look straight through" a function.</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double x = 2 * x
+</code></pre>
+
+<p>For every numeric value, we can calculate it's <code>double</code>. You could really write this as a complete mapping from every number to its double:</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double 0 = 0
+double 1 = 2
+double 2 = 4
+double 3 = 6
+double 4 = 8
+-- ... etcetera
+</code></pre>
+
+<p>As you can see, we reduced the function to (essentially) "values" again, as in the first example of this post. Calls to transparent functions could in theory be replaced by their values. In functional programming jargon this is called "referential transparancy".</p>
+
+<p>A lot of functions can be made in an entirely transparent way, even quite complex things like parsing structured text or doing extensive computation.</p>
+
+<h2 id="%F0%9F%A4%A9-consequences">🤩 Consequences</h2>
+
+<h4 id="reduced-mental-overhead">Reduced mental overhead</h4>
+
+<p>As you can imagine, being able to reason about functions as "values" makes things <em>much</em> easier. Otherwise you have to deal with side effects that can change the world while you just expected an Integer representing the number of cylinders in a motorcycle. The same goes for the other case, where an <code>IO Int</code> lets you know instantly that there will be stuff happening behind the curtains, and you're not getting your <code>Int</code> for free.</p>
+
+<h4 id="in-fp-as-well-as-oop-environments">In FP as well as OOP environments</h4>
+
+<p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
+
+<p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/04/20/async-publishing">Async Publishing: Making Clients Feel Like They Don’t Have To Wait</a></h1>
         </header>
         <div>
@@ -201,241 +296,6 @@ Before we did this change, the user only saw a loading icon. Now, they receive a
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/People" class="tag">People</a>                        <a href="/blog/tags/team-work" class="tag">team-work</a>                        <a href="/blog/tags/Notifications" class="tag">Notifications</a>                        <a href="/blog/tags/Slack" class="tag">Slack</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">Lambda To The Rescue: Lists to wrap failure</a></h1>
-        </header>
-        <div>
-            <p><strong>This is the first post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Hang tight for more.</strong></p>
-
-<h2 id="readability">Readability</h2>
-
-<p>When we're reading code, one of the most important blocking factors is cognitive overhead. Minimize it, and your code instantly becomes easier to read and understand. Or is it the other way 'round? After some years of playing with functional programming languages in my spare time, I saw some things that functional programming does great in this field. One of them involves lists.</p>
-
-<p>As you might know, lists are among the most important datastructures in functional programming, if not the most important. There's even a whole family of programming languages that took their name from them. Looking at you <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> 😘!</p>
-
-<p>Let's dive in with a typical legacy PHP method discovered in the wild:</p>
-
-<pre><code class="php">&lt;?php
-
-function words($string)
-{
-    if (empty($string)) {
-        return false;
-    }
-
-    return explode(' ', $string);
-}
-
-var_dump(words('')); // returns false
-var_dump(words('foo bar baz')); // returns ['foo', 'bar', 'baz'];
-</code></pre>
-
-<p>The reason the <code>empty</code> check is there, apparently, is that <code>explode(' ', $s)</code> with an empty string will return <code>['']</code> a list with an empty string in it, which is really strange and non-desirable. Arguably, if the <code>$string</code> variable can't be empty, we should throw an exception. But let's say we want to explore our options here. Before I look into the body of a function, I always try to understand it as a black blox.</p>
-
-<blockquote>
-  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string. Except that for empty strings, it will return <code>false</code>.</p>
-</blockquote>
-
-<p>Now, the "black box" already has some mystery to it. Why does it return <code>false</code>? Let's defer the answer to it, and check out if we can write the PHP7 type annotations for it.</p>
-
-<pre><code class="php">function words(string $string): array
-{
-    // ...
-}
-</code></pre>
-
-<p>Now, this is not correct. The exception that is made for empty strings can't be written as a type. In old-skool PHP they would've written a DocBlock like this:</p>
-
-<pre><code class="php">/**
- * @param string $string
- * @return array|false depending on failure
- */
-function words($string)
-{
-    // ...
-}
-</code></pre>
-
-<p>But that is a type signature that is unrepresentable usinig PHP7 types. What if we would represent failure using an empty array?</p>
-
-<pre><code class="php">function words(string $string): array
-{
-    if (empty($string)) {
-        return array();
-    }
-
-    return explode(' ', $string);
-}
-</code></pre>
-
-<p>Now the type signature just works. We turned "failure" into a valid result that we can work with. For instance, all code that works with the return value of this method can now just work with arrays. The type signature now tells a story about the function too:</p>
-
-<blockquote>
-  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string.</p>
-</blockquote>
-
-<p>The base case where the string is empty is now logical: an empty string has no words, so a list of 0 words is returned.</p>
-
-<h2 id="chaining-calls">Chaining calls</h2>
-
-<p>Now, let's say we have a function <code>chars</code> that returns a list of chars in a string:</p>
-
-<pre><code class="php">function chars(string $string): array
-{
-    if (empty($string)) {
-        return array();
-    }
-
-    return str_split($string);
-}
-</code></pre>
-
-<p>We're thinking we should be able to use this to list all the characters that appear within words. Would this work?</p>
-
-<pre><code class="php">chars(words('foo bar baz'));
-</code></pre>
-
-<p>No... We get a fatal error <code>Fatal error: Uncaught TypeError: Argument 1 passed to chars() must be of the type string, array given</code>. Of course, the result of <code>words</code> is an array, which cannot be used as input to our <code>chars</code> function. Let's use <code>array_map</code>:</p>
-
-<pre><code class="php">array_map(@chars, words('foo bar baz'));
-</code></pre>
-
-<p><em>don't worry about the <code>@</code>, it's a trick that I learned while working on <a href="https://github.com/mathiasverraes/lambdalicious/">lambdalicious</a>. <code>@</code> is PHP's error suppressing operator. In this case it allows us to write a function's name as a string, without using string notation, so that it's visually different from a string, BUT is interpreted by PHP as a string...</em></p>
-
-<p>We get this:</p>
-
-<pre><code class="php">[["f","o","o"],["b","a","r"],["b","a","z"]]
-</code></pre>
-
-<p>Of course, after mapping <code>chars</code> over the words, this is what we get... But actually, we wanted this:</p>
-
-<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
-</code></pre>
-
-<p>So how do we get there? We "flatten" the arrays by using <code>concat</code>, which does not exist in php. Let's write it ourselves:</p>
-
-<pre><code class="php">function array_concat(array $arrays): array
-{
-    return call_user_func_array(
-        @array_merge,
-        array_merge(array(array()), $arrays)
-    );
-}
-</code></pre>
-
-<p>Now we can use it to flatten the array:</p>
-
-<pre><code class="php">array_concat(array_map(@chars, words('foo bar baz')));
-</code></pre>
-
-<p>TADAAAA 😆 We get what we wanted!</p>
-
-<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
-</code></pre>
-
-<p>Let's call this combination of <code>array_map</code> and <code>array_concat</code> <code>array_bind</code> for now:</p>
-
-<pre><code class="php">function array_bind(array $array, $f)
-{
-    return array_concat(array_map($f, $array));
-}
-</code></pre>
-
-<p><code>array_bind</code> takes an array of values, and a function that operates of one of those values and returns an array. It returns a new array of values.</p>
-
-<pre><code class="php">array_bind(array_bind(array('foo bar baz'), @words), @chars);
-// returns ["f","o","o","b","a","r","b","a","z"]
-</code></pre>
-
-<p>Now that we have the <code>array_bind</code> function, we can apply functions to something in an array, and the result will always be an array! What happens if we first bind <code>words</code> and then bind <code>chars</code> to an empty string?</p>
-
-<pre><code class="php">array_bind(array_bind(array(''), @words), @chars); // returns []
-</code></pre>
-
-<p>We get an empty array back, which is great!</p>
-
-<p>You saw me wrap the empty string in an array, to be able to use <code>array_bind</code>. This is an act of "providing context". The array serves as a context wrapper for results of the chained functions <code>words</code> and <code>chars</code>. We'll always get our result as an array. If anywhere in the process something fails, we get an empty array, otherwise we get an array with value(s) in it.</p>
-
-<p>I must admit, this doesn't look really great. Let's take a look at how this works in <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
-
-<p>Now, this is the equivalent of what we wrote earlier on in PHP:</p>
-
-<pre><code class="haskell">pure "" &gt;&gt;= words &gt;&gt;= chars
-</code></pre>
-
-<pre><code class="haskell">pure "foo bar baz" &gt;&gt;= words &gt;&gt;= chars
-</code></pre>
-
-<p>These return <code>[]</code> and <code>["f","o","o","b","a","r","b","a","z"]</code>, as expected, but how?</p>
-
-<ul>
-<li><code>pure</code> wraps the string in our "wrapper" list.</li>
-<li><code>&gt;&gt;=</code> is the <code>bind</code> infix function; it takes the "wrapped" value on the left, and applies the function on the right to the wrapped value. It then returns a new wrapped value.</li>
-<li><code>words</code> takes a <code>String</code> and returns a list of strings <code>[String]</code>, split by spaces. It's in Haskell's default module <code>Prelude</code>.</li>
-<li><p><code>chars</code> is a function we made up, it takes a <code>String</code> and returns a list of strings <code>[String]</code>. By default, <code>String</code>s in Haskell are lists of <code>Char</code>s. To break up a given string in a list of strings that represent chars we need to map over the input string. The mapping function <code>(\x -&gt; [x])</code> gets a <code>Char</code> as input and returns a <code>String</code> by wrapping the given <code>Char</code> in a list; check it out:</p>
-
-<pre><code class="haskell">chars :: String -&gt; [String]
-chars s = map (\x -&gt; [x]) s
-</code></pre></li>
-</ul>
-
-<p>As you can see, Haskell was made for this kind of stuff... It also reads a lot better than our PHP implementation.</p>
-
-<h2 id="expanding-on-this-concept">Expanding on this concept</h2>
-
-<p>The reason this doesn't really work in PHP is that we don't have infix operators at our disposal. I've seen <a href="https://github.com/phunkie/phunkie">libraries</a> that do something with method calls along these lines:</p>
-
-<pre><code class="php">pure('foo bar baz')-&gt;bind(@words)-&gt;bind(@chars);
-</code></pre>
-
-<p>which already looks a lot better than what we came up with. Failure can be encapsulated. There's a lot less boilerplate code to read. There's no checking for empty arrays or failure, while it still behaves as we wanted.</p>
-
-<ul>
-<li><code>pure()</code> wraps the value in an object.</li>
-<li><code>bind()</code> is equivalent to returning a new wrapper object with the result of the applied function to the previously wrapped value. Internally it could all work using <code>arrays</code>, but it could just as well be done differently.</li>
-</ul>
-
-<p>For now, we've always worked with functions that return a number of results, but this whole concept can just as well be used with functions that are supposed to return a single result, like integer division <code>div</code>:</p>
-
-<pre><code class="php">function div(int $divident, int $divisor): WrappedValue
-{
-    if ($divisor === 0) {
-        return nothing();
-    }
-
-    return pure(intdiv($divident, $divisor));
-}
-</code></pre>
-
-<p>Now, we created an integer division function that doesn't throw <code>DivisionByZeroError</code> exceptions, but uses this system of <code>WrappedValue</code>s to wrap it's return value on success (using <code>pure</code>, equivalent to an array with a value) or on failure (using <code>nothing</code>, equivalent to an empty array). Now, if we want to square the result of this, we can just bind <code>square</code> to the result of the previous computation.</p>
-
-<pre><code class="php">function square(int $number): WrappedValue
-{
-    return pure($number * $number);
-}
-
-var_dump(div(10, 2)-&gt;bind(@square)); // [25]
-var_dump(div(10, 0)-&gt;bind(@square)); // []
-</code></pre>
-
-<p>As with the previous examples, we can now just focus on the order of computation, without the need to worry about failure in the in-between steps.</p>
-
-<p>There are also ways to make this whole thing even more interesting by providing more info like error messages in case of failure.</p>
-
-<h2 id="day-to-day-usage">Day-to-day usage</h2>
-
-<p>I'm not saying this is perfect for everything in OOP by any means, but we might want to think about how we handle failure in our (legacy) systems. I sometimes see trees of exception handling and boolean/null-checks on return values. This is a third option (PHP doesn't have option types by default); In lots of ways, the classic <a href="https://en.wikipedia.org/wiki/Null_object_pattern">Null Object</a> pattern resembles this whole thing in a more Object Oriented way. In many functional programming languages this is actually the most widely used means of error handing. If you want to know more about it, I suggest reading up on <code>Functors</code>, <code>Applicatives</code>, and <code>Monads</code>. Scary names for new concepts, don't let them hold you back.</p>
-
-<p>If you want to do the most simple and useful thing: think about how your functions behave. What goes in, what comes out? Writing the type annotations helps a lot. And of course, throwing exceptions is not a sin.</p>
-
-<p>Happy programming y'aλλ! 👋</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                        </p>
             </article>
     <nav class="pager">
                 <a href="/page/2" class="right">Older Posts</a>    </nav>

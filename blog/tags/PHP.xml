@@ -3,9 +3,100 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-04-20T08:41:51+00:00</updated>
+    <updated>2018-06-04T08:05:18+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Pure Functions]]></title>
+            <link href="/blog/2018/06/04/lambda-pure-functions"/>
+            <updated>2018-06-04T10:00:00+00:00</updated>
+            <id>/blog/2018/06/04/lambda-pure-functions</id>
+            <content type="html"><![CDATA[<p><strong>This is the second post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<p>Whenever you read up on functional programming on the internet, it's common to come across words like "pure" and "transparent", and for good reason. Let's explore their meaning in the functional programming world. 🕵️‍♂️</p>
+
+<h2 id="%F0%9F%92%8E-purity">💎 Purity</h2>
+
+<p>Let's pretend we need to represent the number of cylinders in an engine <code>2</code> in our code. In a normal scenario, we would assign it to a variable and be done with it. We'll use <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>In the example, we start with a type annotation. You can read the first line as "cylinders <strong>is an</strong> Int". Then we write our statement.</p>
+
+<p>Now, whenever we need the number of cylinders for computation, we could just get it from the variable right? Sure! Let's try something else, since we're talking about "pure" functions. Let's try to use a function that doesn't take any input and always returns the number of cylinders, instead of a variable:</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>Wait? WAT? That is exactly the same?</p>
+
+<p>Yes, in Haskell, a function without parameters is the same as a value. And that's logical right? No computation needs to happen when there's no input... right?</p>
+
+<p>Well... Let me disappoint you:</p>
+
+<pre><code class="php">function cylinders()
+{
+    echo rand();
+
+    return 2;
+}
+</code></pre>
+
+<p>In PHP, and in practically any other language, you can do things in functions that have side effects. In this case</p>
+
+<ul>
+<li>we created output on the <code>stdout</code></li>
+<li>we called <code>rand()</code> which in turn tried to create a random number by reading from a randomness source</li>
+</ul>
+
+<p>Of course this can result in A LOT of unexpected behaviour. By just looking at the function, you can't always immediately see what's going to happen. And this is what the word <code>pure</code> refers to. This function has "side effects", so it's not "pure".</p>
+
+<p>In Haskell though, if you want to do side effects within a function it will be marked with an <code>IO</code> tag. In fact, this is a type that behaves a bit like an environment. Getting a random number and echo'ing it requires <code>IO</code>, so the type can't just be <code>Int</code>, it's <code>IO Int</code>.</p>
+
+<pre><code class="haskell">cylinders :: IO Int
+</code></pre>
+
+<p>This way, you can always clearly see, just by looking at the types, that the function has side effects, and thus is not "pure".</p>
+
+<h2 id="%F0%9F%91%93-transparency">👓 Transparency</h2>
+
+<p>While these terms are used interchangibly, in my book the word "transparency" makes this very clear: you can "look straight through" a function.</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double x = 2 * x
+</code></pre>
+
+<p>For every numeric value, we can calculate it's <code>double</code>. You could really write this as a complete mapping from every number to its double:</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double 0 = 0
+double 1 = 2
+double 2 = 4
+double 3 = 6
+double 4 = 8
+-- ... etcetera
+</code></pre>
+
+<p>As you can see, we reduced the function to (essentially) "values" again, as in the first example of this post. Calls to transparent functions could in theory be replaced by their values. In functional programming jargon this is called "referential transparancy".</p>
+
+<p>A lot of functions can be made in an entirely transparent way, even quite complex things like parsing structured text or doing extensive computation.</p>
+
+<h2 id="%F0%9F%A4%A9-consequences">🤩 Consequences</h2>
+
+<h4 id="reduced-mental-overhead">Reduced mental overhead</h4>
+
+<p>As you can imagine, being able to reason about functions as "values" makes things <em>much</em> easier. Otherwise you have to deal with side effects that can change the world while you just expected an Integer representing the number of cylinders in a motorcycle. The same goes for the other case, where an <code>IO Int</code> lets you know instantly that there will be stuff happening behind the curtains, and you're not getting your <code>Int</code> for free.</p>
+
+<h4 id="in-fp-as-well-as-oop-environments">In FP as well as OOP environments</h4>
+
+<p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
+
+<p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Lambda To The Rescue: Lists to wrap failure]]></title>
             <link href="/blog/2018/03/02/lambda-lists-to-wrap-failure"/>
@@ -235,6 +326,15 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <p>If you want to do the most simple and useful thing: think about how your functions behave. What goes in, what comes out? Writing the type annotations helps a lot. And of course, throwing exceptions is not a sin.</p>
 
 <p>Happy programming y'aλλ! 👋</p>
+
+<h2 id="what%27s-next%3F">What's next?</h2>
+
+<p>Upcoming <em>lambda to the rescue</em> posts will be linked here:</p>
+
+<ul>
+<li><a href="/blog/2018/06/04/lambda-pure-functions">pure functions</a></li>
+<li>...</li>
+</ul>
 ]]></content>
         </entry>
             <entry>
@@ -1899,199 +1999,6 @@ if ($isAllowedToReadAutomationRecipes) {
 <p>I hope these simple rules will inspire you to leave the campground cleaner than you found it. Which rules do you think are important? Leave a comment (on disqus they are allowed)! If you want to know more, <a href="https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882">Clean Code</a> is good read.</p>
 
 <p>"Avoiding else" is a rule from <a href="https://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf">Object Calisthenics</a>. If you want to become a better developer, read it.</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Some tips for better PHPUnit tests]]></title>
-            <link href="/blog/2017/08/01/tips-for-better-phpunit-tests"/>
-            <updated>2017-08-01T10:00:00+00:00</updated>
-            <id>/blog/2017/08/01/tips-for-better-phpunit-tests</id>
-            <content type="html"><![CDATA[<p>Writing good unit tests can be a pain. When you write your tests superfluously, you're testing more than the single unit, and they start failing with reasons not related to the <em>Subject Under Test (SUT)</em>. Or your tests become unreadable, and you can't figure out what they were supposed to be testing. Or they test only the one situation where everything goes according to plan, and not possible errors. Of course we want to mitigate all that! Let's see some simple tips to keep your test suite clean and working all the time.</p>
-
-<h2 id="test-the-unhappy-path-first">Test the unhappy path first</h2>
-
-<p>You could've sworn that your test was complete, but there seem to be exceptional cases that you missed. When writing unit tests -and doing TDD in particular- thinking about what might go wrong is very important: how should your unit fail, and when? What should happen when it fails? Should it throw exceptions? If you start with this, you won't forget to do it, and you'll write more robust code as a side-effect.</p>
-
-<h2 id="assertions-have-a-structure">Assertions have a structure</h2>
-
-<p>You might not know it, but most PHPUnit assertions have their parameters in the same order. They almost always take <code>$expected</code> and <code>$actual</code> as first and second parameters respectively. The third (and optional) parameter is often <code>$message</code>, which is a specific message you can write to make PHPUnit rapport back to you with when something fails. This is important, because in case of failure, PHPUnit will report you that your assertion's actual value doesn't match what you expected (so order is significant here). Let's see some examples:</p>
-
-<pre><code class="php">$this-&gt;assertEquals($expected, $actual, $message);
-$this-&gt;assertSame($expected, $actual, $message);
-$this-&gt;assertTrue($condition, $message);
-</code></pre>
-
-<p>As you can see, the <code>assertTrue()</code> call misses an <code>$expected</code> part, as it's already made clear in the name of the assertion.</p>
-
-<h2 id="use-the-correct-assertion">Use the correct assertion</h2>
-
-<p>To me, the daddy of all assertions is <code>assertEquals</code>, it's the basis of a unit test. You assert that your <em>Subject Under Test</em> gives a return value that's equal to what you expect it to return. If you're in doubt about which assertion is the right one to use, always pick <code>assertEquals</code>. The added benifit you get, is that PHPUnit displays really nice diffs between the <code>$expected</code> and <code>$actual</code> values if they don't match. That's much less useful when you use <code>assertTrue</code>, and it can only tell you that <code>False</code> is not equal to <code>True</code>.</p>
-
-<p><img src="/images/2017-08-01-tips-for-better-phpunit-tests/phpunit-diff.png" alt="Diff that PHPUnit shows when expected is different than the actual value" /></p>
-
-<h2 id="pick-names-that-make-sense">Pick names that make sense</h2>
-
-<p>PHPUnit expects you to start the name of your test methods with <code>test</code>, so that you get names like <code>testItThrowsAnExceptionWhenNetworkIsDown()</code>. Although that name is quite descriptive (and it should be!) it doesn't read very well. We can, however, make much more readable function names using underscores. What do you think of <code>test_it_throws_an_exception_when_network_is_down()</code>? It might not fit your coding standard (i'm looking at you, PSR-2), but isn't readability worth the occasional exception to some rules that are meant for readability? Also note, that be reading the name of the test method like this, it's totally clear to me what that test does, and I don't have to go in and read the code if I don't need to change it.</p>
-
-<h2 id="data-providers-for-clear-failure-messages">Data Providers for clear failure messages</h2>
-
-<p>If you need to test the same method with a huge number of inputs and make the same assertion over and over again, you might be tempted to write your assertion inside a <code>foreach</code> loop or something similar.</p>
-
-<pre><code class="php">public function test_prices_cast_to_strings()
-{
-    $validPrices = array(
-        '$100' =&gt; new Price(10000),
-        '$10' =&gt; new Price(1000),
-        '$1' =&gt; new Price(100),
-        '$0.10' =&gt; new Price(10),
-        '$0.01' =&gt; new Price(1),
-    );
-
-    foreach ($validPrices as $expectedString =&gt; $price) {
-        $this-&gt;assertEquals($expectedString, (string) $price);
-    }
-}
-</code></pre>
-
-<p>The problem with this, is that all your assertions happen on the same line, and PHPUnit will rapport a failure in one of those assertions as a failure on that line. Then you'll have to play detective and start looking through your test data to see where things break. This is where PHPUnit Data Providers come in handy, check it out:</p>
-
-<pre><code class="php">/**
- * @dataProvider validPrices
- */
-public function test_prices_cast_to_strings($expectedString, $price)
-{
-    $this-&gt;assertEquals($expectedString, (string) $price);
-}
-
-public function validPrices()
-{
-    return array(
-        array('$100', new Price(10000)),
-        array('$10', new Price(1000)),
-        array('$1', new Price(100)),
-        array('$0.10', new Price(10)),
-        array('$0.01', new Price(1)),
-    );
-}
-</code></pre>
-
-<p>Now PHPUnit will tell you which input data made the test fail. Don't you think this also cleans up the test so much more? No more <code>foreach</code> that didn't add any meaning to the test! What's also good to know, is that the <code>@dataProvider</code> annotation also works in conjunction with the <code>@expectedException</code> annotation, so you can also easily test if your method throws exceptions for invalid input.</p>
-
-<pre><code class="php">/**
- * @dataProvider invalidPrices
- * @expectedException InvalidArgumentException
- */
-public function test_prices_throw_when_built_from_non_integer_value($nonInteger)
-{
-    $price = new Price($nonInteger);
-}
-
-public function invalidPrices()
-{
-    return array(
-        array('foo'),
-        array(null),
-        array(true),
-        array(false),
-        array(0.01),
-        array('1'),
-    );
-}
-</code></pre>
-
-<h2 id="programming-against-interfaces">Programming against interfaces</h2>
-
-<p>When you're writing tests for a SOLID codebase, be it in a test-first fashion, or writing tests after the facts, you'll be glad you used interfaces for your <em>Subject Under Test</em>'s dependencies. Not only do they give you the obvious benefits of "being able to swap out dependencies with a totally different implementation" or "not caring about specifics, if you just adhere to the contract", but also this means that you can test your class without its dependencies! Look at this example, where <code>Bank</code> has two dependencies:</p>
-
-<pre><code class="php">&lt;?php
-
-final class Bank
-{
-    private $clock;
-    private $log;
-
-    public function __construct(Clock $clock, TransactionLog $log)
-    {
-        $this-&gt;clock = $clock;
-        $this-&gt;log = $log;
-    }
-
-    // ...
-}
-</code></pre>
-
-<p>Of course, <code>Bank</code> cannot operate without its dependencies, so in our test we'll have to instantiate it correctly, but we'll use test doubles, so that we can test <code>Bank</code> with e.g. a <code>Clock</code> that we control:</p>
-
-<pre><code class="php">$clock = $this-&gt;getMock('Clock');
-$clock
-    -&gt;method('getTime')
-    -&gt;willReturn(new DateTime('2017-07-15 10:00:00'));
-
-$log = $this-&gt;getMock('TransactionLog');
-
-$bank = new Bank($clock, $log);
-</code></pre>
-
-<p>Now that we know that <code>Clock</code> will always return a given time, we can make assertions that e.g. a <code>Bank</code> transaction was done at the time the clock returned, instead of taking a guess and using stuff like <code>time()</code> or <code>new DateTime('now')</code>. On the <code>TransactionLog</code>, we could assert that a certain method got called (because we expect a transaction to be made), and thus validate if the <code>Bank</code> communicates correctly with it:</p>
-
-<pre><code class="php">$now = new DateTime('2017-07-15 10:00:00');
-$clock = $this-&gt;getMock('Clock');
-$clock
-    -&gt;method('getTime')
-    -&gt;willReturn($now);
-
-$transaction = new Transaction('Toon', 'Hans', 100, $now);
-$log = $this-&gt;getMock('TransactionLog');
-$log
-    -&gt;expects($this-&gt;once())
-    -&gt;method('log')
-    -&gt;with($this-&gt;equalTo($transaction));
-
-$bank = new Bank($clock, $log);
-$bank-&gt;payment('Toon', 'Hans', 100);
-</code></pre>
-
-<p>On the last line we do the call that your code would actually do to make a bank transaction (this is example code, beware). This makes the <code>Bank</code> log a <code>Transaction</code> in the <code>TransactionLog</code>. Since we control the clock, we can assert on the correct time in the <code>Transaction</code>. Also note that this is a complete test. The rather invisible assertion is the <code>$this-&gt;equalTo()</code> call. We're asserting that <code>Bank</code> communicates correctly to the <code>TransactionLog</code>.</p>
-
-<h2 id="interface-discovery">Interface Discovery</h2>
-
-<p>When we're doing TDD, the PHPUnit test doubles can help us "discovering" what an interface must be, in order to have a dependency that properly supports our <em>Subject Under Test</em>. This works because PHPUnit's mocks will mock any non-existing interfaces. Let's say we want the bank to trigger a WebHook whenever a transaction was made, containing the transaction details.</p>
-
-<pre><code class="php">$clock = $this-&gt;getMock('Clock');
-$log = $this-&gt;getMock('TransactionLog');
-
-// The WebHooks interface doesn't exist yet
-$webhooks = $this-&gt;getMock('WebHooks');
-$webhooks
-    -&gt;expects($this-&gt;once())
-    -&gt;method('trigger')
-    -&gt;with($this-&gt;equalTo('{"transaction": {"from": "Toon", "to": "Hans", "amount": 100}}'));
-
-$bank = new Bank($clock, $log, $webhooks);
-$bank-&gt;payment('Toon', 'Hans', 100);
-</code></pre>
-
-<p>Without having an interface, we can already define what we want to see happening. Our test then fails, because the <code>trigger()</code> method didn't get called, so we can start implementing. When we're done, we'll see that our <code>Bank</code> class tests green, and we have discovered a very simple interface for the <code>WebHooks</code> that we can now create (see a whole blog post about this in the Further Reading section).</p>
-
-<pre><code class="php">&lt;?php
-
-interface WebHooks
-{
-    public function trigger($jsonContents);
-}
-</code></pre>
-
-<h2 id="further-reading">Further Reading</h2>
-
-<p>These were only a few of the things that you can do to make your testsuite better than it is right now! There are lots of ways to improve even further. My strategy is to not only refactor the code (when tests are green of course), but also the tests, to make them as comprehensive and robust as possible. Think about how you can make them easy to understand for the next person looking to improve or change them. Here's some more reading material that can help you out:</p>
-
-<ul>
-<li><a href="https://phpunit.de/manual/current/en/">The PHPUnit manual</a></li>
-<li><a href="https://github.com/mockery/mockery">Much nicer test doubles with Mockery</a></li>
-<li><a href="http://verraes.net/2011/03/interface-discovery-with-phpunit-mock-objects/">Interface Discovery with PHPUnit's Mock Objects</a></li>
-</ul>
-
-<p>That's it, enjoy writing better tests!</p>
 ]]></content>
         </entry>
     </feed>

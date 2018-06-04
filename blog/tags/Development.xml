@@ -3,9 +3,100 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Development.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-04-20T08:41:51+00:00</updated>
+    <updated>2018-06-04T08:05:18+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Pure Functions]]></title>
+            <link href="/blog/2018/06/04/lambda-pure-functions"/>
+            <updated>2018-06-04T10:00:00+00:00</updated>
+            <id>/blog/2018/06/04/lambda-pure-functions</id>
+            <content type="html"><![CDATA[<p><strong>This is the second post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<p>Whenever you read up on functional programming on the internet, it's common to come across words like "pure" and "transparent", and for good reason. Let's explore their meaning in the functional programming world. 🕵️‍♂️</p>
+
+<h2 id="%F0%9F%92%8E-purity">💎 Purity</h2>
+
+<p>Let's pretend we need to represent the number of cylinders in an engine <code>2</code> in our code. In a normal scenario, we would assign it to a variable and be done with it. We'll use <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>In the example, we start with a type annotation. You can read the first line as "cylinders <strong>is an</strong> Int". Then we write our statement.</p>
+
+<p>Now, whenever we need the number of cylinders for computation, we could just get it from the variable right? Sure! Let's try something else, since we're talking about "pure" functions. Let's try to use a function that doesn't take any input and always returns the number of cylinders, instead of a variable:</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>Wait? WAT? That is exactly the same?</p>
+
+<p>Yes, in Haskell, a function without parameters is the same as a value. And that's logical right? No computation needs to happen when there's no input... right?</p>
+
+<p>Well... Let me disappoint you:</p>
+
+<pre><code class="php">function cylinders()
+{
+    echo rand();
+
+    return 2;
+}
+</code></pre>
+
+<p>In PHP, and in practically any other language, you can do things in functions that have side effects. In this case</p>
+
+<ul>
+<li>we created output on the <code>stdout</code></li>
+<li>we called <code>rand()</code> which in turn tried to create a random number by reading from a randomness source</li>
+</ul>
+
+<p>Of course this can result in A LOT of unexpected behaviour. By just looking at the function, you can't always immediately see what's going to happen. And this is what the word <code>pure</code> refers to. This function has "side effects", so it's not "pure".</p>
+
+<p>In Haskell though, if you want to do side effects within a function it will be marked with an <code>IO</code> tag. In fact, this is a type that behaves a bit like an environment. Getting a random number and echo'ing it requires <code>IO</code>, so the type can't just be <code>Int</code>, it's <code>IO Int</code>.</p>
+
+<pre><code class="haskell">cylinders :: IO Int
+</code></pre>
+
+<p>This way, you can always clearly see, just by looking at the types, that the function has side effects, and thus is not "pure".</p>
+
+<h2 id="%F0%9F%91%93-transparency">👓 Transparency</h2>
+
+<p>While these terms are used interchangibly, in my book the word "transparency" makes this very clear: you can "look straight through" a function.</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double x = 2 * x
+</code></pre>
+
+<p>For every numeric value, we can calculate it's <code>double</code>. You could really write this as a complete mapping from every number to its double:</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double 0 = 0
+double 1 = 2
+double 2 = 4
+double 3 = 6
+double 4 = 8
+-- ... etcetera
+</code></pre>
+
+<p>As you can see, we reduced the function to (essentially) "values" again, as in the first example of this post. Calls to transparent functions could in theory be replaced by their values. In functional programming jargon this is called "referential transparancy".</p>
+
+<p>A lot of functions can be made in an entirely transparent way, even quite complex things like parsing structured text or doing extensive computation.</p>
+
+<h2 id="%F0%9F%A4%A9-consequences">🤩 Consequences</h2>
+
+<h4 id="reduced-mental-overhead">Reduced mental overhead</h4>
+
+<p>As you can imagine, being able to reason about functions as "values" makes things <em>much</em> easier. Otherwise you have to deal with side effects that can change the world while you just expected an Integer representing the number of cylinders in a motorcycle. The same goes for the other case, where an <code>IO Int</code> lets you know instantly that there will be stuff happening behind the curtains, and you're not getting your <code>Int</code> for free.</p>
+
+<h4 id="in-fp-as-well-as-oop-environments">In FP as well as OOP environments</h4>
+
+<p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
+
+<p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Tips For Distraction-Free Programming]]></title>
             <link href="/blog/2018/04/09/some-tips-for-distraction-free-programming"/>
@@ -273,6 +364,15 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <p>If you want to do the most simple and useful thing: think about how your functions behave. What goes in, what comes out? Writing the type annotations helps a lot. And of course, throwing exceptions is not a sin.</p>
 
 <p>Happy programming y'aλλ! 👋</p>
+
+<h2 id="what%27s-next%3F">What's next?</h2>
+
+<p>Upcoming <em>lambda to the rescue</em> posts will be linked here:</p>
+
+<ul>
+<li><a href="/blog/2018/06/04/lambda-pure-functions">pure functions</a></li>
+<li>...</li>
+</ul>
 ]]></content>
         </entry>
             <entry>
