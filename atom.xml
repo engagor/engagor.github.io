@@ -3,14 +3,14 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-07-03T08:03:38+00:00</updated>
+    <updated>2018-07-03T08:05:56+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
             <title type="html"><![CDATA[Skill Based Routing: Secure an Internship with us]]></title>
-            <link href="/blog/2018/07/02/internship-skill-based-routing"/>
-            <updated>2018-07-02T10:00:00+00:00</updated>
-            <id>/blog/2018/07/02/internship-skill-based-routing</id>
+            <link href="/blog/2018/07/03/internship-skill-based-routing"/>
+            <updated>2018-07-03T10:00:00+00:00</updated>
+            <id>/blog/2018/07/03/internship-skill-based-routing</id>
             <content type="html"><![CDATA[<h2 id="what-do-we-do%3F">What do we do?</h2>
 
 <p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of incoming messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.
