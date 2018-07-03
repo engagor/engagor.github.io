@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[CX Social Dev Blog]]></title>
+    <link href="/blog/tags/Improvements.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2018-07-03T08:03:38+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Taking Care of Little Big Details on an Off-Site Bootcamp]]></title>
+            <link href="/blog/2017/05/22/implementing-little-big-details-on-offsite-bootcamp"/>
+            <updated>2017-05-22T10:00:00+00:00</updated>
+            <id>/blog/2017/05/22/implementing-little-big-details-on-offsite-bootcamp</id>
+            <content type="html"><![CDATA[<p>A few weeks ago, we went on a two-day off-site with the CX Social development team for an event we dubbed "improvement bootcamp". It's the second time we did something like this and since it was fun and we got quite a lot of stuff done, we wanted to share our story. Maybe it could work for your team as well.</p>
+
+<h2 id="the-problem-with-roadmaps">The problem with roadmaps</h2>
+
+<p>The idea behind a bootcamp is "drop everything, let's work on something else, someplace else for a few days". For two days, we were hidden away in a beautiful house in the fields of Waasland where we focused solely on what we like to call "little big details".</p>
+
+<p>Over the course of the 6+ years that our product has existed, we have built up a huge database of customer requests. Prioritization and implementation of those requests is a constant process; in fact, almost all of our roadmap is compromised of client-requested features. We take logging these requests very seriously. Feature requests come to us through our ideas forum (where clients can post &amp; up-vote ideas), via our Live Chat, and via our dedicated Customer Success team. All of this information (what is requested, who is requesting it, if it's technically possible/feasible, etc.) is then ranked by priority and, after being curated by the Product Team, makes up the roadmap.</p>
+
+<p>That roadmap becomes our daily job, at least when we're not playing <a href="https://engagor.github.io/blog/2017/03/01/batman-chatman/">Batman</a>. We always have a detailed roadmap for the next release of our product (around three months), and a more general one for the upcoming 12 months. This balance works for us; we can commit certain projects to our customers, while on the longer term we can stay flexible, react quickly to changing customer demands, and implement new social functionality when it becomes available.</p>
+
+<p><center><img src="/images/2017-05-22-march-2017-bootcamp/doing-all-at-once.gif" alt="When we try to do all at once" /><br />
+<small>When we try to do all at once</small>
+</center></p>
+
+<p>But, as it often goes, projects aren't perfectly defined from the start (their scope often grows) and we developers tend to underestimate projects, so getting everything finished on-time sometimes (more often than we’d like) results in neglecting some of the details. Those are the details that make a product stress-free, or - why not - even fun to use.</p>
+
+<p>The "improvement bootcamp" is our initiative to force ourselves to periodically step back and focus on these little big details.</p>
+
+<h2 id="little-big-details">Little Big Details</h2>
+
+<p>But what do we mean with “little big details”? It can be anything from natural sorting of elements in tables, consistent design of similar pages throughout the application, to friendlier wording of messages in the application.</p>
+
+<p>Often, they're simple things. Often, they're not real “new” features. Often, you might not even know you were missing them.</p>
+
+<p>Have you noticed how, when using Google Maps to get directions to another place, the walking man icon changes into a person with a backpack and walking sticks? Or how Spotify congratulates you on your good taste in music when you click 'Lyrics' on a song that Spotify doesn't have lyrics for?</p>
+
+<p><center><img src="/images/2017-05-22-march-2017-bootcamp/google-maps.png" alt="Little big detail in Google Maps" /><br />
+<small>Little big detail in Google Maps</small></center></p>
+
+<p>It's stuff like this that makes good products even more enjoyable to use.</p>
+
+<p>For our tool, a few of the candidates we selected for the bootcamp include:</p>
+
+<ul>
+<li>A more consistent loading/empty view of widgets around the different dashboards that CX Social offers;</li>
+<li>Requiring people to type the name of the topic they want to delete;</li>
+<li>Remembering the text you typed in the reply bar, so that if it fails, users can easily try again;</li>
+<li>Make the "click area" of widgets bigger when selecting widgets to add to a dashboard;</li>
+</ul>
+
+<p>None of these features will win awards, nor will they ever be on the top of most requested features lists; sometimes they're just small nuisances. But they do have an impact; it's details that make the difference between a good software product and one that's actually fun to use.</p>
+
+<h2 id="the-action-plan">The action plan</h2>
+
+<p><center><img src="/images/2017-05-22-march-2017-bootcamp/action-plan.png" alt="Spreadsheet with the action plan" /><br />
+<small>Spreadsheet with the action plan</small></center></p>
+
+<p>This was our action plan to get as much of this done, in a short timeframe, and have some fun while doing it:</p>
+
+<ol>
+<li>To start, we asked all members of the CX Social team, from Sales to Marketing, to tag improvements in our Github repository that they thought would fit the goal.</li>
+<li>These were scored on a few aspects:
+
+<ol>
+<li>Priority: Indicator of how aligned the idea is with our product vision.</li>
+<li>Impact: How many customers are requesting it or would benefit from it?</li>
+<li>Workload: How long would it take us to implement this? (If it's expected to take longer than 4 hours, it's probably not a good candidate.)</li>
+<li>Coolness: Sometimes the really fun ideas need a little bump, don't they?</li>
+</ol></li>
+<li>The candidates were sorted according to the formula <code>(Impact * 1.5) + (Priority * 5) + (Workload * -2) + Coolness</code>. This would be the order in which we would tackle them.</li>
+<li>The top 50 items in this priority list were discussed with everyone in the development team and assigned.</li>
+<li>We started working on them on Wednesday morning with the goal of finishing work by Thursday evening.</li>
+<li>During the coding, we kept track of our own and each other’s progress on a Github project board; indicating whenever a certain improvement was implemented, ready for review, reviewed, and ready for production.</li>
+<li>On Thursday evening, we presented internally to the development team what everyone was able to accomplish.</li>
+</ol>
+
+<p><center><img src="/images/2017-05-22-march-2017-bootcamp/github-project-board.png" alt="Github Project Board" /><br />
+<small>Github Project Board</small></center></p>
+
+<h2 id="the-results">The results</h2>
+
+<p>On Friday afternoon - our weekly beer-o'clock in the Gent office - we presented the results of the bootcamp to the whole CX Social team. In total, we were able to get 42 things done. The list included a bunch of internal improvements - thus making our support ninjas happy - and it included some longstanding customer requests.</p>
+
+<p><center><img src="/images/2017-05-22-march-2017-bootcamp/results-presentation-slide.png" alt="Slide from the presentation to the team" /><br />
+<small>Slide from the presentation to the team</small></center></p>
+
+<p>It did take a few more days to put everything from the bootcamp into production, because we still had to hand it over to QA, prepare any customer communication, and make sure the merges happened in a coordinated way.</p>
+
+<p>If you would argue that details and fun stuff like this should be part of the standard product and development workflow, I totally agree. And while events like this might look like "patching", they actually contribute to installing that mindset by making everyone in the team aware of the importance of these.</p>
+
+<p>A bootcamp like this has the pleasant side effect of actually proving what we as a team are able to accomplish in a short timeframe. That feeling of speed, and accompanying pride, is a bit harder to find when you're working on bigger, long-term projects that involve lots more nuts and bolts.
+Working outside of your comfort zone, by working on features in the code base you haven't seen before, or more literally, by not sitting at your desk, increased team communication and trained new team members.</p>
+
+<p>And of course, you get to learn new stuff about your colleagues after hours. Like how passionate Gheerwijn is about analog cameras.
+And that's about all the info you’ll get, because: "what happens at the bootcamp, stays at the bootcamp". Let this vague Polaroid picture of the team be a little testament to that.</p>
+
+<p><center><img src="/images/2017-05-22-march-2017-bootcamp/team-polaroid.png" alt="Team Picture" /></center></p>
+
+<p>Want to join our next bootcamp? We’re always on the lookout for bright people to join the team. <a href="https://developers.engagor.com/team">Read about how it’s like to work in our team</a>.</p>
+]]></content>
+        </entry>
+    </feed>

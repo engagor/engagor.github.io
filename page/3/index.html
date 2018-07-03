@@ -106,6 +106,111 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors">Why Vim Doesn&#039;t Need Multiple Cursors</a></h1>
+        </header>
+        <div>
+            <p>We're back with a Vim Special! A lot of people that get to the point where they want to learn Vim often start looking for a plugin to do something like the Multiple Cursors feature that they're used to from other text editors. This post will try to show you why you don't need this feature in Vim.</p>
+
+<p>Let's jump right in with the first basic feature that Vim provides us to make life simple.</p>
+
+<h2 id="%60%3B.%60-repeat-movement%2C-repeat-command"><code>;.</code> Repeat movement, Repeat command</h2>
+
+<p>As you know, almost all <em>movements</em> in Vim can be done efficiently and fast, using e.g. <code>h j k l w b e f t F T ( ) { }</code>. The cool thing is, Vim remembers the last movement you made and makes it available to repeat immediately using the <code>;</code> key. If you just jumped to the last word beginning with <code>I</code> by typing <code>FI</code>, you can jump back even more by using <code>;</code>.</p>
+
+<p>Next up is the <em>command</em>. For instance, we want to lowercase the letter we jumped to: <code>gul</code>. Vim also remembers this command and makes it available using the dot operator: <code>.</code>.</p>
+
+<p>You can now combine those to repeat movement and action over multiple occurences.</p>
+
+<h2 id="%60%2F%60-search%2C-%60gn%60-text-object%2C-dot-operator"><code>/</code> Search, <code>gn</code> Text object, Dot operator</h2>
+
+<p>If you want to combine the power of Vim's search with the dot operator, that's perfectly possible. Let's say you searched for <code>/ruby\|php\|python\|javascript\|java</code> and want to replace some of the matches with <code>Haskell</code>. Just jump to the first one using <code>n</code> and replace it using the <code>gn</code> text object, like this: <code>cgn</code> type <code>Haskell</code> and then hit <code>&lt;Esc&gt;</code>. Since <code>cgn</code> is a command, we can now use <code>.</code> the dot operator to repeat that. If you want to skip an occurrence or undo what you did you can use <code>n</code> and <code>u</code> respectively.</p>
+
+<h2 id="search-%26-replace-with-confirm">Search &amp; Replace with confirm</h2>
+
+<ul>
+<li><p>You most probably know you can search &amp; replace in your whole file by using</p>
+
+<pre><code>:%s/search goes here/replace goes here/g
+</code></pre></li>
+<li><p>or in a visual selection by making a visual selection using <code>v</code> or <code>V</code> and then typing</p>
+
+<pre><code>:s/search goes here/replace goes here/g
+</code></pre>
+
+<p>you should see something like <code>:'&lt;, '&gt;s/search/replace/</code> which is again some Vim magic. <code>'&lt;</code> points to the beginning of the last visual select, and <code>'&gt;</code> to the end of it. The <code>,</code> that separates them is making a range of it. It's like saying <code>:1,5</code> if you want to do something with the first 5 lines of your file.</p></li>
+</ul>
+
+<p>Now, this is really nice, but you might want to skip some matches, or you want to be sure that you don't replace matches that you didn't want to replace. You can use the <code>c</code> modifier to your search, and Vim will ask you to confirm every match using <code>y</code> or <code>n</code>. E.g.:</p>
+
+<pre><code>:'&lt;, '&gt;s/search/replace/gc
+</code></pre>
+
+<h2 id="visual-block-mode">Visual Block mode</h2>
+
+<p>If the things you want to change are neatly aligned with each other, you can make a Visual Block change:</p>
+
+<pre><code>point 1
+point 2
+point 3
+point 4
+</code></pre>
+
+<p>I want to uppercase those first <code>p</code>'s of the words, and I want to make this an enumeration using <code>-</code>. Let's make a Visual Block selection in the beginning of those lines using <code>0&lt;C-v&gt;3j</code> and then use <code>U</code> to uppercase the first letters. Then <code>gv</code> to go back to the visual select and <code>I- &lt;Esc&gt;</code> to make the enumeration happen.</p>
+
+<pre><code>- Point 1
+- Point 2
+- Point 3
+- Point 4
+</code></pre>
+
+<h2 id="macro%27s">Macro's</h2>
+
+<p>If you need to do more than just a few inserts or updates on multiple lines or more complicated edits in json, for instance, Vim's macro's can really come in handy. They allow you to "record" a sequence of edits and movements, and replay that sequence as many times as you want. Let's see how we can use this to convert some copied JSON to a PHP array:</p>
+
+<pre><code class="json">{
+    "foo": "bar",
+    "baz": "qux",
+    "vim": "sexy",
+    "rest": "lazy"
+}
+</code></pre>
+
+<ul>
+<li>We'll start with the cursor on the first <code>:</code> of the file. We'll start recording to register <code>i</code> by pressing <code>qi</code>.</li>
+<li>As a standard practice, and to increase our chances to reproduce this on the following lines, the first thing I do is move the cursor to the first character of the row: <code>^</code>.</li>
+<li>Then, we'll replace the double quotes we're on with single quotes using <code>r'</code> and look for the next one using <code>f"</code>. This can now be repeated using the dot operator <code>.</code> and the repeat movement operator <code>;</code>.</li>
+<li>We return to the <code>:</code> by using <code>F:</code> and replace it with <code>=&gt;</code> by issuing this command: <code>cw =&gt;</code></li>
+<li>We did all changes to the first line, so we can end our recording by going to the next line using <code>j</code> (again, to increase our chances of repeating this easily), and ending the recording with <code>q</code>.</li>
+<li>repeating this is as easy as executing the register <code>i</code> to which we recorded this using <code>@i</code>. You can also use a multiplyer if you need to do this 100 times: <code>100@i</code>.</li>
+</ul>
+
+<p>We now have</p>
+
+<pre><code>{
+    'foo' =&gt; 'bar',
+    'baz' =&gt; 'qux',
+    'vim' =&gt; 'sexy',
+    'rest' =&gt; 'lazy'
+}
+</code></pre>
+
+<p>Changing the brackets to PHP's <code>array()</code> should be easy.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hear you: you now need to learn 5 different ways of doing replaces which could all be solved by using multiple cursors. But all of these have some great benefits. They are deliberately executed on a piece of text, you can undo them easily (and one by one), and they are faster and less error-prone than multiple cursors (when you know them by heart). Also, Vim's autocompletion keeps working when using them, as opposed to all multiple cursor plugins that I've tried.</p>
+
+<p>That said, I still have <a href="https://github.com/terryma/vim-multiple-cursors">a multiple cursors plugin</a> installed, for when I'm doing pair programming.</p>
+
+<p>Have fun Vimming! 🎹⌨️</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/02/05/wishful-development">Wishful Development</a></h1>
         </header>
         <div>
@@ -605,166 +710,6 @@ final class LineSegment
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                        <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/01/08/xinetd-APIs">On-the-fly API&#039;s using Xinetd</a></h1>
-        </header>
-        <div>
-            <p>As developers, we often rely on exposing services in our software as an HTTP
-API. Traditionally, our code would be executed from within a webserver
-container. For example, PHP apps might run in
-<a href="https://httpd.apache.org/">Apache</a>, or Java apps might run in
-<a href="https://tomcat.apache.org/">Tomcat</a>.</p>
-
-<p>In modern apps that strive to be self-contained, you might add a webserver
-library and handle requests directly in your code instead.
-<a href="http://www.tornadoweb.org">Tornado</a> for Python,
-<a href="https://golang.org/pkg/net/http/">net/http</a> for Golang,
-<a href="http://puma.io/">Puma</a> for Ruby or <a href="https://www.eclipse.org/jetty/">Jetty</a> for
-JVM languages are examples of libraries for this.</p>
-
-<p>Any of these options are typically fine, but sometimes you just want something
-much, much simpler. Fortunately, it turns out Linux already comes with
-everything you need. First, we need a problem to solve though.</p>
-
-<p>At CX Social we deal with a lot of data. We need to do some maintenance work in
-order to keep this data relevant and efficient. What we don't want is to
-interfere with the processing we do for our users. We'd rather err on the side
-of caution and only run these maintenance jobs when we are sure that servers
-aren't currently experiencing high loads. One way to know is by looking at load
-averages.</p>
-
-<p>Let's build a simple HTTP API that tells us whether a server is currently busy
-or not.</p>
-
-<p>The tools we'll use here are <code>xinetd</code> and plain old <code>bash</code>. Xinetd is a
-replacement for the original <code>inetd</code>. This is old software. The <a href="https://github.com/xinetd-org/xinetd">GitHub
-mirror</a> of Xinetd has a history going 15
-years back. It is simple: it lets you write a server program where you only
-need to care about the output. All the other details, like networking, logging,
-access control, are taken care of.</p>
-
-<p>First, we'll have to install Xinetd which nowadays isn't installed by default:</p>
-
-<pre><code class="bash">$ apt-get install xinetd  # on debian
-$ pacman -S xinetd        # on arch
-$ yum -y install xinetd   # on those other distros
-</code></pre>
-
-<p>Next, we'll need to do some configuration. I added following line to my
-<code>/etc/services</code>:</p>
-
-<pre><code>load_avg   9876/tcp
-</code></pre>
-
-<p>Then I added a file <code>/etc/xinet.d/load_avg</code> with the following contents:</p>
-
-<pre><code>service load_avg
-{
-  flags = REUSE
-  socket_type = stream
-  protocol = tcp
-  port = 9876
-  wait = no
-  user = nobody
-  server = /data/load_avg
-  log_on_failure += USERID
-  disable = no
-}
-</code></pre>
-
-<p>Some comments here. The <code>service load_avg</code> maps to what I added in
-<code>/etc/services</code>, the <code>server = ...</code> will be the script that will be called when
-a connection is made.</p>
-
-<p>So, let's write the script itself. We'll be using plain bash. If the load
-average is fine we'll return a <code>200 OK response</code>. If not, we'll return a <code>503
-Service Unavailable</code> instead.</p>
-
-<pre><code class="bash">#!/bin/bash
-
-http_response() {
-  local http_code="$1"
-  local message="$2"
-
-  local length=${#message}
-
-  echo -en "${http_code}\r\n"
-  echo -en "Content-Type: text/plain\r\n"
-  echo -en "Content-Length: ${length}\r\n"
-  echo -en "\r\n"
-  echo -en "${message}"
-  echo -en "\r\n"
-}
-
-http_200() {
-  http_response "HTTP/1.1 200 OK" "200; $1"
-}
-
-http_503() {
-  http_response "HTTP/1.1 503 Service Unavailable" "503; $1"
-}
-
-load_average=$(uptime | awk '{print $8 * 100}')
-acceptable_load=$(nproc | awk '{print $1 * 100}')
-
-if [ ${load_average} -gt ${acceptable_load} ]; then
-  http_503 ${load_average}
-else
-  http_200 ${load_average}
-fi
-</code></pre>
-
-<p>Let's break it up piece by piece. We start with a couple of functions that help
-us construct a valid HTTP response. We can get the length of a value in bash
-with <code>${#variable}</code> which is how we set the <code>length</code> variable. For the
-rest, nothing particularly interesting is going on.</p>
-
-<p>Next, we get the load average from the <code>uptime</code> command. Bash doesn't have good
-support for float values so we get around that by multiplying with <code>100</code> which
-lets us compare with <code>-gt</code> later on.</p>
-
-<p>To calculate the acceptable load we cut some corners and simplify things a
-little bit: <code>nproc</code> gives us the number of cores in the system so we use that
-again multiplying by <code>100</code> so we can compare. So a <code>4</code> core machine would
-accept a load of <code>4</code>. I don't love that solution but as an example it's good
-enough. In a real setup you would add a little bit of extra margin.</p>
-
-<p>After reloading Xinetd you can use any web client to access
-<a href="http://hostname:9876">http://hostname:9876</a>.</p>
-
-<h2 id="improvements">Improvements</h2>
-
-<p>There are a couple of things we can do to improve upon this. We can extract the
-<code>http_*</code> functions so we can easily source them as a library in other scripts.
-We could render the response as JSON to make parsing the result neater on the
-client side.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>Often we really do require the capabilities of a full-blown development
-environment to implement the features we need. In other situations we can get
-away with a simple approach. Xinetd has been around for a very long time and
-hides exactly the complexities we'd rather avoid having to deal with.</p>
-
-<p>This technique can be used in interesting combinations. For example, you could
-use it with <a href="http://www.haproxy.org/">HAProxy</a> health checks by using a
-<code>httpchk</code> rather than a regular <code>tcp-check</code>. Say you have HAProxy in front of
-an <a href="https://www.elastic.co/">Elasticsearch</a> cluster to automatically spread
-searches. You could use our <code>load_avg</code> script above to exclude busy nodes
-automatically.  Or say you have a MySQL setup with a handful of replicas for
-reading and you use HAProxy to load balance these. You can write a simple
-script that checks the <code>seconds_behind_master</code> value and excludes replicas that
-are lagging.</p>
-
-<p>Give it a try, see what you can come up with, and share your experiences in the
-comment section below!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Webserver" class="tag">Webserver</a>                        <a href="/blog/tags/Xinetd" class="tag">Xinetd</a>                        <a href="/blog/tags/API" class="tag">API</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/2" class="left">Newer Posts</a>        <a href="/page/4" class="right">Older Posts</a>    </nav>

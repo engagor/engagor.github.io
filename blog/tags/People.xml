@@ -3,9 +3,48 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/People.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-06-28T09:19:43+00:00</updated>
+    <updated>2018-07-03T08:03:38+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Skill Based Routing: Secure an Internship with us]]></title>
+            <link href="/blog/2018/07/02/internship-skill-based-routing"/>
+            <updated>2018-07-02T10:00:00+00:00</updated>
+            <id>/blog/2018/07/02/internship-skill-based-routing</id>
+            <content type="html"><![CDATA[<h2 id="what-do-we-do%3F">What do we do?</h2>
+
+<p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of incoming messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.
+<a href="https://developers.engagor.com/team">Read more about what we do here</a>.</p>
+
+<p>As of September 2018, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2018 to June 2019)</em>, to work as part of the CX Social development team.</p>
+
+<h2 id="the-project%3A-skill-based-routing%21">The Project: Skill based routing!</h2>
+
+<p>We’re looking for someone to help us solve this problem for our clients; When a new question or complaints comes in, a customer care agent will handle that complaint; but which agent? Clarabridge CX Social offers several ways and algorithms that can help decide which questions go to which agent at a certain time, but there is still room for improvement … Ideally we want to assign the question to the agent that will be able to handle &amp; answer the question adequately in the shortest amount of time. Several factors are at play here: properties of the question, metadata about the question, metadata from who’s asking, which agents are available, skills of those agents, which mailboxes they work in, etc. We want you to look for ways how we can optimize our current algorithms and help us to implement them.</p>
+
+<p>Here's a real-world example: a question in French about billing comes in 5 minutes before the end of the Paris team shift. Who will handle this question?</p>
+
+<p><center>
+<img src="/images/2018-07-02-internship-skill-based-routing/routing.png" alt="Skill Based Routing" /><br />
+<small>An achievement notification popping up in the CX Social interface.</small>
+</center></p>
+
+<p>We will provide labeled data and statistics about agent performance. It’s up to you to figure out the best approach, with our help of course.</p>
+
+<h2 id="the-internship">The Internship</h2>
+
+<p>As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, ElasticSearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.
+We are looking for a student with interest and knowledge of both front-end as back-end technologies.</p>
+
+<p>Want to hear from a previous intern what it’s like to join our team? Read about <a href="https://engagor.github.io/blog/2017/06/01/internship-gheerwijn-cx-social-developer/">Gheerwijn’s experiences</a>.</p>
+
+<h2 id="interested%3F">Interested?</h2>
+
+<p>We are looking for someone to join us in the Gent, Belgium office of Clarabridge, located at Grauwpoort 1, 9000 Gent.</p>
+
+<p>Does this seem like a fun challenge for you? Please reach out to <a href="&#x6d;&#97;&#105;l&#x74;&#x6f;&#58;&#106;&#x75;&#x72;&#114;&#105;a&#x61;&#110;&#46;p&#x65;&#x72;&#115;&#121;&#x6e;&#x40;&#99;&#108;a&#x72;&#x61;&#98;&#114;&#x69;&#x64;&#103;&#101;&#x2e;&#x63;&#111;&#109;">jurriaan.persyn@clarabridge.com</a> with your details, and the requirements for your internship, and we’ll be in touch!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Tips For Distraction-Free Programming]]></title>
             <link href="/blog/2018/04/09/some-tips-for-distraction-free-programming"/>

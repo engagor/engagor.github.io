@@ -106,6 +106,49 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/07/02/internship-skill-based-routing">Skill Based Routing: Secure an Internship with us</a></h1>
+        </header>
+        <div>
+            <h2 id="what-do-we-do%3F">What do we do?</h2>
+
+<p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of incoming messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.
+<a href="https://developers.engagor.com/team">Read more about what we do here</a>.</p>
+
+<p>As of September 2018, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2018 to June 2019)</em>, to work as part of the CX Social development team.</p>
+
+<h2 id="the-project%3A-skill-based-routing%21">The Project: Skill based routing!</h2>
+
+<p>We’re looking for someone to help us solve this problem for our clients; When a new question or complaints comes in, a customer care agent will handle that complaint; but which agent? Clarabridge CX Social offers several ways and algorithms that can help decide which questions go to which agent at a certain time, but there is still room for improvement … Ideally we want to assign the question to the agent that will be able to handle &amp; answer the question adequately in the shortest amount of time. Several factors are at play here: properties of the question, metadata about the question, metadata from who’s asking, which agents are available, skills of those agents, which mailboxes they work in, etc. We want you to look for ways how we can optimize our current algorithms and help us to implement them.</p>
+
+<p>Here's a real-world example: a question in French about billing comes in 5 minutes before the end of the Paris team shift. Who will handle this question?</p>
+
+<p><center>
+<img src="/images/2018-07-02-internship-skill-based-routing/routing.png" alt="Skill Based Routing" /><br />
+<small>An achievement notification popping up in the CX Social interface.</small>
+</center></p>
+
+<p>We will provide labeled data and statistics about agent performance. It’s up to you to figure out the best approach, with our help of course.</p>
+
+<h2 id="the-internship">The Internship</h2>
+
+<p>As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, ElasticSearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.
+We are looking for a student with interest and knowledge of both front-end as back-end technologies.</p>
+
+<p>Want to hear from a previous intern what it’s like to join our team? Read about <a href="https://engagor.github.io/blog/2017/06/01/internship-gheerwijn-cx-social-developer/">Gheerwijn’s experiences</a>.</p>
+
+<h2 id="interested%3F">Interested?</h2>
+
+<p>We are looking for someone to join us in the Gent, Belgium office of Clarabridge, located at Grauwpoort 1, 9000 Gent.</p>
+
+<p>Does this seem like a fun challenge for you? Please reach out to <a href="&#x6d;&#97;&#105;l&#x74;&#x6f;&#58;&#106;&#x75;&#x72;&#114;&#105;a&#x61;&#110;&#46;p&#x65;&#x72;&#115;&#121;&#x6e;&#x40;&#99;&#108;a&#x72;&#x61;&#98;&#114;&#x69;&#x64;&#103;&#101;&#x2e;&#x63;&#111;&#109;">jurriaan.persyn@clarabridge.com</a> with your details, and the requirements for your internship, and we’ll be in touch!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Internship" class="tag">Internship</a>                        <a href="/blog/tags/People" class="tag">People</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/06/27/lambda-recursion">Lambda To The Rescue: Recursion</a></h1>
         </header>
         <div>
@@ -481,65 +524,6 @@ double 4 = 8
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/04/20/async-publishing">Async Publishing: Making Clients Feel Like They Don’t Have To Wait</a></h1>
-        </header>
-        <div>
-            <p>A few months ago, we were asked whether it was possible to publish posts to hundreds of Facebook Pages at the same time. This use case is not something we had foreseen, the client just has <em>A LOT</em> of owned profiles; one social profile per physical location that they're in. They wanted to be able to share promotions to those locations (i.e. happy-hour promotions for participating bars).
-Of course we can make that happen. It's an important part of our product. Ammm, right?</p>
-
-<h2 id="shaking-the-walls">Shaking the walls</h2>
-
-<p>How can we facilitate this use case, and at the same time make sure this feature is used for genuine, valuable communication?</p>
-
-<p>Posting the exact same message a thousand times will likely trigger spam detection algorithms of certain social networks we support. And e.g. Twitter specifically changed their rules about posting, reposting and retweeting the exact messages on multiple profiles (read <a href="https://blog.twitter.com/developer/en_us/topics/tips/2018/automation-and-the-use-of-multiple-accounts.html">the blogpost</a>). Because Twitter allows you to reach out to others by @mentioning them, this behavior is certainly not desirable on their platform, and we don't allow to post the same content to several profiles at once.
-For Facebook however, the re-posting is limited to owned, authorized place pages, so the use case is genuine.</p>
-
-<h2 id="what-we-had-...">What we had ...</h2>
-
-<p>The first thing we were worried about was: "What breaks if we would do this with our current implementation?" After a quick experiment, the answer seemed to be <em>nothing</em>; we just needed patience, a lot of patience. And as a user, the only UI feedback you got while a post got published to your 100 pages was a loading icon, for several minutes.</p>
-
-<p>In fact, we're just looping the list of profiles.
-And in that loop, we're doing API calls for each profile.</p>
-
-<p>For 99% of our users, this was good enough and it works like a charm. But with this new use case, our UX had to improve.</p>
-
-<h2 id="life-is-more-than-a-loading-icon">Life is more than a loading icon</h2>
-
-<p>Asking our hamster to run a little faster was not possible. We had to think about another solution in the backend.</p>
-
-<p>We came up with an <code>In progress</code> section in our tool. When a user wants to publish to more than 10 profiles, the post goes into this section.
-What changed in the backend? We still loop all the profiles, but we create tasks for each profile and put them on a queue.
-That queue will be processed asynchronously, in the background.</p>
-
-<p>Our users can do other tasks in our tool while the post is publishing to all those profiles, and users can follow along in the section <code>In progress</code>.</p>
-
-<p>What I really like about that new section, is that you see the publishing status of every profile.
-You have 3 statuses:
-- In progress
-- Successful
-- Failed</p>
-
-<p><code>In progress</code> and <code>Successful</code> are quite obvious. If publishing on a single profile failed, we see the reason why it failed and there's an option to retry posting on that profile.
-The <code>Retry</code> button is also a timesaver because you don't have to create the same post with only the failed profiles.</p>
-
-<p>Every time we get a result from the API call, we update the status of the current profile. The user interface is updated in real time so from a user's standpoint, the progress is clearly visible.</p>
-
-<p>The user knows the status of every single profile. This makes the user feel in control of all of the profile actions.
-Before we did this change, the user only saw a loading icon. Now, they receive an estimation for when the publishing will be completed.</p>
-
-<p><img src="/images/2018-04-20-async-publishing/async-posting.png" alt="In progress section in publisher" /></p>
-
-<p>The impact that this small improvement has, really makes a big difference. It feels snappy, you can just go on with your work while your 100+ profiles are updated, you don't feel held back by the user interface.</p>
-
-<p>Have you done something like this? Feel free to comment below!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Frontend" class="tag">Frontend</a>                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        <a href="/blog/tags/UX" class="tag">UX</a>                        </p>
             </article>
     <nav class="pager">
                 <a href="/page/2" class="right">Older Posts</a>    </nav>
