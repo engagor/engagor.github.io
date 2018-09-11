@@ -3,9 +3,77 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-07-03T12:33:03+00:00</updated>
+    <updated>2018-09-11T08:07:10+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Error: Internal Rate Limit Reached]]></title>
+            <link href="/blog/2018/09/11/error-internal-rate-limit-reached"/>
+            <updated>2018-09-11T10:00:00+00:00</updated>
+            <id>/blog/2018/09/11/error-internal-rate-limit-reached</id>
+            <content type="html"><![CDATA[<p>A while ago we wrote about <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">building a sliding window rate limiter with redis</a>. We needed this rate limiter for counting the amount of API calls we did to the <a href="https://www.instagram.com/developer/">Instagram API</a>. This has been working great for us. You might have heard of the deprecation of the Instagram API. Facebook introduced a <a href="https://developers.facebook.com/docs/instagram-api">new instagram API</a> as part of the Facebook graph API.</p>
+
+<p>The new Instagram API uses the same <a href="https://developers.facebook.com/docs/graph-api/advanced/rate-limiting">rate limit measures</a> as the Facebook graph API (depends on the active users of your application). Our integration with the new Instagram API uses the same sliding window rate limiter. If our internal rate limit is reached we throw an exception: "Internal rate limit reached". This exception triggers a timeout, the timeout increases when the exception is thrown again.</p>
+
+<p>When we deployed our integration we noticed that when an access token reached the internal rate limit, the tasks refused to do any calls to the Instagram API, even when it was allowed again, because our rate limiter was still holding them back. This resulted in data delays, not good!</p>
+
+<p>If a combustion engine gets excessive fuel in the combustion chamber, the engine becomes flooded. You'll need to release the throttle to stop the flooding. This is exactly what's happening in our rate limiter.</p>
+
+<p>Each time we do an API call, the following commands are sent to Redis (<a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">We explained this in our previous blogpost</a>):</p>
+
+<pre><code>&gt; MULTI
+&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
+&gt; ZRANGE $accessToken 0 -1
+&gt; ZADD $accessToken $now $now
+&gt; EXPIRE $accessToken $slidingWindow
+&gt; EXEC
+</code></pre>
+
+<p>Do you see why the rate limiter gets "flooded"?</p>
+
+<p>If you are thinking about the <code>ZADD</code> command, you're right!</p>
+
+<p>Even when we're not allowed to do an API call we still add a timestamp. We knew this and we agreed that this was okay for our use case. However, we're using a lower rate limit (compared to the old Instagram API), which resulted in a lot of internal rate limit reached exceptions for busy Instagram accounts.</p>
+
+<p>How can we solve this? It's important that we execute <code>ZRANGE</code> and <code>ZADD</code> in the same transaction. We want to avoid race conditions because the tasks that do these API calls are distributed. How can we check the result of <code>ZRANGE</code> before doing the <code>ZADD</code> command in the same transaction? <a href="https://github.com/itamarhaber">Itamar Haber</a> from <a href="https://redislabs.com/">Redis Labs</a> wrote a comment on our <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">previous blogpost</a> suggesting to <a href="https://gist.github.com/itamarhaber/254bac4283d1675c5a5569639b0322aa">use a Lua script</a> (Thanks, Itamar!). Using a Lua script we can execute Redis commands conditionally in an atomic way.</p>
+
+<p>This is what we came up with:</p>
+
+<pre><code class="lua">local token = KEYS[1]
+local now = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local limit = tonumber(ARGV[3])
+
+local clearBefore = now - window
+redis.call('ZREMRANGEBYSCORE', token, 0, clearBefore)
+
+local amount = redis.call('ZCARD', token)
+if amount &lt; limit then
+    redis.call('ZADD', token, now, now)
+end
+redis.call('EXPIRE', token, window)
+
+return limit - amount
+</code></pre>
+
+<p>Let's break it down (Yeah, yeah 🎶):</p>
+
+<ol>
+<li>Assign the script arguments to variables.</li>
+<li>Call <code>ZREMRANGEBYSCORE</code> to cleanup timestamps before the window.</li>
+<li>Instead of <code>ZRANGE</code> we'll use <code>ZCARD</code> to know how many calls we already did.</li>
+<li>Call <code>ZADD</code> when we've not reached the limit yet.</li>
+<li>Call <code>EXPIRE</code> to make sure the sorted set, that holds the timestamps, gets cleaned up after the window has passed.</li>
+</ol>
+
+<p>In PHP we can evaluate the script using <a href="https://github.com/phpredis/phpredis">https://github.com/phpredis/phpredis</a>:</p>
+
+<pre><code class="php">$this-&gt;redis-&gt;eval($script, [$key, $now, $window, $limit], 1);
+</code></pre>
+
+<p>This works great. Our tasks are now doing as much API calls as possible without flooding the rate limiter. 👏😎</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Skill Based Routing: Secure an Internship with us]]></title>
             <link href="/blog/2018/07/03/internship-skill-based-routing"/>
@@ -1343,162 +1411,6 @@ final class LineSegment
 <p>If we wanted to represent the nested Value Objects as a string, e.g. to be able to save them in a field in the database, we could just make the <code>Point</code> represent itself as <code>(x, y)</code> and the <code>LineSegment</code> as <code>[(Xa, Ya), (Xb, Yb)]</code> by letting the <code>LineSegment</code>'s <code>__toString</code> method call that of the nested <code>Point</code> objects. For parsing the string representation back into a <code>LineSegment</code>, we'll need a <code>fromString()</code> <a href="http://verraes.net/2014/06/named-constructors-in-php/">alternative constructor</a> that can parse those strings and instantiate the correct objects for them, but I'll leave that as an exercise for the reader!</p>
 
 <p>So, these were our take-aways after introducing Value Objects into our codebase. Did we forget something?</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[On-the-fly API&#039;s using Xinetd]]></title>
-            <link href="/blog/2018/01/08/xinetd-APIs"/>
-            <updated>2018-01-08T10:00:00+00:00</updated>
-            <id>/blog/2018/01/08/xinetd-APIs</id>
-            <content type="html"><![CDATA[<p>As developers, we often rely on exposing services in our software as an HTTP
-API. Traditionally, our code would be executed from within a webserver
-container. For example, PHP apps might run in
-<a href="https://httpd.apache.org/">Apache</a>, or Java apps might run in
-<a href="https://tomcat.apache.org/">Tomcat</a>.</p>
-
-<p>In modern apps that strive to be self-contained, you might add a webserver
-library and handle requests directly in your code instead.
-<a href="http://www.tornadoweb.org">Tornado</a> for Python,
-<a href="https://golang.org/pkg/net/http/">net/http</a> for Golang,
-<a href="http://puma.io/">Puma</a> for Ruby or <a href="https://www.eclipse.org/jetty/">Jetty</a> for
-JVM languages are examples of libraries for this.</p>
-
-<p>Any of these options are typically fine, but sometimes you just want something
-much, much simpler. Fortunately, it turns out Linux already comes with
-everything you need. First, we need a problem to solve though.</p>
-
-<p>At CX Social we deal with a lot of data. We need to do some maintenance work in
-order to keep this data relevant and efficient. What we don't want is to
-interfere with the processing we do for our users. We'd rather err on the side
-of caution and only run these maintenance jobs when we are sure that servers
-aren't currently experiencing high loads. One way to know is by looking at load
-averages.</p>
-
-<p>Let's build a simple HTTP API that tells us whether a server is currently busy
-or not.</p>
-
-<p>The tools we'll use here are <code>xinetd</code> and plain old <code>bash</code>. Xinetd is a
-replacement for the original <code>inetd</code>. This is old software. The <a href="https://github.com/xinetd-org/xinetd">GitHub
-mirror</a> of Xinetd has a history going 15
-years back. It is simple: it lets you write a server program where you only
-need to care about the output. All the other details, like networking, logging,
-access control, are taken care of.</p>
-
-<p>First, we'll have to install Xinetd which nowadays isn't installed by default:</p>
-
-<pre><code class="bash">$ apt-get install xinetd  # on debian
-$ pacman -S xinetd        # on arch
-$ yum -y install xinetd   # on those other distros
-</code></pre>
-
-<p>Next, we'll need to do some configuration. I added following line to my
-<code>/etc/services</code>:</p>
-
-<pre><code>load_avg   9876/tcp
-</code></pre>
-
-<p>Then I added a file <code>/etc/xinet.d/load_avg</code> with the following contents:</p>
-
-<pre><code>service load_avg
-{
-  flags = REUSE
-  socket_type = stream
-  protocol = tcp
-  port = 9876
-  wait = no
-  user = nobody
-  server = /data/load_avg
-  log_on_failure += USERID
-  disable = no
-}
-</code></pre>
-
-<p>Some comments here. The <code>service load_avg</code> maps to what I added in
-<code>/etc/services</code>, the <code>server = ...</code> will be the script that will be called when
-a connection is made.</p>
-
-<p>So, let's write the script itself. We'll be using plain bash. If the load
-average is fine we'll return a <code>200 OK response</code>. If not, we'll return a <code>503
-Service Unavailable</code> instead.</p>
-
-<pre><code class="bash">#!/bin/bash
-
-http_response() {
-  local http_code="$1"
-  local message="$2"
-
-  local length=${#message}
-
-  echo -en "${http_code}\r\n"
-  echo -en "Content-Type: text/plain\r\n"
-  echo -en "Content-Length: ${length}\r\n"
-  echo -en "\r\n"
-  echo -en "${message}"
-  echo -en "\r\n"
-}
-
-http_200() {
-  http_response "HTTP/1.1 200 OK" "200; $1"
-}
-
-http_503() {
-  http_response "HTTP/1.1 503 Service Unavailable" "503; $1"
-}
-
-load_average=$(uptime | awk '{print $8 * 100}')
-acceptable_load=$(nproc | awk '{print $1 * 100}')
-
-if [ ${load_average} -gt ${acceptable_load} ]; then
-  http_503 ${load_average}
-else
-  http_200 ${load_average}
-fi
-</code></pre>
-
-<p>Let's break it up piece by piece. We start with a couple of functions that help
-us construct a valid HTTP response. We can get the length of a value in bash
-with <code>${#variable}</code> which is how we set the <code>length</code> variable. For the
-rest, nothing particularly interesting is going on.</p>
-
-<p>Next, we get the load average from the <code>uptime</code> command. Bash doesn't have good
-support for float values so we get around that by multiplying with <code>100</code> which
-lets us compare with <code>-gt</code> later on.</p>
-
-<p>To calculate the acceptable load we cut some corners and simplify things a
-little bit: <code>nproc</code> gives us the number of cores in the system so we use that
-again multiplying by <code>100</code> so we can compare. So a <code>4</code> core machine would
-accept a load of <code>4</code>. I don't love that solution but as an example it's good
-enough. In a real setup you would add a little bit of extra margin.</p>
-
-<p>After reloading Xinetd you can use any web client to access
-<a href="http://hostname:9876">http://hostname:9876</a>.</p>
-
-<h2 id="improvements">Improvements</h2>
-
-<p>There are a couple of things we can do to improve upon this. We can extract the
-<code>http_*</code> functions so we can easily source them as a library in other scripts.
-We could render the response as JSON to make parsing the result neater on the
-client side.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>Often we really do require the capabilities of a full-blown development
-environment to implement the features we need. In other situations we can get
-away with a simple approach. Xinetd has been around for a very long time and
-hides exactly the complexities we'd rather avoid having to deal with.</p>
-
-<p>This technique can be used in interesting combinations. For example, you could
-use it with <a href="http://www.haproxy.org/">HAProxy</a> health checks by using a
-<code>httpchk</code> rather than a regular <code>tcp-check</code>. Say you have HAProxy in front of
-an <a href="https://www.elastic.co/">Elasticsearch</a> cluster to automatically spread
-searches. You could use our <code>load_avg</code> script above to exclude busy nodes
-automatically.  Or say you have a MySQL setup with a handful of replicas for
-reading and you use HAProxy to load balance these. You can write a simple
-script that checks the <code>seconds_behind_master</code> value and excludes replicas that
-are lagging.</p>
-
-<p>Give it a try, see what you can come up with, and share your experiences in the
-comment section below!</p>
 ]]></content>
         </entry>
     </feed>

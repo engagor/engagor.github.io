@@ -3,9 +3,77 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Redis.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-07-03T12:33:03+00:00</updated>
+    <updated>2018-09-11T08:07:10+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Error: Internal Rate Limit Reached]]></title>
+            <link href="/blog/2018/09/11/error-internal-rate-limit-reached"/>
+            <updated>2018-09-11T10:00:00+00:00</updated>
+            <id>/blog/2018/09/11/error-internal-rate-limit-reached</id>
+            <content type="html"><![CDATA[<p>A while ago we wrote about <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">building a sliding window rate limiter with redis</a>. We needed this rate limiter for counting the amount of API calls we did to the <a href="https://www.instagram.com/developer/">Instagram API</a>. This has been working great for us. You might have heard of the deprecation of the Instagram API. Facebook introduced a <a href="https://developers.facebook.com/docs/instagram-api">new instagram API</a> as part of the Facebook graph API.</p>
+
+<p>The new Instagram API uses the same <a href="https://developers.facebook.com/docs/graph-api/advanced/rate-limiting">rate limit measures</a> as the Facebook graph API (depends on the active users of your application). Our integration with the new Instagram API uses the same sliding window rate limiter. If our internal rate limit is reached we throw an exception: "Internal rate limit reached". This exception triggers a timeout, the timeout increases when the exception is thrown again.</p>
+
+<p>When we deployed our integration we noticed that when an access token reached the internal rate limit, the tasks refused to do any calls to the Instagram API, even when it was allowed again, because our rate limiter was still holding them back. This resulted in data delays, not good!</p>
+
+<p>If a combustion engine gets excessive fuel in the combustion chamber, the engine becomes flooded. You'll need to release the throttle to stop the flooding. This is exactly what's happening in our rate limiter.</p>
+
+<p>Each time we do an API call, the following commands are sent to Redis (<a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">We explained this in our previous blogpost</a>):</p>
+
+<pre><code>&gt; MULTI
+&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
+&gt; ZRANGE $accessToken 0 -1
+&gt; ZADD $accessToken $now $now
+&gt; EXPIRE $accessToken $slidingWindow
+&gt; EXEC
+</code></pre>
+
+<p>Do you see why the rate limiter gets "flooded"?</p>
+
+<p>If you are thinking about the <code>ZADD</code> command, you're right!</p>
+
+<p>Even when we're not allowed to do an API call we still add a timestamp. We knew this and we agreed that this was okay for our use case. However, we're using a lower rate limit (compared to the old Instagram API), which resulted in a lot of internal rate limit reached exceptions for busy Instagram accounts.</p>
+
+<p>How can we solve this? It's important that we execute <code>ZRANGE</code> and <code>ZADD</code> in the same transaction. We want to avoid race conditions because the tasks that do these API calls are distributed. How can we check the result of <code>ZRANGE</code> before doing the <code>ZADD</code> command in the same transaction? <a href="https://github.com/itamarhaber">Itamar Haber</a> from <a href="https://redislabs.com/">Redis Labs</a> wrote a comment on our <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">previous blogpost</a> suggesting to <a href="https://gist.github.com/itamarhaber/254bac4283d1675c5a5569639b0322aa">use a Lua script</a> (Thanks, Itamar!). Using a Lua script we can execute Redis commands conditionally in an atomic way.</p>
+
+<p>This is what we came up with:</p>
+
+<pre><code class="lua">local token = KEYS[1]
+local now = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local limit = tonumber(ARGV[3])
+
+local clearBefore = now - window
+redis.call('ZREMRANGEBYSCORE', token, 0, clearBefore)
+
+local amount = redis.call('ZCARD', token)
+if amount &lt; limit then
+    redis.call('ZADD', token, now, now)
+end
+redis.call('EXPIRE', token, window)
+
+return limit - amount
+</code></pre>
+
+<p>Let's break it down (Yeah, yeah 🎶):</p>
+
+<ol>
+<li>Assign the script arguments to variables.</li>
+<li>Call <code>ZREMRANGEBYSCORE</code> to cleanup timestamps before the window.</li>
+<li>Instead of <code>ZRANGE</code> we'll use <code>ZCARD</code> to know how many calls we already did.</li>
+<li>Call <code>ZADD</code> when we've not reached the limit yet.</li>
+<li>Call <code>EXPIRE</code> to make sure the sorted set, that holds the timestamps, gets cleaned up after the window has passed.</li>
+</ol>
+
+<p>In PHP we can evaluate the script using <a href="https://github.com/phpredis/phpredis">https://github.com/phpredis/phpredis</a>:</p>
+
+<pre><code class="php">$this-&gt;redis-&gt;eval($script, [$key, $now, $window, $limit], 1);
+</code></pre>
+
+<p>This works great. Our tasks are now doing as much API calls as possible without flooding the rate limiter. 👏😎</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Building a sliding window rate limiter with Redis]]></title>
             <link href="/blog/2017/05/02/sliding-window-rate-limiter-redis"/>
