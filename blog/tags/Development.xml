@@ -3,9 +3,218 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Development.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-10-01T13:31:16+00:00</updated>
+    <updated>2018-10-08T08:26:06+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Monoids]]></title>
+            <link href="/blog/2018/10/08/lambda-monoids"/>
+            <updated>2018-10-08T10:30:00+00:00</updated>
+            <id>/blog/2018/10/08/lambda-monoids</id>
+            <content type="html"><![CDATA[<p><strong>This is the fourth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%98%95%EF%B8%8F-ordering-some-coffees">☕️ Ordering some coffees</h2>
+
+<p>In the previous posts, you already came across a few functional programming concepts. Let's explore one more. Let's say we went to a coffee bar and we want to calculate the total price of an order of coffees:</p>
+
+<pre><code class="haskell">- Lungo           € 2.50
+- Lungo           € 2.50
+- Cappuccino      € 2.90
+- Double Espresso € 2.10
+- Iced Coffee     € 4.50
+</code></pre>
+
+<p>If you want to quickly do this from the top of your head, it makes sense to calculate it like this:</p>
+
+<pre><code class="haskell">2.50 + 2.50 + 2.90 + 2.10 + 4.50
+= (2.50 + 2.50) + (2.90 + 2.10) + 4.50
+= 5             + 5             + 4.50
+= 10                            + 4.50
+= 14.50
+</code></pre>
+
+<p>instead of</p>
+
+<pre><code class="haskell">2.50 + 2.50 + 2.90 + 2.10 + 4.50
+= 2.50 + (2.50 + 2.90) + (2.10 + 4.50)
+= 2.50 + 5.40          + 6.60
+= 7.90                 + 6.60
+= 14.50
+</code></pre>
+
+<p>As you already knew, these two approaches yield the same results. We say the location of the <code>(</code> and <code>)</code> when doing <code>+</code> isn't important, or <code>+</code> is <em>associative</em>.</p>
+
+<p>Usually the receipt has a line "service" with some service costs of the order as well. In this case, since we ordered more than 4 coffees, we get service for free. The actual receipt looked like this:</p>
+
+<pre><code class="haskell">- Lungo           € 2.50
+- Lungo           € 2.50
+- Cappuccino      € 2.90
+- Double Espresso € 2.10
+- Iced Coffee     € 4.50
+
+- service         € 0
+</code></pre>
+
+<p>Does this change our calculation?</p>
+
+<pre><code class="haskell">(2.50 + 2.50) + (2.90 + 2.10) + 4.50 + 0
+= 5           + 5             + 4.50 + 0
+= 10                          + 4.50 + 0
+= 14.50                              + 0
+= 14.50
+</code></pre>
+
+<p>Not at all! We conclude that 0 is "neutral" in that it doesn't change our calculations when using <code>+</code>. We call this <code>0</code> value <em>identity</em>.</p>
+
+<h2 id="%F0%9F%A7%90-monoids">🧐 Monoids</h2>
+
+<p>Now, when we find these two properties (associativity and neutral element) for a function and its data, we found a <em>Monoid</em>. Cool! Let's see if we can find some other Monoids!</p>
+
+<p>Let's see if a list of integers, and the operation <code>++</code> (append) form a Monoid:</p>
+
+<pre><code class="haskell">$ ([1, 2] ++ [3, 4]) ++ [5, 6]
+[1, 2, 3, 4, 5, 6]
+
+$ [1, 2] ++ ([3, 4] ++ [5, 6])
+[1, 2, 3, 4, 5, 6]
+</code></pre>
+
+<p>Ok, we have associativity, let's check if we can find a neutral element. How about the empty list?</p>
+
+<pre><code class="haskell">$ [1, 2] ++ []
+[1, 2]
+</code></pre>
+
+<p>Nice! We found another Monoid!</p>
+
+<p>How about this:</p>
+
+<pre><code class="haskell">data DiskUsage = DiskUsage { server :: String
+                           , consumed :: Int
+                           } deriving (Eq, Show)
+
+data ServerStats = ServerStats { totalInGB :: Int
+                               , perServer :: [DiskUsage]
+                               } deriving (Eq, Show)
+
+mergeServerStats :: ServerStats -&gt; ServerStats -&gt; ServerStats
+mergeServerStats a b = ServerStats { totalInGB = totalInGB a + totalInGB b
+                                   , perServer = perServer a ++ perServer b
+                                   }
+</code></pre>
+
+<p>A program we could use to measure disk usage in our fictional data center's server racks returns <code>ServerStats</code> per rack. For every server in the rack, there's a <code>DiskUsage</code> entry in the <code>perServer</code> list. To easily calculate the total disk usage in our fictional data center, we just use <code>mergeServerStats</code> to sum it all, <em>et voilà</em> we get one <code>ServerStats</code> with a total amount of GB used, and a list of all servers with their <code>DiskUsage</code>. (Note that the <code>totalInGB</code> can be totally wrong in this example. In a real world application you would just calculate that from the <code>perServer</code> value at all times. It's there because of convenience: you can immedately see how much disk usage is for a given rack.)</p>
+
+<p>The question is, is this a <strong>Monoid</strong>? 🤔</p>
+
+<p>To talk about a Monoid, we know we need a datatype. In this case we have <code>ServerStats</code>. Good. We also need a binary operation. We have <code>mergeServerStats</code>. Nice! We're halfway there. Let's see if we have the other stuff we need:</p>
+
+<ul>
+<li><p>associativity:</p>
+
+<pre><code class="haskell">$ foo = DiskUsage { server = "foo", consumed = 42 }
+$ bar = DiskUsage { server = "bar", consumed = 99 }
+$ baz = DiskUsage { server = "baz", consumed = 1 }
+$ qux = DiskUsage { server = "qux", consumed = 0 }
+$
+$ rack1 = ServerStats { totalInGB = 42, perServer = [foo] }
+$ rack2 = ServerStats { totalInGB = 100, perServer = [bar, baz] }
+$ rack3 = ServerStats { totalInGB = 0, perServer = [qux] }
+$
+$ result1 = mergeServerStats (mergeServerStats rack1 rack2) rack3
+$ result2 = mergeServerStats rack1 (mergeServerStats rack2 rack3)
+$
+$ result1 == result2
+True
+</code></pre>
+
+<p>Applying <code>mergeServerStats</code> first to <code>rack1</code> and <code>rack2</code>, and then applying the same function to the result of the first calculation and <code>rack3</code> had the same result as first applying <code>mergeServerStats</code> to <code>rack1</code> and the result of applying that same function to <code>rack2</code> and <code>rack3</code>. We have associativity!</p></li>
+<li><p>neutral element:</p>
+
+<pre><code class="haskell">$ foo = DiskUsage { server = "foo", consumed = 42 }
+$
+$ rack1 = ServerStats { totalInGB = 42, perServer = [foo] }
+$ neutral = ServerStats { totalInGB = 0, perServer = [] }
+$
+$ result = mergeServerStats rack1 neutral
+$
+$ result == rack1
+True
+</code></pre>
+
+<p>We were able to find a <code>ServerStats</code> value <code>neutral</code> that, when appended to another value <code>rack1</code> using <code>mergeServerStats</code> resulted in the same value as <code>rack1</code> again! This means we have a neutral element!</p></li>
+</ul>
+
+<p>We can conclude that <code>ServerStats</code> forms a Monoid with its operation <code>mergeServerStats</code>.</p>
+
+<h2 id="%F0%9F%92%B0-usefulness">💰 Usefulness</h2>
+
+<p>Now why is this such a big deal? Why do we keep rambling on about this? Let's evaluate this next question from our fictional operations engineers:</p>
+
+<blockquote>
+  <p>Our datacenter grew quickly and we now have 10 racks with 10 servers each. We have a script that produces a <code>ServerStats</code> entry per rack. We want to know the total disk usage across all racks. Can we do this?</p>
+</blockquote>
+
+<p>We quickly head back to <a href="/blog/2018/06/27/lambda-recursion/#recognizing-a-pattern">last "Lambda To The Rescue" episode</a> and check out the paragraph about <code>fold</code>. Let's see if folds can help us!</p>
+
+<pre><code class="haskell">$ foldr mergeServerStats neutral [ rack1, rack2, rack3, ... ]
+ServerStats { totalInGB = 142
+            , perServer = [ DiskUsage {server = "foo", consumed = 42}
+                          , DiskUsage {server = "bar", consumed = 99}
+                          , DiskUsage {server = "baz", consumed = 1}
+                          , DiskUsage {server = "qux", consumed = 0}
+                          , ...
+                          ]
+            }
+</code></pre>
+
+<p>As you can see, we used all aspects of the Monoid in this example. We used the <em>neutral element</em> to have a starting value for our <code>foldl</code> invocation. We gave <code>foldl</code> the <code>mergeServerStats</code> binary operation over our datatype, and didn't worry about order of evaluation, which is where the <code>associativity</code> was helpful (we don't have to worry about implementation of <code>foldl</code>).</p>
+
+<p>So, when we find out we're working with a Monoid, we immediately know we can <code>fold</code> easily over lists of that datatype!</p>
+
+<p>In fact, if you're acquainted with <em>MapReduce</em>, a strategy for processing lots of data, you'll see that having a list of data allows you to <code>map</code> over it, and finding a Monoid between the datatype inside that list and the operation you want to do will allow you to <code>reduce</code> (or <code>fold</code>) easily over the list. Now you know what to look for!</p>
+
+<p>Aside from "knowing what we can do with it", there's another benefit to understanding <code>Monoid</code>s, and that is <em>familiarity</em>. If you're checking out a codebase, and you find a Monoid instance, you'll feel right at home, and you'll understand the operations done on that particular datatype much easier than before. Which leads me to "formalizing".</p>
+
+<h2 id="%F0%9F%A4%AF-formalizing">🤯 Formalizing</h2>
+
+<p>You can even go further with this: in Haskell, there's a datatype <code>Monoid</code> which formalizes these properties in a typeclass:</p>
+
+<pre><code class="haskell">class Monoid m where
+  mempty :: m
+  mappend :: m -&gt; m -&gt; m
+  mconcat :: [m] -&gt; m
+  mconcat = foldr mappend mempty
+</code></pre>
+
+<p>This means that you can formalize that your datatype &amp; operation combo is a <code>Monoid</code> instance, because it has a neutral element <code>mempty</code> and a binary operation <code>mappend</code>. You then get <code>mconcat</code> for free, which is the same as doing the <code>foldr</code> of the last example. Let's do this for our <code>ServerStats</code> type:</p>
+
+<pre><code class="haskell">instance Monoid ServerStats where
+  mempty = ServerStats { totalInGB = 0, perServer = [] }
+  mappend = mergeServerStats
+</code></pre>
+
+<p>We can now do this:</p>
+
+<pre><code class="haskell">$ mconcat [rack1, rack2, rack3]
+ServerStats { totalInGB = 142
+            , perServer = [ DiskUsage {server = "foo", consumed = 42}
+                          , DiskUsage {server = "bar", consumed = 99}
+                          , DiskUsage {server = "baz", consumed = 1}
+                          , DiskUsage {server = "qux", consumed = 0}
+                          ]
+            }
+</code></pre>
+
+<p>This <code>mconcat</code> function thus comes for free and will work on any <code>Monoid</code>! You can mostly guess the behaviour of this function whenever you see it!</p>
+
+<h2 id="%F0%9F%98%85-back-to-oop">😅 Back to OOP</h2>
+
+<p>What to do with this knowledge in the Object Oriented world? We use lists to work with objects of the same type constantly, and do operations on objects in those lists to gather new information. Most of the time I see this, it's done using <code>foreach</code> or something like it. However, as far as I'm concerned there's no difference to the Functional Programming world here. If you already embrace <code>map</code>, <code>filter</code> and <code>reduce</code>, you should also be thinking about the datastructure inside the list: is it a <em>Monoid</em>? You'll then understand better how it will behave when doing operations on it and you'll immediately know which the best reducer functions are!</p>
+
+<p>That concludes this post. I hope you try it out soon! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Lambda To The Rescue: Recursion]]></title>
             <link href="/blog/2018/06/27/lambda-recursion"/>
@@ -652,6 +861,7 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <li>Lists to wrap failure (this post)</li>
 <li><a href="/blog/2018/06/04/lambda-pure-functions">Pure Functions</a></li>
 <li><a href="/blog/2018/06/27/lambda-recursion">Recursion</a></li>
+<li><a href="/blog/2018/10/08/lambda-monoids">Monoids</a></li>
 <li>...</li>
 </ul>
 ]]></content>
