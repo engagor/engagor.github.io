@@ -3,9 +3,123 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Domain Driven Design.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-10-08T08:26:06+00:00</updated>
+    <updated>2018-11-28T10:26:38+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Syntax]]></title>
+            <link href="/blog/2018/11/28/lambda-syntax"/>
+            <updated>2018-11-28T11:30:00+00:00</updated>
+            <id>/blog/2018/11/28/lambda-syntax</id>
+            <content type="html"><![CDATA[<p><strong>This is the fifth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%9C%A8-syntactic-sugar">✨ Syntactic Sugar</h2>
+
+<p>When I was first reading <a href="http://learnyouahaskell.com/">Learn You A Haskell For Great Good</a>, I came across the term <em>Syntactic Sugar</em> and I was confused... My background in OOP languages made me cringe a little when I read about how you can create your own syntax in Haskell using infix operators and DSLs. It even goes so far that some functional languages have almost no syntax at all! Let's look at an example of "sugar":</p>
+
+<pre><code class="haskell">map reverse
+    (filter (\x -&gt; length x &lt; 5)
+            ["foo", "bar", "baz", "qux", "ramsam"])
+</code></pre>
+
+<p>We're taking the list <code>["foo", "bar", "baz", "qux", "ramsam"]</code>, filtering out items that are 5 characters or longer, and reversing them all, one by one. The result is <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<p>We can make this a little bit more readable by using Haskell's <code>$</code> infix operator, which allows us to remove some of the parentheses by evaluating the expression on its righthand side first:</p>
+
+<pre><code class="haskell">map reverse $ filter (\x -&gt; length x &lt; 5) $ ["foo", "bar", "baz", "qux", "ramsam"]
+</code></pre>
+
+<p>Although the parentheses are gone, we still have to read from right to left if we want to know what exactly the result of this will be. We basically pipe the result of the expression on the right of the <code>$</code> to the expression on the left side of it. Some languages like F# have the <code>|&gt;</code> operator which allows you to pipe from left to right, so the exact opposite of the <code>$</code> operator. It's not idiomatic Haskell, but in some cases we might want to use it to create some clarity.</p>
+
+<p>Since we know <code>|&gt;</code> is the exact opposite of <code>$</code>, let's just try to write it ourselves. In Haskell, infix operators are just normal functions with two parameters. Here's an example:</p>
+
+<pre><code class="haskell">*repl &gt; 2 + 3
+5
+
+*repl &gt; (+) 2 3
+5
+</code></pre>
+
+<p>The function <code>(+)</code> can be used as a normal Haskell function, writing the function first and its arguments after it, or as an infix operator, without the parentheses. So we know <code>($)</code> is a function taking two parameters, and we have <code>flip</code> which takes a function with two parameters, and flips the order of them!</p>
+
+<pre><code class="haskell">(|&gt;) = flip ($)
+</code></pre>
+
+<p>Easy! Let's now write the original example using <code>(|&gt;)</code>:</p>
+
+<pre><code class="haskell">["foo", "bar", "baz", "qux", "ramsam"]
+  |&gt; filter (\x -&gt; length x &lt; 5)
+  |&gt; map reverse
+</code></pre>
+
+<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
+
+<p>As you saw in the last example, we can create our own infix functions in Haskell. This can be very useful to create more readable code, using the language of the domain. Let's see a typical example of a function that doesn't do that:</p>
+
+<pre><code class="haskell">changeAddress :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>Now when we use this function in the classical way, it looks like this:</p>
+
+<pre><code class="haskell">let abbeyRoad3 = "3 Abbey Road, London NW8 9AY, UK"
+let updatedClient = changeAddress client abbeyRoad3
+</code></pre>
+
+<p>which doesn't read very well... What if we could use an infix here?</p>
+
+<pre><code class="haskell">let updatedClient = client `changesAddressTo` abbeyRoad3
+</code></pre>
+
+<p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
+
+<p><code>client changedAddressTo abbeyRoad3</code></p>
+
+<p>This is now the function type:</p>
+
+<pre><code class="haskell">changedAddressTo :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>So a simple changed lead to a better understanding of the code.</p>
+
+<h2 id="%F0%9F%93%89-the-absolute-minimum">📉 The Absolute Minimum</h2>
+
+<p>In the previous examples, you could see how we can mold the existing syntax to our likings, and use that to create very understandable code. Now let's see what happens when you take a language that has almost no syntax at all, like <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">scheme</a>. Literally, the only syntax in scheme is <code>(</code> and <code>)</code>. The rest are functions. Let's check out some code:</p>
+
+<pre><code class="scheme">(define sum
+  (lambda (list)
+    (cond
+      ((null? list) 0)
+      (else (+ (car list) (sum (cdr list)))))))
+</code></pre>
+
+<p>As you can see, there are lots of <code>(</code>s and <code>)</code>s. Basically, every <code>()</code> combo is a function call.</p>
+
+<ul>
+<li><code>(define name body)</code> defines a variable. In this case, it's called <code>sum</code>.</li>
+<li><code>(lambda (arguments) body)</code> defines a function. In this case, it has an argument called <code>list</code>.</li>
+<li><code>(cond (condition result1) (else result2))</code> creates a conditional. If the <code>condition</code> is <code>#t</code> (true), we return <code>result1</code>, else <code>result2</code>.</li>
+<li><code>(null? list)</code> checks if a list is empty.</li>
+<li><code>(+ a b)</code> returns the sum of two numbers.</li>
+<li><code>(car list)</code> returns the first item of a list (the <code>head</code> of the list).</li>
+<li><code>(sum list)</code> is the recursive call to our own defined function.</li>
+<li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
+</ul>
+
+<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parser or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macro's which will let you manipulate your own code!</p>
+
+<h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
+
+<p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
+
+<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do for expressiveness. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
+
+<p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
+
+<p>That concludes this post. I hope you try some of this stuff soon! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Some insights regarding Value Objects]]></title>
             <link href="/blog/2018/01/22/some-insights-regarding-value-objects"/>

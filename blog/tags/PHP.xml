@@ -3,9 +3,123 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-10-08T08:26:06+00:00</updated>
+    <updated>2018-11-28T10:26:38+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Syntax]]></title>
+            <link href="/blog/2018/11/28/lambda-syntax"/>
+            <updated>2018-11-28T11:30:00+00:00</updated>
+            <id>/blog/2018/11/28/lambda-syntax</id>
+            <content type="html"><![CDATA[<p><strong>This is the fifth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%9C%A8-syntactic-sugar">✨ Syntactic Sugar</h2>
+
+<p>When I was first reading <a href="http://learnyouahaskell.com/">Learn You A Haskell For Great Good</a>, I came across the term <em>Syntactic Sugar</em> and I was confused... My background in OOP languages made me cringe a little when I read about how you can create your own syntax in Haskell using infix operators and DSLs. It even goes so far that some functional languages have almost no syntax at all! Let's look at an example of "sugar":</p>
+
+<pre><code class="haskell">map reverse
+    (filter (\x -&gt; length x &lt; 5)
+            ["foo", "bar", "baz", "qux", "ramsam"])
+</code></pre>
+
+<p>We're taking the list <code>["foo", "bar", "baz", "qux", "ramsam"]</code>, filtering out items that are 5 characters or longer, and reversing them all, one by one. The result is <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<p>We can make this a little bit more readable by using Haskell's <code>$</code> infix operator, which allows us to remove some of the parentheses by evaluating the expression on its righthand side first:</p>
+
+<pre><code class="haskell">map reverse $ filter (\x -&gt; length x &lt; 5) $ ["foo", "bar", "baz", "qux", "ramsam"]
+</code></pre>
+
+<p>Although the parentheses are gone, we still have to read from right to left if we want to know what exactly the result of this will be. We basically pipe the result of the expression on the right of the <code>$</code> to the expression on the left side of it. Some languages like F# have the <code>|&gt;</code> operator which allows you to pipe from left to right, so the exact opposite of the <code>$</code> operator. It's not idiomatic Haskell, but in some cases we might want to use it to create some clarity.</p>
+
+<p>Since we know <code>|&gt;</code> is the exact opposite of <code>$</code>, let's just try to write it ourselves. In Haskell, infix operators are just normal functions with two parameters. Here's an example:</p>
+
+<pre><code class="haskell">*repl &gt; 2 + 3
+5
+
+*repl &gt; (+) 2 3
+5
+</code></pre>
+
+<p>The function <code>(+)</code> can be used as a normal Haskell function, writing the function first and its arguments after it, or as an infix operator, without the parentheses. So we know <code>($)</code> is a function taking two parameters, and we have <code>flip</code> which takes a function with two parameters, and flips the order of them!</p>
+
+<pre><code class="haskell">(|&gt;) = flip ($)
+</code></pre>
+
+<p>Easy! Let's now write the original example using <code>(|&gt;)</code>:</p>
+
+<pre><code class="haskell">["foo", "bar", "baz", "qux", "ramsam"]
+  |&gt; filter (\x -&gt; length x &lt; 5)
+  |&gt; map reverse
+</code></pre>
+
+<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
+
+<p>As you saw in the last example, we can create our own infix functions in Haskell. This can be very useful to create more readable code, using the language of the domain. Let's see a typical example of a function that doesn't do that:</p>
+
+<pre><code class="haskell">changeAddress :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>Now when we use this function in the classical way, it looks like this:</p>
+
+<pre><code class="haskell">let abbeyRoad3 = "3 Abbey Road, London NW8 9AY, UK"
+let updatedClient = changeAddress client abbeyRoad3
+</code></pre>
+
+<p>which doesn't read very well... What if we could use an infix here?</p>
+
+<pre><code class="haskell">let updatedClient = client `changesAddressTo` abbeyRoad3
+</code></pre>
+
+<p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
+
+<p><code>client changedAddressTo abbeyRoad3</code></p>
+
+<p>This is now the function type:</p>
+
+<pre><code class="haskell">changedAddressTo :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>So a simple changed lead to a better understanding of the code.</p>
+
+<h2 id="%F0%9F%93%89-the-absolute-minimum">📉 The Absolute Minimum</h2>
+
+<p>In the previous examples, you could see how we can mold the existing syntax to our likings, and use that to create very understandable code. Now let's see what happens when you take a language that has almost no syntax at all, like <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">scheme</a>. Literally, the only syntax in scheme is <code>(</code> and <code>)</code>. The rest are functions. Let's check out some code:</p>
+
+<pre><code class="scheme">(define sum
+  (lambda (list)
+    (cond
+      ((null? list) 0)
+      (else (+ (car list) (sum (cdr list)))))))
+</code></pre>
+
+<p>As you can see, there are lots of <code>(</code>s and <code>)</code>s. Basically, every <code>()</code> combo is a function call.</p>
+
+<ul>
+<li><code>(define name body)</code> defines a variable. In this case, it's called <code>sum</code>.</li>
+<li><code>(lambda (arguments) body)</code> defines a function. In this case, it has an argument called <code>list</code>.</li>
+<li><code>(cond (condition result1) (else result2))</code> creates a conditional. If the <code>condition</code> is <code>#t</code> (true), we return <code>result1</code>, else <code>result2</code>.</li>
+<li><code>(null? list)</code> checks if a list is empty.</li>
+<li><code>(+ a b)</code> returns the sum of two numbers.</li>
+<li><code>(car list)</code> returns the first item of a list (the <code>head</code> of the list).</li>
+<li><code>(sum list)</code> is the recursive call to our own defined function.</li>
+<li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
+</ul>
+
+<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parser or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macro's which will let you manipulate your own code!</p>
+
+<h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
+
+<p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
+
+<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do for expressiveness. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
+
+<p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
+
+<p>That concludes this post. I hope you try some of this stuff soon! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Lambda To The Rescue: Monoids]]></title>
             <link href="/blog/2018/10/08/lambda-monoids"/>
@@ -2163,73 +2277,6 @@ $stoppedOrderingForTheseRuns = $coffeeRuns
 <p>You can also choose to go A LOT further, or less far into this, as you desire. Good luck on your explorations!</p>
 
 <p>PS: I gave a talk on this subject at the <a href="http://php.gent/">PHP.GENT meetup</a>, you can find the slides <a href="https://speakerdeck.com/turanct/the-language-of-collections">here</a>.</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Vim As A PHP IDE - Debugging]]></title>
-            <link href="/blog/2017/10/02/vim-ide-debugging"/>
-            <updated>2017-10-02T10:00:00+00:00</updated>
-            <id>/blog/2017/10/02/vim-ide-debugging</id>
-            <content type="html"><![CDATA[<p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>A few weeks ago, I ended the "Vim As A PHP IDE" series with the <a href="/blog/2017/06/15/vim-ide-refactoring">refactoring</a> post. However, there's a huge thing missing from this series, and that's debugging. A lot of people debug their code using <code>var_dump</code> and <code>echo</code>, or worse, with self-made methods to markup the things they want to dump. Not only is this very old-school, there are also problems with this method. For instance, the dumped code affects the behaviour or the output of the running script. This is where the step debugger comes in.</p>
-
-<p>A step debugger lets you step trough your code while it's running, so that you can inspect variables on the fly. This eliminates the need for dumping lines to the standard output, while giving you more insight in what's happening. e.g. you can see the whole stack trace and step through that as well...</p>
-
-<p><a href="/images/2017-10-02-vim-ide-debugging/1.png"><img src="/images/2017-10-02-vim-ide-debugging/1.png" alt="screenshot of Vdebug in action" /></a></p>
-
-<h2 id="how-does-this-work%3F">How does this work?</h2>
-
-<p>Basically, the debugger, in the case of PHP <a href="https://xdebug.org/">xdebug</a>, hooks into the running code and exposes an API that you can use to set breakpoints, make the compiler run, etc... To install xdebug, follow the instructions on <a href="https://xdebug.org/docs/install">their documentation page</a>. Now you'll also have to add some lines to your <code>php.ini</code> configuration file. In my case it looks like this:</p>
-
-<pre><code class="ini">[xdebug]
-zend_extension="/path/to/xdebug.so"
-xdebug.remote_enable=1
-</code></pre>
-
-<p>The important part is the <code>remote_enable=1</code>, which allows us to hook into the step debugger.</p>
-
-<p>Then you, as a user, sets a breakpoint somewhere and inspects the state of the program at that point, using a "client" that knows how to speak the language of the debugger's API and integrates with your IDE. In our case that client is going to be the Vim plugin <a href="https://github.com/joonty/vdebug/">Vdebug</a>. You can install the plugin using your favorite plugin installation method.</p>
-
-<h2 id="debugging-our-first-script">Debugging our first script</h2>
-
-<p>Let's create a script <code>test.php</code> that we want to debug:</p>
-
-<pre><code class="php">&lt;?php
-
-$foo = 'bar';
-$foo = 'baz';
-</code></pre>
-
-<p>We want to see what's inside the <code>$foo</code> variable during the time this script runs. In Vim, press <code>F5</code> to activate Vdebug. Now, run the script with debugging enabled:</p>
-
-<pre><code class="sh">XDEBUG_CONFIG="idekey=xdebug" php test.php
-</code></pre>
-
-<p>You'll notice that the script seems to hang. In Vim, however, you'll see something like this happening:</p>
-
-<p><img src="/images/2017-10-02-vim-ide-debugging/2.png" alt="Vdebug first startup screen" /></p>
-
-<p>That's right! A new tab opened in Vim, containing the Vdebug window with the first breakpoint active. You can instantly see the local variables on the right, as well as the stack trace. If we now move our cursor to line <code>4</code> and press <code>F9</code>, to make the debugger run to that line and inspect the state right before it, we'll see that the <code>$foo</code> variable's value was changed to <code>'bar'</code>. Look ma, no <code>var_dump</code>!</p>
-
-<p><img src="/images/2017-10-02-vim-ide-debugging/3.png" alt="Inspecting the $foo variable in Vdebug" /></p>
-
-<p>You can also see the superglobals by hitting that tab in the variables screen:</p>
-
-<p><img src="/images/2017-10-02-vim-ide-debugging/4.png" alt="Vdebug shows PHPs superglobals at this point in time" /></p>
-
-<p>Great! Now you know the basics. Take a look at the other things you can do while debugging (stepping out, stepping over, etc) with Vdebug on <a href="https://github.com/joonty/vdebug/#quick-guide">their documentation's Quick Guide section</a>. To quickly stop debugging and return to where you were before, press <code>F6</code> twice.</p>
-
-<p>Tip: if you don't want to set the environment variable every time, you can make XDebug try and run a remote debugger session all the time, and hook into it when you want to by enabling your client. Put this extra line in your <code>php.ini</code> configuration file:</p>
-
-<pre><code class="ini">xdebug.remote_autostart=1
-</code></pre>
-
-<h2 id="debugging-code-that-is-run-by-a-webserver">Debugging code that is run by a webserver</h2>
-
-<p>Running the debugger for web requests is also possible. If the webserver is running on your local machine, you don't have to change much (assuming XDebug is installed and configured as above): just append a parameter to your URL, like this <code>XDEBUG_SESSION_START=xdebug</code>. For instance, <code>https://foo.local/test.php</code> would become <code>https://foo.local/test.php?XDEBUG_SESSION_START=xdebug</code>. The debugger will now try to connect to your client!</p>
-
-<p>So hereby we conclude this blog series about Vim as an IDE once more, and we hope that you liked it! Happy Debugging!</p>
 ]]></content>
         </entry>
     </feed>
