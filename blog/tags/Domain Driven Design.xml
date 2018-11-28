@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Domain Driven Design.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-11-28T10:26:38+00:00</updated>
+    <updated>2018-11-28T13:17:18+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -52,7 +52,7 @@
   |&gt; map reverse
 </code></pre>
 
-<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as the last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
 
 <h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
 
@@ -113,7 +113,7 @@ let updatedClient = changeAddress client abbeyRoad3
 
 <p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
 
-<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do for expressiveness. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
+<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do to make your code more meaningful. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
 
 <p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
 
