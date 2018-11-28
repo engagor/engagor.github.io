@@ -167,7 +167,7 @@ let updatedClient = changeAddress client abbeyRoad3
 
 <p>which doesn't read very well... What if we could use an infix here?</p>
 
-<pre><code class="haskell">let updatedClient = client `changesAddressTo` abbeyRoad3
+<pre><code class="haskell">let updatedClient = client `changedAddressTo` abbeyRoad3
 </code></pre>
 
 <p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
