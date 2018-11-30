@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Functional Programming.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-11-28T16:03:19+00:00</updated>
+    <updated>2018-11-30T12:53:00+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -107,7 +107,7 @@ let updatedClient = changeAddress client abbeyRoad3
 <li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
 </ul>
 
-<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parser or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macro's which will let you manipulate your own code!</p>
+<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parsers or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macros which will let you manipulate your own code!</p>
 
 <h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
 
