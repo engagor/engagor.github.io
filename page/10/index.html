@@ -106,6 +106,77 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/07/10/perceived-performance">How We Handle Perceived Performance</a></h1>
+        </header>
+        <div>
+            <h2 id="what-is-perceived-performance%3F">What is perceived performance?</h2>
+
+<p>Perceived performance refers to how fast a user thinks your site is, rather than the actual site speed. It's a metric measured by humans rather than a site speed test tool. How fast does the website feel? For example, Facebook appears faster by loading a placeholder for posts in the News Feed. It's useful to know that a site is only loading rather than functioning slowly.</p>
+
+<h2 id="how-cx-social-handles-perceived-performance">How CX Social Handles Perceived Performance</h2>
+
+<p>CX Social is a large application that has a complex interface. The "inbox" part of our system has multiple small features, that all appear to be on a single page. The perceived performance of the inbox is more important than the actual speed, especially because it provides a seamless user experience. The following are a few things we do to portray a speedier performance!</p>
+
+<h2 id="when-a-mention-is-resolved">When a mention is resolved</h2>
+
+<p>In CX Social we process small pieces of information we call "mentions". A mention is any blog post, news article, tweet, etc. that matches any of your specified criteria. All mentions are refined into the CX Social inbox, where support agents can mark them as <em>resolved</em> when they are replied to/labelled as no action needed, etc. When a mention is <em>resolved</em> the support agent is automatically shown the next <em>mention</em> to attend to.
+When a mention is resolved we manipulate the DOM and remove the element <em>before</em> the request is completed successfully. This gives you the impression that your action is completed instantly. In the rare case that the request fails, we replace the DOM element and display a relevant error message, so that the user knows what's going on and can resolve the mention again.</p>
+
+<p><center>
+<img src="/images/2017-07-10-perceived-performance/mentionresolve.gif" alt="Resolving a mention in CX Social Inbox" /><br />
+<small>Resolving a mention in CX Social Inbox</small>
+</center></p>
+
+<h2 id="loading-indicators">Loading Indicators</h2>
+
+<p>Loading icons can become a bit annoying on snappy pages because you see a flickering behaviour, and it makes the user feel as though they have to unnecessarily <em>wait</em>. Snappy pages don't require a loading icon, but we'd like a back up plan in case the page takes longer than expected to load. In this case, we use a timeout function for the loading functionality, and only show the loading interface when the request takes over X milliseconds to complete.</p>
+
+<p><center>
+<img src="/images/2017-07-10-perceived-performance/delayloading.gif" alt="Delay loading" /><br />
+<small>Don't show a loading indicator for quick requests</small>
+</center></p>
+
+<p>In this instance, there's a 3000 millisecond delay on the loading behaviour for this page.</p>
+
+<p><center>
+<img src="/images/2017-07-10-perceived-performance/delayloadingspinner.gif" alt="Delay loading" /><br />
+<small>Do show a loading indicator when a request is taking longer than usual</small>
+</center></p>
+
+<h2 id="placeholder-mentions-in-inbox">Placeholder mentions in inbox</h2>
+
+<p>Similar to how Facebook shows a preview of your feed by showing mini placeholders for each post, we show a placeholder when loading a list of mentions in CX Social. 
+We immediately show the selected mention, but for other mentions in the thread we automatically show a mention placeholder while they're loading. Then when the user scrolls farther in the thread, we pop in the next mentions. This gives structure to the page, while data is loading and thus makes it easier for the eye/mind to prepare for that data to be there.</p>
+
+<p><center>
+<img src="/images/2017-07-10-perceived-performance/inboxloading.gif" alt="Loading of inbox" /><br />
+<small>Placeholder sections for mentions in the CX Social inbox</small>
+</center></p>
+
+<h2 id="additional-information-in-dropdowns%2Fpopups">Additional information in dropdowns/popups</h2>
+
+<p>When you display a popup or dropdown there's no need to fetch every piece of information immediately. On each Twitter mention we have a "following" dropdown which shows the list of profiles that is following the author of the mention. It also shows whether you are following <em>that</em> profile and if <em>that</em> profile is following <em>you</em>. However we only load the latter information when the dropdown is opened. Sometimes we hit Twitter rate limits, and still try to display relevant following info based on our cache. If we don't have any info, we will still show the dropdown with ability to follow someone (but without displaying who they're already following) since those two endpoints have separate rate limits.</p>
+
+<p><center>
+<img src="/images/2017-07-10-perceived-performance/twitterfollowers.gif" alt="Loading of Twitter Followers" /><br />
+<small>Dropdown that shows if you are following the author of a mention and vice versa</small>
+</center></p>
+
+<h2 id="loading-new-content-without-a-page-reload">Loading new content without a page reload</h2>
+
+<p>We have a large sidebar in CX Social for navigation, as well as a top menu bar. When switching between pages, we just request the content for the main part of the page, and insert the new main content. This saves us doing a full page load.</p>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>Have you implemented any features to improve perceived performance? We'd love to hear about it!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Performance" class="tag">Performance</a>                        <a href="/blog/tags/UX" class="tag">UX</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/06/30/internship-achievements">Achievement Unlocked: Secure an Internship with us</a></h1>
         </header>
         <div>
@@ -255,103 +326,6 @@ endfunction
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/06/01/internship-gheerwijn-cx-social-developer">What it&#039;s Like to Intern at CX Social</a></h1>
-        </header>
-        <div>
-            <p>This February, Gheerwijn joined the CX Social development team as an intern. Now, three months later, with the bulk of his internship over, we’ve asked him what that was like and what he built.</p>
-
-<h3 id="building-a-social-profile-manager">Building a Social Profile Manager</h3>
-
-<p>The idea for the subject of the internship started a few years ago when several of our customers, including the <a href="https://twitter.com/nmbs">Belgian Railways NMBS</a>, started showing off their Twitter reply times in their cover photo. NMBS took the reply time for their Twitter profile from the CX Social API and wrote the necessary code to showcase that on their page.</p>
-
-<p><center>
-<img src="/images/2017-06-01-profile-manager-internship-gheerwijn/nmbs.png" alt="NMBS Twitter Profile" /><br />
-<small>NMBS Twitter Profile</small>
-</center></p>
-
-<p>We thought it would be great to build this into CX Social itself and improve on the idea with the extra features our tool offers, like having different cover images depending on your business hours, or showing different avatars depending on if a certain crisis plan is active. 
-Gheerwijn, a student of <a href="https://www.odisee.be/nl/elektronica-ict">Electronica - ICT at Odisee Gent</a>, took on this challenge and dove right in.</p>
-
-<p><strong>Gheerwijn</strong>: <em>"The main purpose of the Profile Manager is to give CX Social customers a single place to manage all of their owned social profiles. Not only can it manage basic profile information, but it can also perform more complex tasks. The most striking feature of the Profile Manager is the ability to create themes. These themes are a combination of a profile photo and cover photo."</em></p>
-
-<p>The idea was to offer clients the possibility to upload their own pictures and even annotate them. These annotations include plain text, but also variables like "reply time" or "unique users serviced".</p>
-
-<p><strong>Gheerwijn:</strong> <em>"After a theme has been created, it can be scheduled for one or more profiles. This means that CX Social users can choose when a specific theme, like a Christmas theme, should be shown on certain profiles. We've also added the option to show different themes during/outside configured business hours schedules."</em></p>
-
-<blockquote>
-  <p><strong><em>"This feature gives companies with a large customer base on social the ability to be transparant on how long it will approximately take to get an answer to their questions."</em></strong> - Gheerwijn</p>
-</blockquote>
-
-<h3 id="using-react-and-node.js">Using React and Node.js</h3>
-
-<p>When asked about what were some of the most interesting aspects of the project, Gheerwijn cites the JavaScript library React and the backend technology Node.js as two fun technologies to work with.</p>
-
-<p><strong>Gheerwijn:</strong> <em>"I had heard of React but never actually used it. A first experiment I did with it was a component to handle the scheduling of a theme. It proved to be an excellent way to quickly create interactive user interfaces, so I started to use it for everything I possibly could."</em></p>
-
-<p><strong>Gheerwijn:</strong> <em>"I also got to work on a Node.js microservice. Although I had already worked with Node.js on several occasions, I got to use new modules and libraries, like Fabric, which made it an interesting learning opportunity. I love how Node.js brings the joy of writing JavaScript to the backend.
-The hardest part to get right was having the annoted images render correctly, both on the front-end as well as in the back-end."</em></p>
-
-<blockquote>
-  <p><strong><em>"I love how Node.js brings the joy of writing JavaScript to the backend."</em></strong> - Gheerwijn</p>
-</blockquote>
-
-<p><center>
-<img src="/images/2017-06-01-profile-manager-internship-gheerwijn/annotate-dialog.png" alt="Annotating images in the Profile Manager" /><br />
-<small>Annotating images with Profile KPI's</small>
-</center></p>
-
-<p><strong>CX Social: Did you acquire any non-technical skills while working here?</strong></p>
-
-<p><strong>Gheerwijn</strong>: <em>"Preparing for the weekly status meetings was a great way to learn how to separate the important things from the less important ones. It forced me to spend more time thinking about how the users would eventually use this feature. I learned that things that are obvious to the programmer aren't necessarily clear to the users."</em></p>
-
-<h3 id="a-look-behind-the-scenes">A Look Behind the Scenes</h3>
-
-<p><strong>Gheerwijn:</strong> <em>"What drew me to this internship proposal was the fact that it involved social media. Everyone and their mother has a Facebook, Twitter, or Instagram account. Not only individuals, but also companies are using social media on a daily basis. In this day and age, social media is something irreplaceable.
-I started at CX Social because I wanted a look behind the scenes."</em></p>
-
-<p><strong>CX Social:</strong> <strong>Did you have any idea what to expect that first day you started?</strong></p>
-
-<p><strong>Gheerwijn:</strong> <em>I actually expected it to be quite stressful, mainly because it was such a big project to complete, but also because you suddenly start working in a company and you have to get to know everything and everyone.</em></p>
-
-<p><strong>CX Social:</strong> <strong>So, how high were the stress levels then?</strong></p>
-
-<p><strong>Gheerwijn:</strong> <em>"Well, the team was very helpful. I felt like a real part of the team and not just ‘the intern’.
-Anthony helped me out with getting to know the do's and don'ts in the codebase. Hans introduced me to several best practices and ways to make my code better. Down the road, I got to work with Jared and Ursula, who both took care of the design. Jurriaan was always able to come up with a solution to problems I would've never been able to fix on my own. And Toon showed me how to integrate my features in the task-scheduling back-end of CX Social. In the end, I got to work with everyone from the development team. I learned a lot just from asking other people how they would approach a certain problem."</em></p>
-
-<blockquote>
-  <p><strong><em>"It was also great to be able to have my feedback always taken into account when making decisions."</em></strong> - Gheerwijn</p>
-</blockquote>
-
-<p><strong>Gheerwijn:</strong> <em>"When I thought something didn't make sense the way it was expected to be implemented, my thoughts about what I thought should change were actually taken into account and implemented."</em></p>
-
-<p><center>
-<img src="/images/2017-06-01-profile-manager-internship-gheerwijn/facebook-preview.png" alt="Creating a Facebook Theme" /><br />
-<small>Creating a Facebook Theme</small>
-</center></p>
-
-<p><strong>CX Social: Any moments during your internship that stood out?</strong></p>
-
-<p><strong>Gheerwijn:</strong> <em>"There are two moments I won't forget. The team went on a two-day off-site bootcamp. It was the perfect way to get to know all the team members. After an entire day of working, the evenings were filled with fun activities. It was certainly not something I was expecting to do during my internship!
-The second unforgettable moment was the last day of my internship. After months of working on this one feature, the time had come to deploy it to production. We spent the last days pair programming the last bits to be able to put it live for testing. It was great seeing the work I did go live to beta-testers."</em></p>
-
-<blockquote>
-  <p><strong><em>"Let me end with sharing an important tip for any interns after me: Work hard and buy a Nerf gun. You won't survive long without one."</em></strong> - Gheerwijn</p>
-</blockquote>
-
-<p><center>
-<img src="/images/2017-06-01-profile-manager-internship-gheerwijn/nerf-battle.gif" alt="Dekking Zoeken" /><br />
-<small>Dekking Zoeken</small>
-</center></p>
-
-<p><strong>Also interested in working as an intern in the CX Social team from the Clarabridge Ghent office? <a href="mailto:jurriaan.persyn@clarabridge.com">Reach out</a> and maybe you'll be part of our team soon?</strong></p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Internship" class="tag">Internship</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/9" class="left">Newer Posts</a>        <a href="/page/11" class="right">Older Posts</a>    </nav>

@@ -3,9 +3,63 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Issues.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-11-30T12:53:00+00:00</updated>
+    <updated>2018-12-07T14:20:58+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Experiment: Pair Programming By Default]]></title>
+            <link href="/blog/2018/12/07/one-month-of-pairing"/>
+            <updated>2018-12-07T16:00:00+00:00</updated>
+            <id>/blog/2018/12/07/one-month-of-pairing</id>
+            <content type="html"><![CDATA[<p>As you could already read in some of our <a href="/blog/2017/05/22/implementing-little-big-details-on-offsite-bootcamp">previous</a> <a href="/blog/2017/03/01/batman-chatman">blogposts</a>, we are a relatively small team, with some loose rules for working together. Up until one month ago, everyone just picked a project from the roadmap and started implementing, and there was a rotation system within the team to always have two people available to help out our support team to assess bugs &amp; fix issues respectively.</p>
+
+<h2 id="%F0%9F%92%AD%F0%9F%98%B0-about-silos-%26-issue-fatigue">💭😰 About Silos &amp; Issue-Fatigue</h2>
+
+<p>As you can imagine, this works really well for projects that are small and well defined, and for teams where everyone is of the same skill level, and has the same development practices. People are not in each other's ways, and you can "horizontally scale" your team. The only trouble is, we're a small team, we have senior and junior developer profiles, and our projects are mostly not so small. The result of this, is that the person implementing a feature is most likely the only one that <strong>really</strong> knows the feature inside out. So the <a href="https://en.wikipedia.org/wiki/Bus_factor">bus factor</a> for every feature was basically 1. For some features we had insane knowledge silos.</p>
+
+<p>There's a similar story to the support rotation system within the team: the people talking to support and fixing bugs most likely didn't implement the features where the bugs appeared. If they did, the bugs were quickly fixed, and if not, people had to try and understand code written by someone else that they'd never seen <strong>over and over</strong> again. Not ideal. And the result was that for me personally, weeks when I was Batman (yes that's how we call the lucky engineer that's solving bugs that week) were the most draining periods of the year.</p>
+
+<h2 id="%E2%9A%97%EF%B8%8F%F0%9F%94%AC-the-experiment">⚗️🔬 The Experiment</h2>
+
+<p>We do weekly roundups, and after an exhausting week of being Batman, I, expressed my feelings towards the Silos and the Batman weeks. The whole team actually agreed that the situation was not perfect, and we decided it was time for an experiment:</p>
+
+<ul>
+<li>Split up the (already small) team in two groups of people (3 to 4 people per group) that will always try to work together on the same feature.</li>
+<li>Start every day together with your team (at the same computer or over <a href="https://get.slack.help/hc/en-us/articles/216771908-Make-calls-in-Slack">Slack Voice Calls</a>) trying to solve issues or create features using Pair Programming techniques. Split up the team for "monkey-jobs".</li>
+<li>Both teams provide one team member per week to be Batman or Robin. They form their own team and tackle bugs together.</li>
+</ul>
+
+<p>We limited the scope of the experiment to the winter release, so 3 months. So far we did a (very limited) retrospective every week.</p>
+
+<h2 id="%F0%9F%91%A8%E2%80%8D%F0%9F%92%BB%F0%9F%91%A8%E2%80%8D%F0%9F%92%BB-what-have-we-learned-so-far%3F">👨‍💻👨‍💻 What have we learned so far?</h2>
+
+<p>We've only been doing this for 4 weeks, so I might be jumping to conclusions here. So far the experience has been positive!</p>
+
+<ul>
+<li>It's great to be able to verify your ideas immediately, and to try and build a shared understanding of the problem you're working on.</li>
+<li>Pair Programming is exhausting, but it works! We feel the velocity gain and the concentration boost. We find that we're writing better code. We feel productive.</li>
+<li>We're aware that it's exhausting and we take a lot of breaks, stop early when we're tired.</li>
+<li>We're using Slack as team communication tool, and when someone is working at home, we can just keep Pair Programming because of the built-in voice calls and screen sharing. Slack even allows you to share your mouse and keyboard with the person at the other side of the call (that is, if you've installed Slack from their website instead of from the App Store).</li>
+<li>We found this great blogpost with some basics to <a href="https://madewithlove.be/how-to-keep-pair-programming-digestible/">keep Pair Programming digestible</a>, by my friend <a href="https://twitter.com/woutersioen">Wouter Sioen</a>.</li>
+<li>We've done some ad-hoc pair programming in the past, but starting the day at the same computer really helps you keep it up and encourages you to do it more often.</li>
+<li>Batman and Robin are <em>way faster</em> at finding and fixing bugs than when they were working alone. Having that extra developer by your side improves your bug finding experience massively. When working alone, overlooking a small mistake could take up hours, while your pair could spot that in seconds. Our CTO <a href="https://twitter.com/oemebamo">Jurriaan Persyn</a> pointed out that we've fixed a third more issues than last month, even some that were open for a long time already!</li>
+</ul>
+
+<h2 id="%F0%9F%93%9A%F0%9F%A7%90-some-resources">📚🧐 Some resources</h2>
+
+<ul>
+<li><a href="https://tuple.app/pair-programming-guide/">Tuple's Pair Programming Guide with lots of good tips!</a></li>
+<li><a href="http://www.davefarley.net/?p=267">Blog: Pair Programming For Introverts</a></li>
+<li><a href="https://madewithlove.be/how-to-keep-pair-programming-digestible/">Blog: How To Keep Pair Programming Digestible</a></li>
+<li><a href="https://www.martinfowler.com/bliki/PairProgrammingMisconceptions.html">Blog: Martin Fowler on Pair Programming Misconceptions</a></li>
+<li><a href="http://wiki.c2.com/?ExtremeProgramming">WikiWikiWeb on Extreme Programming</a></li>
+<li><a href="https://twitter.com/MrAlanCooper/status/1060558122916278272">Great twitter thread by @MrAlanCooper about Pair Programming</a></li>
+<li><a href="https://twitter.com/mathiasverraes/status/1063063502254936065">Mathias Verraes talking about Pair Programming for quality</a></li>
+</ul>
+
+<p>We hope we can keep it up! 🤞</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Bug Fixing: Creating Synergy Between Dev and Support]]></title>
             <link href="/blog/2017/03/01/batman-chatman"/>
