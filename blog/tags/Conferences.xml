@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Conferences.xml" rel="self"/>
     <link href="/"/>
-    <updated>2018-12-18T08:40:52+00:00</updated>
+    <updated>2018-12-20T10:47:17+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -32,9 +32,11 @@ He even convinced me to go with him to this cool web conference.</p>
 
 <p>MPJ has his own YouTube channel <a href="https://www.youtube.com/channel/UCO1cgjhGzsSYb1rsB4bFe4Q">Fun Fun Functions</a> where you can find some development discussions with some of the speakers.</p>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/uy6sU-Ymlaw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h2 id="talks-%F0%9F%92%AC">Talks 💬</h2>
 
-<p><em>At the time of writing no videos are online but they will be soonish. Check the <a href="https://www.youtube.com/user/nordicjs">Nordic.js youtube channel</a> for updates.</em></p>
+<p><em>Check the <a href="https://www.youtube.com/user/nordicjs">Nordic.js youtube channel</a> for all videos.</em></p>
 
 <p>Also this year it was a single track conference. They had a good variety of light talks like "hey I have a good story/practice for you" and some very code rich "let's take a closer look" talks.</p>
 
@@ -48,6 +50,8 @@ He even convinced me to go with him to this cool web conference.</p>
 Tierney kicked off the conference with a motivating and inspiring keynote about Node.js and why it has such a great ecosystem behind it.
 Main thought: Everything is about community and everybody can be part of it.</p>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kgyb0PV5d_A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="fast-but-not-furious%3A-debugging-user-interaction-performance-issues"><a href="http://nordicjs.com/speakers#anna-migas">Fast but not furious: debugging user interaction performance issues</a></h3>
 
 <p>by <a href="https://twitter.com/szynszyliszys">Anna Migas</a></p>
@@ -55,9 +59,7 @@ Main thought: Everything is about community and everybody can be part of it.</p>
 <p>Anna explained a bit about debugging tabs in Google Chrome and Firefox.
 All based on her findings while developing some css plugins like <a href="https://github.com/LunarLogic/starability">Starability</a>. She worked specifically on the rendering of animations.</p>
 
-<p>This is a video of her giving the same talk at ScotlandJS.</p>
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/FmpNNw1Jjwk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/LFYs7XT5jXI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h3 id="magic-tricks-with-houdini"><a href="http://nordicjs.com/speakers#sam-richard">Magic Tricks with Houdini</a></h3>
 
@@ -68,9 +70,7 @@ So Sam is a UI Architect at IBM and gave a talk about Houdini.</p>
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">CSS Houdini let us tap into the CSS engine, extending it with JavaScript, not only mimicking. Cool right? <a href="https://twitter.com/Snugug?ref_src=twsrc%5Etfw">@snugug</a> <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a></p>&mdash; Jonatan (@karlerikjonatan) <a href="https://twitter.com/karlerikjonatan/status/1037645299353878528?ref_src=twsrc%5Etfw">6 september 2018</a></blockquote>
 
-<p>He did the same presentation at CSSConf Australia.</p>
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/FYWZrLpN5Po" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/gg0NiBBd2Ak" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <p>Side note: He's been presenting this subject for a while now. He said that he has to change his slides every time because newer versions of Houdini are so frequently released. So, the above video can possibly be outdated.</p>
 
@@ -86,6 +86,8 @@ He even explained the event loop with toy trains which was visually very nice to
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">thank you <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a>! check out my demo and list of resources here <a href="https://t.co/2v3PWUhjNC">https://t.co/2v3PWUhjNC</a></p>&mdash; Alejandro Oviedo (@a0viedo) <a href="https://twitter.com/a0viedo/status/1037677069067534336?ref_src=twsrc%5Etfw">6 september 2018</a></blockquote>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/7HoxAeQIck4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="look-mum%2C-no-hands%21"><a href="http://nordicjs.com/speakers#charlie-gerard">Look mum, no hands!</a></h3>
 
 <p>by <a href="https://twitter.com/devdevcharlie">Charlie Gerard</a></p>
@@ -99,7 +101,7 @@ First she selected keys on a keyboard with her eyes and after that she controlle
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Here are the slides for my talk about mind control in JavaScript if anyone wants the links to resources I talked about :) <a href="https://t.co/hrHozZRUIv">https://t.co/hrHozZRUIv</a> Feel free to ask any question! 😊 <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a></p>&mdash; Charlie Gerard 🏳️‍🌈 (@devdevcharlie) <a href="https://twitter.com/devdevcharlie/status/1037962564297220097?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/7KhFO-qCVyg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/X-tpqxC7-co" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h3 id="powerful-automation-with-the-chrome-devtools-protocol"><a href="http://nordicjs.com/speakers#trent-willis">Powerful Automation with the Chrome DevTools Protocol</a></h3>
 
@@ -115,6 +117,8 @@ During his presentation he was explaining how you can use Puppeteer together wit
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">This is why we can&#39;t have nice things. <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a>  <a href="https://twitter.com/trentmwillis?ref_src=twsrc%5Etfw">@trentmwillis</a> <a href="https://twitter.com/nordicjs?ref_src=twsrc%5Etfw">@nordicjs</a> <a href="https://t.co/ufGZowIpuP">pic.twitter.com/ufGZowIpuP</a></p>&mdash; 🌍 🌳 🐝 🌊 🏳️‍🌈 (@reimertz) <a href="https://twitter.com/reimertz/status/1037721767383654403?ref_src=twsrc%5Etfw">6 september 2018</a></blockquote>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/piip-JSc4hc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="accessible-by-law%21-generating-colors-with-js-and-css-custom-properties"><a href="http://nordicjs.com/speakers#ingvild-indreb">Accessible by law! Generating colors with JS and CSS Custom Properties</a></h3>
 
 <p>by <a href="https://twitter.com/IngvildIndrebo">Ingvild Indrebø</a></p>
@@ -126,6 +130,8 @@ Her talk was more about colors and contrast in websites. The company where she's
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Accessible by Law by <a href="https://twitter.com/IngvildIndrebo?ref_src=twsrc%5Etfw">@IngvildIndrebo</a>  at <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a> <a href="https://twitter.com/nordicjs?ref_src=twsrc%5Etfw">@nordicjs</a> as <a href="https://twitter.com/hashtag/sketchnotes?src=hash&amp;ref_src=twsrc%5Etfw">#sketchnotes</a> <a href="https://t.co/773ODWBZu4">pic.twitter.com/773ODWBZu4</a></p>&mdash; Norman Wehrle (@normanwehrle) <a href="https://twitter.com/normanwehrle/status/1038017526574272512?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Interesting talk by <a href="https://twitter.com/IngvildIndrebo?ref_src=twsrc%5Etfw">@ingvildindrebo</a> on accessibility and color contrast - required by Norwegian law! Similar to the contrast check we added when we built <a href="https://t.co/UfWMizyQuq">https://t.co/UfWMizyQuq</a> <a href="https://twitter.com/Danetag?ref_src=twsrc%5Etfw">@Danetag</a> 👀<a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a> <a href="https://t.co/YvxlLDGJAt">pic.twitter.com/YvxlLDGJAt</a></p>&mdash; Majsan Auvinen (@majsanauvinen) <a href="https://twitter.com/majsanauvinen/status/1038100592311394305?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/2fO8B15uM1s" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h3 id="why-we-built-another-framework"><a href="http://nordicjs.com/speakers#tomas-della-vedova">Why we built another framework</a></h3>
 
@@ -139,6 +145,8 @@ The focus was speed (what's in a name?), but also what a framework should have t
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Why we build another franework by <a href="https://twitter.com/delvedor?ref_src=twsrc%5Etfw">@delvedor</a> at <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a> <a href="https://twitter.com/nordicjs?ref_src=twsrc%5Etfw">@nordicjs</a> as <a href="https://twitter.com/hashtag/sketchnotes?src=hash&amp;ref_src=twsrc%5Etfw">#sketchnotes</a> <a href="https://t.co/eQRr17ugiI">pic.twitter.com/eQRr17ugiI</a></p>&mdash; Norman Wehrle (@normanwehrle) <a href="https://twitter.com/normanwehrle/status/1038018303594319872?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ucatti2b7E4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="empathy-driven-development%3A-boosting-performance-by-implementing-for-unfavorable-conditions"><a href="http://nordicjs.com/speakers#isabella-silveira-de-souza">Empathy Driven Development: Boosting performance by implementing for unfavorable conditions</a></h3>
 
 <p>by <a href="https://twitter.com/silveira_bells">Isabella Silveira de Souza</a></p>
@@ -151,6 +159,8 @@ In the beginning of her talk, she referred to her hometown Rio De Janeiro where 
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">So excited for this talk by <a href="https://twitter.com/silveira_bells?ref_src=twsrc%5Etfw">@silveira_bells</a>! Empathy Driven Development <a href="https://t.co/Paak3jilJF">pic.twitter.com/Paak3jilJF</a></p>&mdash; Sam Richard - 🇸🇪 Nordic.js (@Snugug) <a href="https://twitter.com/Snugug/status/1038051579608358914?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/LjGQiEcBn1Y" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="headers-for-hackers"><a href="http://nordicjs.com/speakers#andrew-betts">Headers for Hackers</a></h3>
 
 <p>by <a href="https://twitter.com/triblondon">Andrew Betts</a></p>
@@ -162,9 +172,7 @@ He also talked about some new interesting headers to check out.</p>
 
 <p>Main thought: We have to focus more on headers, because they can prevent a lot of hacks you don't want.</p>
 
-<p>Andrew gave the same presentation (but a bit longer) at ScaleConf.</p>
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/TfDb9xdJFlA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/II9m9_esNZc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h3 id="connecting-javascript-to-the-blockchain"><a href="http://nordicjs.com/speakers#meng-shang">Connecting JavaScript to the Blockchain</a></h3>
 
@@ -189,6 +197,8 @@ There is a limit of 5min. If they go overtime, the hosts chase the presenter off
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Hope you enjoyed our great lightning fast 🙌🏽⚡️<a href="https://twitter.com/nordicjs?ref_src=twsrc%5Etfw">@nordicjs</a> Lightning Talk by <a href="https://twitter.com/mindspank?ref_src=twsrc%5Etfw">@mindspank</a>. Alex is around today to answer any questions about <a href="https://twitter.com/picassodotjs?ref_src=twsrc%5Etfw">@picassodotjs</a>, our awesome dev community and so much more! <a href="https://twitter.com/hashtag/nordicjs?src=hash&amp;ref_src=twsrc%5Etfw">#nordicjs</a> Holla! <a href="https://t.co/CmM2pRdf35">pic.twitter.com/CmM2pRdf35</a></p>&mdash; Qlik Branch (@qlikbranch) <a href="https://twitter.com/qlikbranch/status/1037651512028278785?ref_src=twsrc%5Etfw">6 september 2018</a></blockquote>
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Owq7Fm4qqYw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="expo">Expo</h3>
 
 <p>by <a href="https://twitter.com/reimertz">Pierre Reimertz</a></p>
@@ -203,6 +213,8 @@ So he used <a href="https://expo.io/">Expo</a>. You can compare it a bit with <a
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Omg, lightning talks at <a href="https://twitter.com/nordicjs?ref_src=twsrc%5Etfw">@nordicjs</a> is always a lot of fun! For the few ones who would like to break the app: <a href="https://t.co/2TSWRJZicd">https://t.co/2TSWRJZicd</a> <br><br>I promise to share the codez later this week. <br><br>Also, sorry <a href="https://twitter.com/Apple?ref_src=twsrc%5Etfw">@apple</a> for the rant. You good, but kind of not either. 😢</p>&mdash; 🌍 🌳 🐝 🌊 🏳️‍🌈 (@reimertz) <a href="https://twitter.com/reimertz/status/1038059146585759744?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
 
 <blockquote class="twitter-tweet" data-lang="nl"><p lang="en" dir="ltr">Possibly the best talk at <a href="https://twitter.com/hashtag/NordicJS?src=hash&amp;ref_src=twsrc%5Etfw">#NordicJS</a> so far by <a href="https://twitter.com/reimertz?ref_src=twsrc%5Etfw">@reimertz</a> “cats are great, MacOS is not”</p>&mdash; JesperBylund (@JesperBylund) <a href="https://twitter.com/JesperBylund/status/1038045432541335552?ref_src=twsrc%5Etfw">7 september 2018</a></blockquote>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QDvo-6yb4MQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h2 id="this-was-nordic.js-2018-%F0%9F%8E%A5">This was Nordic.js 2018 🎥</h2>
 
