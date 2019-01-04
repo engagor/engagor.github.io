@@ -106,6 +106,462 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2017/11/15/refactoring-to-collections">Refactoring to Collections</a></h1>
+        </header>
+        <div>
+            <p>How many times have you seen code like this?</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Our office is very close to a <a href="http://simon-says.be/">great coffee bar</a>, and people are going there from time to time to get coffee for everyone in the office. Keeping track of who's going for coffee and who wants which coffee can be daunting, which is why I'm making this app. Let's take a closer look at that piece of code.</p>
+
+<p>We're manually traversing an array of <code>CoffeeRun</code> objects that we got out of the Repository to filter out those who are open for orders. If we find one, we add it to a new array. This way we build a list of <code>CoffeeRuns</code> that are still accepting orders.</p>
+
+<h2 id="to-iterator-or-not%2C-that%27s-the-question">To Iterator or not, that's the question</h2>
+
+<p>Now, there's nothing very wrong with this, but it could be made a whole lot better, I think. Let's say that the Repository contains 1000 <code>CoffeeRun</code>s. We're now forcing the Repository to return an array of 1000 <code>CoffeeRun</code> objects when we call <code>getAll()</code>. That's not great. But let's think about it... The Repository already represents a list of all <code>CoffeeRun</code> objects. Why can't we just iterate over it? Something like this:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository;
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Having a repository we can iterate over like that would already be a first step. We could implement the <code>Iterator</code> interface within the Repository, and have this functionality immediately. But that would leave the foreach out there, and that would also present a problem for our dependency injection: the class where this <code>displayCoffeeRunsOpenForOrders</code> is a controller, and it has the Repository injected in its constructor, like this:</p>
+
+<pre><code class="php">public function __construct(CoffeeRunsRepository $repository)
+{
+    $this-&gt;coffeeRunsRepository = $repository;
+}
+</code></pre>
+
+<p>If we'd count on the fact that the Repository is now an <code>Iterator</code>, we should either typehint on it, but then we lose our typehint for <code>CoffeeRunsRepository</code>, which we don't want. Or we could make the <code>CoffeeRunsRepository</code> interface extend the <code>Iterator</code> interface, but then we get a really big interface we need to implement for every implementation of the Repository. Both of which are annoying to say the least.</p>
+
+<h2 id="think-solidly-different">Think SOLIDly Different</h2>
+
+<p>Let's try something completely different. In fact, the <code>foreach</code> in that method, is blocking progress for us right now; Let's extract that whole block to a method. This is what was in the controller before the extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>In the Repository we added a new method <code>openForOrders()</code>, and we kept the same implementation as before, which now resides in the implementation of that method:</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    // ...
+
+    /**
+     * @return CoffeeRun[] A list of CoffeeRuns open for orders
+     */
+    public function openForOrders();
+
+    // ...
+}
+</code></pre>
+
+<pre><code class="php">final class CoffeeRunsRepositoryInMemory implements CoffeeRunsRepository
+{
+    // ...
+
+    public function openForOrders()
+    {
+        $coffeeRuns = $this-&gt;getAll();
+        $openForOrders = array();
+
+        foreach ($coffeeRuns as $coffeeRun) {
+            if ($coffeeRun-&gt;ordersCanBeMade()) {
+                $openForOrders[] = $coffeeRun;
+            }
+        }
+
+        return $openForOrders;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>This is what's left in the controller after extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeRunsRepository-&gt;openForOrders();
+}
+</code></pre>
+
+<p>I don't like the <code>Repository</code> word in there, while we're thinking about the Repository as just being a Collection. Let's rename the variable in our controller. Notice how well this reads:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeruns-&gt;openForOrders();
+}
+</code></pre>
+
+<p>"Return CoffeeRuns that are Open For Orders". I like it. What's even better, is that the filtering of the Collection is now happening in the object that worries about the Collection, namely the Repository. This means that the specific implementations can optimize for their own benifits. E.g. the database implementation of the Repository can use a specific <code>WHERE</code> query so that it doesn't need to filter <code>CoffeeRun</code>s in PHP, and as a result of that it doesn't need to load a whole list of <code>CoffeeRun</code> objects into memory.</p>
+
+<h2 id="bump-your-head-twice">Bump your head twice</h2>
+
+<p>What if we want a second method in our controller that displays all CoffeeRuns that are open for orders, and will happen before noon? The <code>openForOrders()</code> method won't be enough. We could use it, and then use a <code>foreach</code> as in the first example of the blog post, but then we're back to square one. We could also make it a Repository method, and that would be okay, but only if we don't have to do it too many times. Let's look for a different solution.</p>
+
+<p>It looks like we now have two problems:</p>
+
+<ol>
+<li>We want to encapsulate the "looping over a list and picking out specific items"</li>
+<li>We want to combine several of these actions on a list, or at least do them in succession</li>
+</ol>
+
+<p>The problems always come up when we're talking to the Repository. We made two changes to it, that were both half solutions. The Repository has too many responsibilities (Storage and Collection). What would happen if we'd return an object representing a list of CoffeeRun objects from the Repository, and use that to iterate over? The Repository only takes care of the storage, and the Collection object takes care of the Collection stuff.</p>
+
+<p>What we want to do is "filter" CoffeeRuns so that we get CoffeeRuns that are open for orders, and then filter those again so that we get those open for orders that are happening before noon. In pseudo code:</p>
+
+<pre><code class="php">coffeeRuns = repository.getAll
+coffeeRuns
+    .thatAre(openForOrders)
+    .thatAre(happeningBeforeNoon)
+</code></pre>
+
+<p>If we can express <code>openForOrders</code> and <code>happeningBeforeNoon</code> as functions that take a <code>CoffeeRun</code> object and return a boolean (we'll call them predicates), then the <code>thatAre()</code> implementation could be very generic! Let's check it out:</p>
+
+<pre><code class="php">$openForOrders = function (CoffeeRun $coffeeRun)
+{
+    return $coffeeRun-&gt;ordersCanBeMade();
+};
+
+$noon = new DateTime('today noon');
+$happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+{
+    return $coffeeRun-&gt;getDate() &lt; $noon;
+};
+</code></pre>
+
+<p>Now we'll create the <code>CoffeeRuns</code> Collection object, with a <code>thatAre</code> method:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param callable function that takes a CoffeeRun and returns a boolean
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(callable $matchingPredicate);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>Let's create a naïve <code>array</code> based implementation of it:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                $matchingPredicate
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>Right now, we can have our <code>CoffeeRunsRepository</code> return a <code>CoffeeRuns</code> Collection object for the <code>getAll()</code> method instead of <code>CoffeeRun[]</code> (an array of CoffeeRun) objects, and remove the specific methods we created, like <code>openForOrders()</code>.</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    /**
+     * @return CoffeeRuns A collection of CoffeeRuns
+     */
+    public function getAll();
+}
+</code></pre>
+
+<p>In the controller, we now get this:</p>
+
+<pre><code class="php">final class CoffeeController
+{
+    private $coffeeRuns;
+    private $openForOrders;
+    private $happeningBeforeNoon;
+
+    public function __construct(CoffeeRunsRepository $repository)
+    {
+        $this-&gt;coffeeRuns = $repository;
+
+        $this-&gt;openForOrders = function (CoffeeRun $coffeeRun)
+        {
+            return $coffeeRun-&gt;ordersCanBeMade();
+        };
+
+        $noon = new DateTime('today noon');
+        $this-&gt;happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+        {
+            return $coffeeRun-&gt;getDate() &lt; $noon;
+        };
+    }
+
+    public function displayCoffeeRunsOpenForOrders()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+
+    public function displayCoffeeRunsOpenForOrdersAndBeforeNoon()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders)
+            -&gt;thatAre($this-&gt;happeningBeforeNoon);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+}
+</code></pre>
+
+<p>As you can see, the individual methods got very readable. The operations on the Collections are encapsulated. I extracted the <code>$openForOrders</code> and <code>$happeningBeforeNoon</code> predicates to class variables, because I didn't like the duplication in both controller methods, however, I'm not satisfied with their presence in the constructor. We could create a <code>Predicate</code> interface and make the <code>thatAre()</code> method accept <code>Predicate</code> instances. As a result our controller would just do something like <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>. But let's leave it like this for now. I've got some critical questions coming in:</p>
+
+<h2 id="wait-a-minute%21-you-didn%27t-solve-the-memory-problem%21">Wait a minute! You didn't solve the memory problem!</h2>
+
+<p>Exactly. Let's do that right now.</p>
+
+<pre><code class="php">final class CoffeeRunsWithIterator implements CoffeeRuns
+{
+    private $coffeeRuns;
+    private $predicates;
+
+    public function __construct(Iterator $coffeeRuns, array $predicates = array())
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+        $this-&gt;predicates = $predicates;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        $predicates = $this-&gt;predicates;
+        $predicates[] = $matchingPredicate;
+
+        return new static(
+            $this-&gt;coffeeRuns,
+            $predicates
+        );
+    }
+
+    public function asArray()
+    {
+        $collectionAsArray = array();
+
+        foreach ($this-&gt;coffeeRuns as $coffeeRun) {
+            foreach ($this-&gt;predicates as $predicate) {
+                if (call_user_func($predicate, $coffeeRun) !== true) {
+                    continue 2;
+                }
+            }
+
+            $collectionAsArray[] = $coffeeRun;
+        }
+
+        return $collectionAsArray;
+    }
+}
+</code></pre>
+
+<p>This is an implementation of the <code>CoffeeRuns</code> Collection interface that takes an <code>Iterator</code>. Whenever the <code>thatAre()</code> method gets called with a predicate, we don't do anything, except for creating a new instance of the Collection class with the same <code>Iterator</code> in it, but with the predicate added to the list of predicates that must be matched for each element in the Collection. It's only at the last step, when we try to extract the contents of the collection, that we run the <code>Iterator</code> and check every value against the given predicates. We still need to run the predicates against the whole collection, but because they are within an <code>Iterator</code>, the <code>Iterator</code> can e.g. get them from the database one by one. That's an implementation detail of the Repository.</p>
+
+<h2 id="what-if-we-want-to-be-able-to-use-mysql-%60where%60-statements-in-our-repositories%3F">What if we want to be able to use MySQL <code>WHERE</code> statements in our Repositories?</h2>
+
+<p>Let's say that we want to create a MySQL implementation of the Repository. We don't really want to write a query that will get the whole list of CoffeeRuns, even though we worked with an <code>Iterator</code> before (and thus preserving memory issues), so just passing closures to the <code>thatAre()</code> method will not help us a whole lot to write efficient queries. To improve on that, we could start passing our predicates as objects instead of closures, like this:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>A predicate could look something like this:</p>
+
+<pre><code class="php">interface Predicate
+{
+    /**
+     * @param CoffeeRun the CoffeeRun we want to check
+     *
+     * @return bool if the Predicate is satisfied by given CoffeeRun
+     */
+    public function isSatisfiedBy(CoffeeRun $coffeeRun);
+}
+</code></pre>
+
+<p>And to get the same functionality as before we can implement it like this:</p>
+
+<pre><code class="php">final class OpenForOrders implements Predicate
+{
+    public function isSatisfiedBy(CoffeeRun $coffeeRun)
+    {
+        return $coffeeRun-&gt;ordersCanBeMade();
+    }
+}
+</code></pre>
+
+<p>When we have this in place, implementing a repository that can translate these predicates to the correct <code>WHERE</code> statements is pretty much trivial: without doing an actual query, the Repository returns a <code>CoffeeRuns</code> collection object that can be filtered using <code>Predicate</code>s and when that is done, the query can be built by translating the Predicates to the appropriate <code>WHERE</code> statements. Now the <code>Predicate</code> object can still be used to check if a given <code>CoffeeRun</code> satisfies the rule encapsulated within it, but within the Repository, a more efficient way is used against the whole database table full of CoffeeRuns. Eric Evans calls this concept <code>Specification</code>, and you can read all about it in his great book <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>.</p>
+
+<h2 id="doing-something-with-all-objects-in-our-collection">Doing something with all objects in our collection</h2>
+
+<p>Let's say we want people to <code>stopOrdering()</code> for all <code>CoffeeRun</code>s that are happening before noon.</p>
+
+<pre><code class="php">$stopOrdering = function (CoffeeRun $coffeeRun)
+{
+    $coffeeRun-&gt;stopOrdering();
+
+    return $coffeeRun;
+};
+
+$coffeeRuns = $repository-&gt;getAll();
+$stoppedOrderingForTheseRuns = $coffeeRuns
+    -&gt;thatAre($happeningBeforeNoon)
+    -&gt;updateEach($stopOrdering);
+</code></pre>
+
+<p>Let's add it to the Collection interface:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @param callable function that takes a CoffeeRun and returns an updated one
+     *
+     * @return CoffeeRuns that got updated
+     */
+    public function updateEach(callable $update);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>The implementation for the <code>CoffeeRunsArray</code> could be something like this:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(Predicate $predicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                function (CoffeeRun $run) use ($predicate) {
+                    return $predicate-&gt;isSatisfiedBy($run);
+                }
+            )
+        );
+    }
+
+    public function updateEach(callable $update)
+    {
+        return new static(
+            array_map(
+                $update,
+                $this-&gt;coffeeRuns
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>As you can see, the implementation is trivial in this case, but again it provides us with a powerful abstraction. The code that operates on the Collection doesn't have to know anything about how the Collection is implemented, it just knows about the methods we provided for interacting with it. For those that are into functional programming, we just implemented <code>filter</code> and <code>map</code> here.</p>
+
+<p>I hope you see the value in this. For pieces of code where a lot of actions need to happen on Collections of objects, this might be the way to go. Since the code doesn't have to know anything about the implementation of the Collection, you can change it at any time. For instance, when you start out, you can just use a simple <code>Array</code> implementation, and swap it out for an <code>Iterator</code> later on when you notice memory consumption going up. It can also make things pretty readable, as demonstrated above with the <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>.</p>
+
+<p>You can also choose to go A LOT further, or less far into this, as you desire. Good luck on your explorations!</p>
+
+<p>PS: I gave a talk on this subject at the <a href="http://php.gent/">PHP.GENT meetup</a>, you can find the slides <a href="https://speakerdeck.com/turanct/the-language-of-collections">here</a>.</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                        <a href="/blog/tags/Collections" class="tag">Collections</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2017/11/02/javascript-deferred">When too many API calls are breaking your app</a></h1>
         </header>
         <div>
@@ -292,84 +748,13 @@ return combinedResult.promise();
             <strong>Tags:</strong>
                         <a href="/blog/tags/HTML" class="tag">HTML</a>                        <a href="/blog/tags/CSS" class="tag">CSS</a>                        <a href="/blog/tags/UX" class="tag">UX</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
             </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2017/10/02/vim-ide-debugging">Vim As A PHP IDE - Debugging</a></h1>
-        </header>
-        <div>
-            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
-
-<p>A few weeks ago, I ended the "Vim As A PHP IDE" series with the <a href="/blog/2017/06/15/vim-ide-refactoring">refactoring</a> post. However, there's a huge thing missing from this series, and that's debugging. A lot of people debug their code using <code>var_dump</code> and <code>echo</code>, or worse, with self-made methods to markup the things they want to dump. Not only is this very old-school, there are also problems with this method. For instance, the dumped code affects the behaviour or the output of the running script. This is where the step debugger comes in.</p>
-
-<p>A step debugger lets you step trough your code while it's running, so that you can inspect variables on the fly. This eliminates the need for dumping lines to the standard output, while giving you more insight in what's happening. e.g. you can see the whole stack trace and step through that as well...</p>
-
-<p><a href="/images/2017-10-02-vim-ide-debugging/1.png"><img src="/images/2017-10-02-vim-ide-debugging/1.png" alt="screenshot of Vdebug in action" /></a></p>
-
-<h2 id="how-does-this-work%3F">How does this work?</h2>
-
-<p>Basically, the debugger, in the case of PHP <a href="https://xdebug.org/">xdebug</a>, hooks into the running code and exposes an API that you can use to set breakpoints, make the compiler run, etc... To install xdebug, follow the instructions on <a href="https://xdebug.org/docs/install">their documentation page</a>. Now you'll also have to add some lines to your <code>php.ini</code> configuration file. In my case it looks like this:</p>
-
-<pre><code class="ini">[xdebug]
-zend_extension="/path/to/xdebug.so"
-xdebug.remote_enable=1
-</code></pre>
-
-<p>The important part is the <code>remote_enable=1</code>, which allows us to hook into the step debugger.</p>
-
-<p>Then you, as a user, sets a breakpoint somewhere and inspects the state of the program at that point, using a "client" that knows how to speak the language of the debugger's API and integrates with your IDE. In our case that client is going to be the Vim plugin <a href="https://github.com/joonty/vdebug/">Vdebug</a>. You can install the plugin using your favorite plugin installation method.</p>
-
-<h2 id="debugging-our-first-script">Debugging our first script</h2>
-
-<p>Let's create a script <code>test.php</code> that we want to debug:</p>
-
-<pre><code class="php">&lt;?php
-
-$foo = 'bar';
-$foo = 'baz';
-</code></pre>
-
-<p>We want to see what's inside the <code>$foo</code> variable during the time this script runs. In Vim, press <code>F5</code> to activate Vdebug. Now, run the script with debugging enabled:</p>
-
-<pre><code class="sh">XDEBUG_CONFIG="idekey=xdebug" php test.php
-</code></pre>
-
-<p>You'll notice that the script seems to hang. In Vim, however, you'll see something like this happening:</p>
-
-<p><img src="/images/2017-10-02-vim-ide-debugging/2.png" alt="Vdebug first startup screen" /></p>
-
-<p>That's right! A new tab opened in Vim, containing the Vdebug window with the first breakpoint active. You can instantly see the local variables on the right, as well as the stack trace. If we now move our cursor to line <code>4</code> and press <code>F9</code>, to make the debugger run to that line and inspect the state right before it, we'll see that the <code>$foo</code> variable's value was changed to <code>'bar'</code>. Look ma, no <code>var_dump</code>!</p>
-
-<p><img src="/images/2017-10-02-vim-ide-debugging/3.png" alt="Inspecting the $foo variable in Vdebug" /></p>
-
-<p>You can also see the superglobals by hitting that tab in the variables screen:</p>
-
-<p><img src="/images/2017-10-02-vim-ide-debugging/4.png" alt="Vdebug shows PHPs superglobals at this point in time" /></p>
-
-<p>Great! Now you know the basics. Take a look at the other things you can do while debugging (stepping out, stepping over, etc) with Vdebug on <a href="https://github.com/joonty/vdebug/#quick-guide">their documentation's Quick Guide section</a>. To quickly stop debugging and return to where you were before, press <code>F6</code> twice.</p>
-
-<p>Tip: if you don't want to set the environment variable every time, you can make XDebug try and run a remote debugger session all the time, and hook into it when you want to by enabling your client. Put this extra line in your <code>php.ini</code> configuration file:</p>
-
-<pre><code class="ini">xdebug.remote_autostart=1
-</code></pre>
-
-<h2 id="debugging-code-that-is-run-by-a-webserver">Debugging code that is run by a webserver</h2>
-
-<p>Running the debugger for web requests is also possible. If the webserver is running on your local machine, you don't have to change much (assuming XDebug is installed and configured as above): just append a parameter to your URL, like this <code>XDEBUG_SESSION_START=xdebug</code>. For instance, <code>https://foo.local/test.php</code> would become <code>https://foo.local/test.php?XDEBUG_SESSION_START=xdebug</code>. The debugger will now try to connect to your client!</p>
-
-<p>So hereby we conclude this blog series about Vim as an IDE once more, and we hope that you liked it! Happy Debugging!</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        <a href="/blog/tags/Debugging" class="tag">Debugging</a>                        </p>
-            </article>
     <nav class="pager">
         <a href="/page/6" class="left">Newer Posts</a>        <a href="/page/8" class="right">Older Posts</a>    </nav>
                 </div>
             </div>
         </div>
         <footer class="container">
-            &copy; 2018 CX Social Dev Blog
+            &copy; 2019 CX Social Dev Blog
         </footer>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
