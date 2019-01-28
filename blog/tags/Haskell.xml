@@ -3,9 +3,160 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Haskell.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-01-04T12:11:59+00:00</updated>
+    <updated>2019-01-28T13:41:48+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Implementation Details]]></title>
+            <link href="/blog/2019/01/28/lambda-implementation-details"/>
+            <updated>2019-01-28T14:30:00+00:00</updated>
+            <id>/blog/2019/01/28/lambda-implementation-details</id>
+            <content type="html"><![CDATA[<p><strong>This is the sixth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%F0%9F%A4%94-how-do-you-hide-your-internals%3F">🤔 How do you hide your internals?</h2>
+
+<p>In OOP, we're used to hiding the implementation details of our classes by using interfaces. We can just define a contract that the rest of the application needs to adhere to, and keep the knowledge of the internals completely separate from the rest of the system. Let's look at a simple interface:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace Dns;
+
+interface Client
+{
+    public function resolve(Request $request): Response;
+}
+</code></pre>
+
+<p>As a consumer of this interface, we actually know everything we need to know to start programming. We'll inject the class we're making with a <code>DNS\Client</code> instance later, the actual implementation of it doesn't concern us right now. We have enough information to create our application knowing that we can send the client a <code>Request</code> and get a <code>Response</code> back. The internals of the <code>Dns\Client</code> can be changed at will, without altering our program.</p>
+
+<p>For me, this was the biggest breakthrough of learning an Object Oriented language, the moment when using interfaces as contracts clicked. That's why, when I started to dive into Functional Programming languages, I wasn't really happy with what I saw. Where were the interfaces at?</p>
+
+<h2 id="%F0%9F%98%85-exporting-from-modules-as-interface">😅 Exporting from modules as interface</h2>
+
+<p>The first Functional Programming language I learnt was <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">Scheme</a>. It was great! When you start learning it, you start to see the recursion patterns, see that syntax is only so important as the language makes it, and countless other nice things (programming with continuations, anyone?). What bothered me was that lists are used as the main data structure everywhere! You'll sometimes find libraries that do something like this:</p>
+
+<pre><code class="scheme">(define address
+  (list "Toon Daelman" "FooBarStreet 42" "9000 Ghent" "Belgium"))
+</code></pre>
+
+<p>Yes, that's a workable data structure, but it's not ideal... To get a person's country from their address, you need to do something like this:</p>
+
+<pre><code class="scheme">(list-ref address 3)
+</code></pre>
+
+<p>Which means, from the <code>address</code> list, take the <code>3rd</code> (zero-based) index. That's not very readable at all, and it doesn't hide any of the details of our data structure. If we want to change it, every function interacting with this data structure will need to change as well.</p>
+
+<p>Luckily, the problem was me. I didn't look far enough, and most people working with lisps have other ways of hiding their internals, for instance:</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (list name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (list-ref address 3)))
+)
+</code></pre>
+
+<p>This is a scheme module, that exports two functions <code>address</code> and <code>country</code>. It uses the base library <code>scheme</code>. It defines a function <code>address</code>, that acts like a constructor and returns a black box object, that you can deconstruct using separate functions. In this case we only have a <code>country</code> function that takes an <code>address</code> and returns its <code>country</code>. Consuming modules of this <code>address</code> module need only now the constructor and the other functions, not that the underlying object is still a list!</p>
+
+<p>And this lets us change the implementation as well!</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (vector name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (vector-ref address 3)))
+)
+</code></pre>
+
+<p>We're now using <code>vector</code>s as the datatype for <code>address</code> instead of <code>list</code>s, but the <code>address</code> constructor and the <code>country</code> getter function are still called the same and behave exactly the same. We could use the records features as well, still keeping the same public interface...</p>
+
+<h2 id="%F0%9F%8E%A9-types">🎩 Types</h2>
+
+<p>The second Functional Programming language I started to look into was <a href="https://en.wikipedia.org/wiki/Haskell_(programming_language)">Haskell</a>. It immediately blew my mind with its type system. Let's check out this piece of code:</p>
+
+<pre><code class="haskell">type AddressLine = String
+type Country = String
+
+data Address = Address
+  { name :: String
+  , line1 :: AddressLine
+  , line2 :: AddressLine
+  , country :: Country
+  } deriving (Show)
+
+countryFrom :: Address -&gt; Country
+countryFrom = country
+</code></pre>
+
+<p>We define two type aliasses <code>AddressLine</code> and <code>Country</code>. Then we say that an <code>Address</code> consists of a <code>name</code>, a <code>line1</code> which is an <code>AddressLine</code>, a <code>line2</code> (also an <code>AddressLine</code>) and a <code>country</code> of the type <code>Country</code>. Then we define a function called <code>countryFrom</code> that takes an <code>Address</code> and returns a <code>Country</code>, which is implemented by just saying it's equal to <code>country</code>, the function that is automatically created to unwrap <code>Record</code>s.</p>
+
+<p>In fact, creating the <code>countryFrom</code> function was just done as an example to show off the type annotations in a situation analogous to the previous example in scheme. The type system in Haskell allows us to not only write the contract of a function, but it allows us to write abstractions as well! Check this out:</p>
+
+<pre><code class="haskell">head :: [a] -&gt; a
+</code></pre>
+
+<p>This is the type of the <code>head</code> function, which operates on lists. It takes a list of <code>a</code>s and returns an <code>a</code>. The <code>a</code> is a <em>type variable</em>, it substitutes for every type you can think of. This way, you can strictly type a function that can work with all sorts of types! Take for instance a list of <code>Address</code>es! Call <code>head</code> on that list, and you'll get the first <code>Address</code> of the list.</p>
+
+<p>🎩➡️🐰</p>
+
+<p>😍 I love this, it's like magic! And it goes even further. Let's say you want to be able to declare the function <code>==</code> which takes two arguments and checks if they're equal to each other. You would think that that would be easy using <em>type variables</em>, doing something like this:</p>
+
+<pre><code class="haskell">(==) :: a -&gt; a -&gt; Bool
+</code></pre>
+
+<p>Which means, a function <code>==</code> which takes two arguments of the same type (we use <code>a</code> for both arguments, which means we don't care which type it is, but it should be the same for both arguments) and returns a <code>Bool</code>. The problem is that there's no certainty that the type <code>a</code> has a concept of equality to it. It could be that we want to be able to define our own rules for equality on a type-by-type basis as well... That's why that signature <code>a -&gt; a -&gt; Bool</code> isn't enough.</p>
+
+<p>Haskell actually has another abstraction over their types to allow us to put the <code>a -&gt; a -&gt; Bool</code> in a context:</p>
+
+<pre><code class="haskell">class Eq a where
+  (==) :: a -&gt; a -&gt; Bool
+  x == y = not (x /= y)
+
+  (/=) :: a -&gt; a -&gt; Bool
+  x /= y = not (x == y)
+</code></pre>
+
+<p>This is a typeclass named <code>Eq</code> that defines equality for every type <code>a</code> that we say is part of the typeclass. It defines two functions, <code>==</code> and <code>/=</code>, which both take two arguments of the type <code>a</code> and return a <code>Bool</code>. What's also nice, is that they're both defined in terms of each other. <code>==</code> says that it's <code>not (/=)</code> and vice versa.</p>
+
+<p>Now, if we want to make our <code>Address</code> type part of the typeclass <code>Eq</code>, we can just implement the <code>==</code> function, and we get the other one for free because it's defined in terms of <code>==</code>. Let's look at an example:</p>
+
+<pre><code class="haskell">instance Eq Address where
+  x == y = sameAddressLines &amp;&amp; sameCountry
+    where sameAddressLines = (line1 x == line1 y) &amp;&amp; (line2 x == line2 y)
+          sameCountry = country x == country y
+</code></pre>
+
+<p>In this case, we say <code>Address</code>es are the same if their <code>AddressLine</code>s and <code>Country</code> are the same. We don't take <code>name</code> into consideration. Now we can <code>==</code> on <code>Address</code>es everywhere. If you don't need special rules for deriving equality for a given type, the Haskell compiler can derive it for your type using the <code>deriving (Eq)</code> statement.</p>
+
+<h2 id="%F0%9F%A4%93-what-can-we-learn-from-this%3F">🤓 What can we learn from this?</h2>
+
+<p>We've seen two ways of how implementation details can be hidden in a functional programming environment. When we're in Object Oriented environments we do almost the same things, but we use interfaces for them. And we use interfaces to describe contracts for many other things we want to do. That's why I'm sometimes confused when I stumble upon an interface: what's the primary reason for it to be here? Is it there to define a contract for external systems? Is it meant to hide implementation details or is it just part of a design pattern used in this package? Is it a marking interface used to indicate the type of the implementing class? Not every class needs to be implementing an interface... It already has one! All public methods of a concrete class can be seen as its public interface. And I think in most cases like the first example in scheme where we want to hide the internals of a datatype, a concrete class can be enough (think <code>ValueObject</code>s).</p>
+
+<p>I find that in Object Oriented Programming, thinking about types as you do when writing e.g. Haskell, tends to help when defining your interfaces effectively. One of the biggest differences is the manifestation of side-effects: In Haskell, there's a type for functions with side effects, while interfaces in Object Oriented languages mostly don't give you any insights into that (I've often thought about annotating side-effects in the docblocks of my interfaces).</p>
+
+<p>While PHP doesn't allow you to implement your own Equality rules for your classes, some Object Oriented languages do. Compare these examples:</p>
+
+<pre><code class="php">$foo == $bar;
+</code></pre>
+
+<pre><code class="php">$foo-&gt;equals($bar);
+</code></pre>
+
+<p>In the first example, we can't influence how PHP compares two instances of our class, while in the second one, we have complete control (even over the name of the method). It depends on taste what's best, certainly when your language allows you to overload <code>==</code> for your classes. Always try to make it as readable as possible!</p>
+
+<p>Wow, we made it through! Hope to see you in the next episode! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Lambda To The Rescue: Syntax]]></title>
             <link href="/blog/2018/11/28/lambda-syntax"/>
@@ -117,7 +268,7 @@ let updatedClient = changeAddress client abbeyRoad3
 
 <p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
 
-<p>That concludes this post. I hope you try some of this stuff soon! Happy programming y'aλλ! 🖖</p>
+<p>That concludes this post. See you in the <a href="/blog/2019/01/28/lambda-implementation-details">next Lambda To The Rescue post</a>! Happy programming y'aλλ! 🖖</p>
 ]]></content>
         </entry>
             <entry>
@@ -326,7 +477,7 @@ ServerStats { totalInGB = 142
 
 <p>What to do with this knowledge in the Object Oriented world? We use lists to work with objects of the same type constantly, and do operations on objects in those lists to gather new information. Most of the time I see this, it's done using <code>foreach</code> or something like it. However, as far as I'm concerned there's no difference to the Functional Programming world here. If you already embrace <code>map</code>, <code>filter</code> and <code>reduce</code>, you should also be thinking about the datastructure inside the list: is it a <em>Monoid</em>? You'll then understand better how it will behave when doing operations on it and you'll immediately know which the best reducer functions are!</p>
 
-<p>That concludes this post. I hope you try it out soon! Happy programming y'aλλ! 🖖</p>
+<p>That concludes this post. Hope to see you for <a href="/blog/2018/11/28/lambda-syntax">the next one</a>! Happy programming y'aλλ! 🖖</p>
 ]]></content>
         </entry>
             <entry>
@@ -605,7 +756,7 @@ plusOne [3]
 
 <p>One more thing. The above implementations -which actually work really great in functional programming languages- wouldn't work in languages like PHP. The reason is simple: we would get stack overflows pretty quickly; In functional programming languages, there are things called tail call optimizations that can be made. They make sure that you don't blow the stack, even if you recurse a thousand times. This is not really possible in PHP functions right now. Try it out! But after it, just use <code>array_map()</code> and <code>array_reduce()</code> if you want to do stuff like this 😉!</p>
 
-<p>Happy programming y'aλλ! 🖖</p>
+<p>Hope you liked that, see you in <a href="/blog/2018/10/08/lambda-monoids">the next post</a>! Happy programming y'aλλ! 🖖</p>
 ]]></content>
         </entry>
             <entry>
@@ -697,6 +848,8 @@ double 4 = 8
 <p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
 
 <p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
+
+<p>See you in <a href="/blog/2018/06/27/lambda-recursion">the next post</a>!</p>
 ]]></content>
         </entry>
             <entry>
@@ -938,6 +1091,8 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <li><a href="/blog/2018/06/04/lambda-pure-functions">Pure Functions</a></li>
 <li><a href="/blog/2018/06/27/lambda-recursion">Recursion</a></li>
 <li><a href="/blog/2018/10/08/lambda-monoids">Monoids</a></li>
+<li><a href="/blog/2018/11/28/lambda-syntax">Syntax</a></li>
+<li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
 <li>...</li>
 </ul>
 ]]></content>

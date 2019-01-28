@@ -106,6 +106,255 @@
                 <div class="span8 dev-content">
                         <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">Lambda To The Rescue: Lists to wrap failure</a></h1>
+        </header>
+        <div>
+            <p><strong>This is the first post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Hang tight for more.</strong></p>
+
+<h2 id="readability">Readability</h2>
+
+<p>When we're reading code, one of the most important blocking factors is cognitive overhead. Minimize it, and your code instantly becomes easier to read and understand. Or is it the other way 'round? After some years of playing with functional programming languages in my spare time, I saw some things that functional programming does great in this field. One of them involves lists.</p>
+
+<p>As you might know, lists are among the most important datastructures in functional programming, if not the most important. There's even a whole family of programming languages that took their name from them. Looking at you <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> 😘!</p>
+
+<p>Let's dive in with a typical legacy PHP method discovered in the wild:</p>
+
+<pre><code class="php">&lt;?php
+
+function words($string)
+{
+    if (empty($string)) {
+        return false;
+    }
+
+    return explode(' ', $string);
+}
+
+var_dump(words('')); // returns false
+var_dump(words('foo bar baz')); // returns ['foo', 'bar', 'baz'];
+</code></pre>
+
+<p>The reason the <code>empty</code> check is there, apparently, is that <code>explode(' ', $s)</code> with an empty string will return <code>['']</code> a list with an empty string in it, which is really strange and non-desirable. Arguably, if the <code>$string</code> variable can't be empty, we should throw an exception. But let's say we want to explore our options here. Before I look into the body of a function, I always try to understand it as a black blox.</p>
+
+<blockquote>
+  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string. Except that for empty strings, it will return <code>false</code>.</p>
+</blockquote>
+
+<p>Now, the "black box" already has some mystery to it. Why does it return <code>false</code>? Let's defer the answer to it, and check out if we can write the PHP7 type annotations for it.</p>
+
+<pre><code class="php">function words(string $string): array
+{
+    // ...
+}
+</code></pre>
+
+<p>Now, this is not correct. The exception that is made for empty strings can't be written as a type. In old-skool PHP they would've written a DocBlock like this:</p>
+
+<pre><code class="php">/**
+ * @param string $string
+ * @return array|false depending on failure
+ */
+function words($string)
+{
+    // ...
+}
+</code></pre>
+
+<p>But that is a type signature that is unrepresentable usinig PHP7 types. What if we would represent failure using an empty array?</p>
+
+<pre><code class="php">function words(string $string): array
+{
+    if (empty($string)) {
+        return array();
+    }
+
+    return explode(' ', $string);
+}
+</code></pre>
+
+<p>Now the type signature just works. We turned "failure" into a valid result that we can work with. For instance, all code that works with the return value of this method can now just work with arrays. The type signature now tells a story about the function too:</p>
+
+<blockquote>
+  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string.</p>
+</blockquote>
+
+<p>The base case where the string is empty is now logical: an empty string has no words, so a list of 0 words is returned.</p>
+
+<h2 id="chaining-calls">Chaining calls</h2>
+
+<p>Now, let's say we have a function <code>chars</code> that returns a list of chars in a string:</p>
+
+<pre><code class="php">function chars(string $string): array
+{
+    if (empty($string)) {
+        return array();
+    }
+
+    return str_split($string);
+}
+</code></pre>
+
+<p>We're thinking we should be able to use this to list all the characters that appear within words. Would this work?</p>
+
+<pre><code class="php">chars(words('foo bar baz'));
+</code></pre>
+
+<p>No... We get a fatal error <code>Fatal error: Uncaught TypeError: Argument 1 passed to chars() must be of the type string, array given</code>. Of course, the result of <code>words</code> is an array, which cannot be used as input to our <code>chars</code> function. Let's use <code>array_map</code>:</p>
+
+<pre><code class="php">array_map(@chars, words('foo bar baz'));
+</code></pre>
+
+<p><em>don't worry about the <code>@</code>, it's a trick that I learned while working on <a href="https://github.com/mathiasverraes/lambdalicious/">lambdalicious</a>. <code>@</code> is PHP's error suppressing operator. In this case it allows us to write a function's name as a string, without using string notation, so that it's visually different from a string, BUT is interpreted by PHP as a string...</em></p>
+
+<p>We get this:</p>
+
+<pre><code class="php">[["f","o","o"],["b","a","r"],["b","a","z"]]
+</code></pre>
+
+<p>Of course, after mapping <code>chars</code> over the words, this is what we get... But actually, we wanted this:</p>
+
+<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
+</code></pre>
+
+<p>So how do we get there? We "flatten" the arrays by using <code>concat</code>, which does not exist in php. Let's write it ourselves:</p>
+
+<pre><code class="php">function array_concat(array $arrays): array
+{
+    return call_user_func_array(
+        @array_merge,
+        array_merge(array(array()), $arrays)
+    );
+}
+</code></pre>
+
+<p>Now we can use it to flatten the array:</p>
+
+<pre><code class="php">array_concat(array_map(@chars, words('foo bar baz')));
+</code></pre>
+
+<p>TADAAAA 😆 We get what we wanted!</p>
+
+<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
+</code></pre>
+
+<p>Let's call this combination of <code>array_map</code> and <code>array_concat</code> <code>array_bind</code> for now:</p>
+
+<pre><code class="php">function array_bind(array $array, $f)
+{
+    return array_concat(array_map($f, $array));
+}
+</code></pre>
+
+<p><code>array_bind</code> takes an array of values, and a function that operates of one of those values and returns an array. It returns a new array of values.</p>
+
+<pre><code class="php">array_bind(array_bind(array('foo bar baz'), @words), @chars);
+// returns ["f","o","o","b","a","r","b","a","z"]
+</code></pre>
+
+<p>Now that we have the <code>array_bind</code> function, we can apply functions to something in an array, and the result will always be an array! What happens if we first bind <code>words</code> and then bind <code>chars</code> to an empty string?</p>
+
+<pre><code class="php">array_bind(array_bind(array(''), @words), @chars); // returns []
+</code></pre>
+
+<p>We get an empty array back, which is great!</p>
+
+<p>You saw me wrap the empty string in an array, to be able to use <code>array_bind</code>. This is an act of "providing context". The array serves as a context wrapper for results of the chained functions <code>words</code> and <code>chars</code>. We'll always get our result as an array. If anywhere in the process something fails, we get an empty array, otherwise we get an array with value(s) in it.</p>
+
+<p>I must admit, this doesn't look really great. Let's take a look at how this works in <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
+
+<p>Now, this is the equivalent of what we wrote earlier on in PHP:</p>
+
+<pre><code class="haskell">pure "" &gt;&gt;= words &gt;&gt;= chars
+</code></pre>
+
+<pre><code class="haskell">pure "foo bar baz" &gt;&gt;= words &gt;&gt;= chars
+</code></pre>
+
+<p>These return <code>[]</code> and <code>["f","o","o","b","a","r","b","a","z"]</code>, as expected, but how?</p>
+
+<ul>
+<li><code>pure</code> wraps the string in our "wrapper" list.</li>
+<li><code>&gt;&gt;=</code> is the <code>bind</code> infix function; it takes the "wrapped" value on the left, and applies the function on the right to the wrapped value. It then returns a new wrapped value.</li>
+<li><code>words</code> takes a <code>String</code> and returns a list of strings <code>[String]</code>, split by spaces. It's in Haskell's default module <code>Prelude</code>.</li>
+<li><p><code>chars</code> is a function we made up, it takes a <code>String</code> and returns a list of strings <code>[String]</code>. By default, <code>String</code>s in Haskell are lists of <code>Char</code>s. To break up a given string in a list of strings that represent chars we need to map over the input string. The mapping function <code>(\x -&gt; [x])</code> gets a <code>Char</code> as input and returns a <code>String</code> by wrapping the given <code>Char</code> in a list; check it out:</p>
+
+<pre><code class="haskell">chars :: String -&gt; [String]
+chars s = map (\x -&gt; [x]) s
+</code></pre></li>
+</ul>
+
+<p>As you can see, Haskell was made for this kind of stuff... It also reads a lot better than our PHP implementation.</p>
+
+<h2 id="expanding-on-this-concept">Expanding on this concept</h2>
+
+<p>The reason this doesn't really work in PHP is that we don't have infix operators at our disposal. I've seen <a href="https://github.com/phunkie/phunkie">libraries</a> that do something with method calls along these lines:</p>
+
+<pre><code class="php">pure('foo bar baz')-&gt;bind(@words)-&gt;bind(@chars);
+</code></pre>
+
+<p>which already looks a lot better than what we came up with. Failure can be encapsulated. There's a lot less boilerplate code to read. There's no checking for empty arrays or failure, while it still behaves as we wanted.</p>
+
+<ul>
+<li><code>pure()</code> wraps the value in an object.</li>
+<li><code>bind()</code> is equivalent to returning a new wrapper object with the result of the applied function to the previously wrapped value. Internally it could all work using <code>arrays</code>, but it could just as well be done differently.</li>
+</ul>
+
+<p>For now, we've always worked with functions that return a number of results, but this whole concept can just as well be used with functions that are supposed to return a single result, like integer division <code>div</code>:</p>
+
+<pre><code class="php">function div(int $divident, int $divisor): WrappedValue
+{
+    if ($divisor === 0) {
+        return nothing();
+    }
+
+    return pure(intdiv($divident, $divisor));
+}
+</code></pre>
+
+<p>Now, we created an integer division function that doesn't throw <code>DivisionByZeroError</code> exceptions, but uses this system of <code>WrappedValue</code>s to wrap it's return value on success (using <code>pure</code>, equivalent to an array with a value) or on failure (using <code>nothing</code>, equivalent to an empty array). Now, if we want to square the result of this, we can just bind <code>square</code> to the result of the previous computation.</p>
+
+<pre><code class="php">function square(int $number): WrappedValue
+{
+    return pure($number * $number);
+}
+
+var_dump(div(10, 2)-&gt;bind(@square)); // [25]
+var_dump(div(10, 0)-&gt;bind(@square)); // []
+</code></pre>
+
+<p>As with the previous examples, we can now just focus on the order of computation, without the need to worry about failure in the in-between steps.</p>
+
+<p>There are also ways to make this whole thing even more interesting by providing more info like error messages in case of failure.</p>
+
+<h2 id="day-to-day-usage">Day-to-day usage</h2>
+
+<p>I'm not saying this is perfect for everything in OOP by any means, but we might want to think about how we handle failure in our (legacy) systems. I sometimes see trees of exception handling and boolean/null-checks on return values. This is a third option (PHP doesn't have option types by default); In lots of ways, the classic <a href="https://en.wikipedia.org/wiki/Null_object_pattern">Null Object</a> pattern resembles this whole thing in a more Object Oriented way. In many functional programming languages this is actually the most widely used means of error handing. If you want to know more about it, I suggest reading up on <code>Functors</code>, <code>Applicatives</code>, and <code>Monads</code>. Scary names for new concepts, don't let them hold you back.</p>
+
+<p>If you want to do the most simple and useful thing: think about how your functions behave. What goes in, what comes out? Writing the type annotations helps a lot. And of course, throwing exceptions is not a sin.</p>
+
+<p>Happy programming y'aλλ! 👋</p>
+
+<h2 id="what%27s-next%3F">What's next?</h2>
+
+<p>Upcoming <em>lambda to the rescue</em> posts will be linked here:</p>
+
+<ul>
+<li>Lists to wrap failure (this post)</li>
+<li><a href="/blog/2018/06/04/lambda-pure-functions">Pure Functions</a></li>
+<li><a href="/blog/2018/06/27/lambda-recursion">Recursion</a></li>
+<li><a href="/blog/2018/10/08/lambda-monoids">Monoids</a></li>
+<li><a href="/blog/2018/11/28/lambda-syntax">Syntax</a></li>
+<li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
+<li>...</li>
+</ul>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors">Why Vim Doesn&#039;t Need Multiple Cursors</a></h1>
         </header>
         <div>
@@ -360,356 +609,6 @@ class CompareCoffeeShopsTest extends TestCase
                     <p class="tags">
             <strong>Tags:</strong>
                         <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        </p>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/01/22/some-insights-regarding-value-objects">Some insights regarding Value Objects</a></h1>
-        </header>
-        <div>
-            <p>We've been using Value Objects more and more over the years, and although there's a lot of info out there, there are some things that we found particularly interesting to talk about in a blog post.</p>
-
-<h2 id="what%27s-a-value-object%3F">What's a Value Object?</h2>
-
-<p>Value Objects are simply put <em>objects that represent a value</em>, i.e. objects that don't have an identity except for the value they represent. Very frequently used examples are <code>Money</code> (if someone owes me €5 and they pay me €2 + €2 + €1 I'm happy) and <code>DateTime</code>, but there are lots of things that would qualify. For instance, combined values like a <code>TimeSlot</code> which comprises of two <code>DateTime</code> objects <code>start</code> and <code>end</code>, which is equal to another <code>TimeSlot</code> object if both <code>start</code> and <code>end</code> for both <code>TimeSlot</code> objects are equal. Or points in a 2D plane with <code>x</code> and <code>y</code> coordinates, where -you guessed it- two points are equal if both points have the same <code>x</code> and <code>y</code> coordinates.</p>
-
-<p>A lot of people wonder why they should use Value Objects, instead of passing around primitive values. Let's take some user input in the form of a telephone number, and treat it as a <code>String</code>. We want to pass it around in our code. Somewhere in our code there's a function that expects a telephone number as a parameter. How can it be sure that we passed a telephone number? It can't... Since we're just passing around a <code>String</code>, it needs to do some checks: Does the string look like a telephone number? Does it have a valid country code? etc. The next function that takes a telephone number as a parameter needs to do these checks again. There are some rules about what makes a valid telephone number, which can't be encapsulated in the <code>String</code> representation. If we make a specialized object to represent that phone number, we we can check these rules upon creation of the object, and thus prevent invalid state before it occurs. If some part of our code now gets that <code>PhoneNumber</code> object, it can be sure that it's a valid phone number.</p>
-
-<h2 id="yes%2C-value-objects-should-be-immutable">Yes, Value Objects should be immutable</h2>
-
-<p>Earlier we said that <code>DateTime</code> is a Value Object. Since a <code>DateTime</code> is just a value, once it is instantiated it should represent that value. Let's check something out:</p>
-
-<pre><code class="php">$noon1 = new DateTime('today noon');
-$noon2 = new DateTime('today noon');
-var_dump($noon1 == $noon2); // bool(true)
-
-$noon3 = $noon1-&gt;modify('+ 2 hours');
-
-var_dump($noon1 == $noon2); // bool(false)
-</code></pre>
-
-<p>What happened? I instantiated two <code>DateTime</code> objects that were equal to each other, representing "today at noon". I created a third <code>DateTime</code> object that should represent "today, two hours later than noon". After that, one of the objects that represented "noon" a second ago doesn't anymore. It's like saying: "here you have a 3", and when you start calculating with it, it changed to a 4. This essentially teleported us to another universe where 3 means 4 suddenly.</p>
-
-<p>The reason this happened is because of the fact that the <code>-&gt;modify()</code> call mutates the <code>DateTime</code> object. If we prevent our objects from being changed (make them immutable), they will become a lot safer to work with. In this regard, you should probably always use <a href="https://secure.php.net/manual/en/class.datetimeimmutable.php"><code>DateTimeImmutable</code></a>.</p>
-
-<h2 id="how-to-introduce-a-value-object%3F">How to introduce a Value Object?</h2>
-
-<p>Let's say we have some code that takes a user's <a href="https://help.twitter.com/en/managing-your-account/twitter-username-rules">Twitter handle</a> to perform some operations:</p>
-
-<pre><code class="php">final class Twitter
-{
-    public function publicTimelineFor(string $handle)
-    {
-        $this-&gt;assertValidTwitterHandle($handle);
-
-        // ... fetch &amp; return timeline
-    }
-
-    public function tweepsFollowing(string $handle)
-    {
-        $this-&gt;assertValidTwitterHandle($handle);
-
-        // ... fetch &amp; return followers
-    }
-
-    /**
-     * @param string $handle
-     *
-     * @throws InvalidArgumentException when not valid
-     */
-    private function assertValidTwitterHandle(string $handle)
-    {
-        // check the rules here, throw exception if not valid
-    }
-}
-</code></pre>
-
-<p>The <code>assertValidTwitterHandle()</code> must happen in every call that uses the concept of a Twitter handle, but it's so easy to forget when you write a new function! Also, it's impossible to know if a given string has been approved in a previous call. If you now call <code>publicTimelineFor($handle)</code> and <code>tweepsFollowing($handle)</code> in succession for the same <code>$handle</code>, you're basically repeating yourself for no reason. Let's refactor this!</p>
-
-<p>The first thing that you want to do is make sure you get your code under test (it should already be that way 😘). What I like to do in this case, is at least have some tests for what a "valid Twitter handle" means. Since I'll be working towards an object that can only represent a valid Twitter handle, I'll make the <code>private</code> assertion <code>public</code>, write some unit tests against the assertion, and be done with it. We'll change the test later on.</p>
-
-<pre><code class="php">class TwitterHandleTest extends \PHPUnit_Framework_TestCase
-{
-    public function setUp()
-    {
-        $this-&gt;twitter = new Twitter();
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function test_it_throws_when_longer_than_16_chars()
-    {
-        $this-&gt;twitter-&gt;assertValidTwitterHandle('@VeryVeryVeryLongHandleThatShouldThrow');
-    }
-
-    // Tests for other rules go here too
-    // - handle is a string and should start with '@'
-    // - handle contains only uppercase chars, lowercase chars, digits and underscores
-    // - make sure to provide some happy path cases as well
-    // - you can of course use data providers in your tests to test multiple examples per test
-}
-</code></pre>
-
-<p>Then create a very basic class for our Value Object:</p>
-
-<pre><code class="php">final class TwitterHandle
-{
-    private $handle;
-
-    public function __construct(string $handle)
-    {
-        $this-&gt;assertValidTwitterHandle($handle);
-
-        $this-&gt;handle = $handle;
-    }
-
-    private function assertValidTwitterHandle(string $handle)
-    {
-        // check the rules here, throw exception if not valid
-    }
-
-    public function __toString(): string
-    {
-        return $this-&gt;handle;
-    }
-}
-</code></pre>
-
-<p>As you can see I created a basic class with the Twitter handle as a string as a constructor parameter. If we use the class as a string, it will cast to the exact Twitter handle as a string that we got as input. This is a temporary measure. I then just moved the <code>assertValidTwitterHandle()</code> method from the <code>Twitter</code> class to <code>TwitterHandle</code>, and made it private. I can fix my tests by just using the constructor of the <code>TwitterHandle</code> class as entry point:</p>
-
-<pre><code class="php">/**
- * @expectedException InvalidArgumentException
- */
-public function test_it_throws_when_longer_than_16_chars()
-{
-    new TwitterHandle('@VeryVeryVeryLongHandleThatShouldThrow');
-}
-</code></pre>
-
-<p>The code that used to work with handlers in the string form can now easily be changed to accept our object:</p>
-
-<pre><code class="php">public function publicTimelineFor(TwitterHandle $handle)
-{
-    // ... fetch &amp; return timeline
-}
-</code></pre>
-
-<p>As you can see, we just typehint on the Value Object in the function definition, and since the <code>__toString()</code> method is defined to return the same string as we had before, everything just keeps working. With the one perk that the check for valid handles is gone from all our functions! We don't need it anymore, since it's now impossible to pass an invalid handle to them! Now you just need to handle the case of the invalid Twitter handle the moment you get it from the user.</p>
-
-<p>As a final measure, I make sure that the output from the <code>__toString()</code> method can always be parsed back into the same Value Object again, by just giving it to the constructor. In this case that means that I need to return the complete value that the object was instantiated with (which is already the case). If you're tempted to use the <code>__toString()</code> method for other presentational purposes, <a href="http://verraes.net/2013/02/2013-02-16-casting-value_objects/#1-dont-use-_tostring-for-presentation">you're advised to create a specific function for that</a>.</p>
-
-<h2 id="comparing-value-objects">Comparing Value Objects</h2>
-
-<p>Let's say we want to represent points in a <code>x</code> by <code>y</code> two-dimentional plane using a <code>Point</code> Value Object. We've got something like this:</p>
-
-<pre><code class="php">final class Point
-{
-    private $x;
-    private $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this-&gt;x = $x;
-        $this-&gt;y = $y;
-    }
-}
-</code></pre>
-
-<p>Comparing two of these <code>Point</code>s for equality is easy. We can just use PHP's built-in <code>==</code>, which will compare the objects by the values of their properties (exactly what we want for now).</p>
-
-<pre><code class="php">$c1 = new Point(10, 20);
-$c2 = new Point(10, 30);
-$c3 = new Point(10, 20);
-
-var_dump($c1 == $c2); // false
-var_dump($c1 == $c3); // true
-</code></pre>
-
-<p>This gets more complicated when we want to e.g. calculate the distance between two <code>Point</code>s. Aren't those <code>x</code> and <code>y</code> properties private to the object?</p>
-
-<pre><code class="php">final class Point
-{
-    private $x;
-    private $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this-&gt;x = $x;
-        $this-&gt;y = $y;
-    }
-
-    public function distanceTo(Point $other): float
-    {
-        return sqrt(pow($this-&gt;x - $other-&gt;x, 2) + pow($this-&gt;y - $other-&gt;y, 2));
-    }
-}
-</code></pre>
-
-<p>Yes. But since these are two objects of the same type, they can access each other private properties! The code above just works! Be careful though, that you don't change any properties (and therefore make the objects mutable...).</p>
-
-<h2 id="nested-value-objects">Nested Value Objects</h2>
-
-<p>With the <code>Point</code> Value Object that we defined above, we can go a little bit further and represent other things in 2D planes, e.g. line segments, which are defined by two points A and B:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    private $a;
-    private $b;
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-    }
-}
-</code></pre>
-
-<p>As you can see, we just created a Value Object that encapsulates two other Value Objects. This is great, we can successfully represent a <code>LineSegment</code> with this, but there's a problem with this:</p>
-
-<p>The math (the domain in this case) tells us that two line segments are equal if they have the same delimiting points. In our case, we called them <code>$a</code> and <code>$b</code>, but actually, the order is not important. This means the <code>==</code> check I described above won't work like this:</p>
-
-<pre><code class="php">$pointA = new Point(0, 0);
-$pointB = new Point(5, 5);
-
-$line1 = new LineSegment($pointA, $pointB);
-$line2 = new LineSegment($pointB, $pointA);
-
-var_dump($line1 == $line2); // false
-</code></pre>
-
-<p>We can solve that problem using an <code>equals()</code> method:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    private $a;
-    private $b;
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-    }
-
-    public function equals(LineSegment $other): bool
-    {
-        return ($this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b)
-            || ($this-&gt;a == $other-&gt;b &amp;&amp; $this-&gt;b == $other-&gt;a);
-    }
-}
-</code></pre>
-
-<p>This can now be used to compare lines, but the <code>==</code> still gives wrong results. This is the point where I tell you <code>==</code> is not the best thing to use with Objects in PHP. You cannot override it, or make it work in all cases. It actually breaks encapsulation and checks private properties of objects. But we still want to make it work so that if it gets used instead of the <code>equals()</code> method, nothing breaks. We can then use a rule in our static analysis tools to check for <code>==</code> used with our object. We can make the <code>==</code> work using a fixed order in which point A and B get assigned inside <code>LineSegment</code>'s constructor:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    // ...
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-
-        if ($a-&gt;greaterThan($b)) {
-            $this-&gt;a = $b;
-            $this-&gt;b = $a;
-        }
-    }
-
-    // ...
-}
-</code></pre>
-
-<p>Our <code>Point</code> objects now need the <code>greaterThan()</code> method, which can be implemented a bit like this:</p>
-
-<pre><code class="php">final class Point
-{
-    // ...
-
-    public function greaterThan(Point $other): bool
-    {
-        if ($this-&gt;x == $other-&gt;x) {
-            return $this-&gt;y &gt; $other-&gt;y;
-        }
-
-        return $this-&gt;x &gt; $other-&gt;x;
-    }
-}
-</code></pre>
-
-<p>Now we can simplify <code>LineSegment</code>'s <code>equals()</code> method, since <code>$a</code> and <code>$b</code> will be assigned in order:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    // ...
-
-    public function equals(LineSegment $other): bool
-    {
-        return $this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b;
-    }
-
-    // ...
-}
-</code></pre>
-
-<p>Even though we don't want people to use <code>==</code> with our <code>LineSegment</code> Value Object, we made it work. Like this, we can prevent unexpected errors in our code. The final code looks like this:</p>
-
-<pre><code class="php">final class Point
-{
-    private $x;
-    private $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this-&gt;x = $x;
-        $this-&gt;y = $y;
-    }
-
-    public function distanceTo(Point $other): float
-    {
-        return sqrt(pow($this-&gt;x - $other-&gt;x, 2) + pow($this-&gt;y - $other-&gt;y, 2));
-    }
-
-    public function greaterThan(Point $other): bool
-    {
-        if ($this-&gt;x == $other-&gt;x) {
-            return $this-&gt;y &gt; $other-&gt;y;
-        }
-
-        return $this-&gt;x &gt; $other-&gt;x;
-    }
-}
-
-final class LineSegment
-{
-    private $a;
-    private $b;
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-
-        if ($a-&gt;greaterThan($b)) {
-            $this-&gt;a = $b;
-            $this-&gt;b = $a;
-        }
-    }
-
-    public function equals(LineSegment $other): bool
-    {
-        return $this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b;
-    }
-}
-</code></pre>
-
-<p>If we wanted to represent the nested Value Objects as a string, e.g. to be able to save them in a field in the database, we could just make the <code>Point</code> represent itself as <code>(x, y)</code> and the <code>LineSegment</code> as <code>[(Xa, Ya), (Xb, Yb)]</code> by letting the <code>LineSegment</code>'s <code>__toString</code> method call that of the nested <code>Point</code> objects. For parsing the string representation back into a <code>LineSegment</code>, we'll need a <code>fromString()</code> <a href="http://verraes.net/2014/06/named-constructors-in-php/">alternative constructor</a> that can parse those strings and instantiate the correct objects for them, but I'll leave that as an exercise for the reader!</p>
-
-<p>So, these were our take-aways after introducing Value Objects into our codebase. Did we forget something?</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                        <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                        </p>
             </article>
     <nav class="pager">
         <a href="/page/4" class="left">Newer Posts</a>        <a href="/page/6" class="right">Older Posts</a>    </nav>

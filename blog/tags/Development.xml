@@ -3,7 +3,7 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/Development.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-01-04T12:11:59+00:00</updated>
+    <updated>2019-01-28T13:41:48+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -25,7 +25,7 @@
 
 <h3 id="our-first-year-of-growth"><a href="https://medium.com/women-code-be/our-first-year-of-growth-6384eba5a3e2">Our First Year Of Growth</a></h3>
 
-<p>Ursula has told us a few times about Women.Code(BE), and this blogpost is a nice read about what they did in 2018!</p>
+<p>Ursula has told us a few times about women.code(be), and this blogpost is a nice read about what they did in 2018!</p>
 
 <h1 id="agile-%26-pair-programming">Agile &amp; Pair Programming</h1>
 
@@ -288,7 +288,7 @@ ServerStats { totalInGB = 142
 
 <p>What to do with this knowledge in the Object Oriented world? We use lists to work with objects of the same type constantly, and do operations on objects in those lists to gather new information. Most of the time I see this, it's done using <code>foreach</code> or something like it. However, as far as I'm concerned there's no difference to the Functional Programming world here. If you already embrace <code>map</code>, <code>filter</code> and <code>reduce</code>, you should also be thinking about the datastructure inside the list: is it a <em>Monoid</em>? You'll then understand better how it will behave when doing operations on it and you'll immediately know which the best reducer functions are!</p>
 
-<p>That concludes this post. I hope you try it out soon! Happy programming y'aλλ! 🖖</p>
+<p>That concludes this post. Hope to see you for <a href="/blog/2018/11/28/lambda-syntax">the next one</a>! Happy programming y'aλλ! 🖖</p>
 ]]></content>
         </entry>
             <entry>
@@ -567,7 +567,7 @@ plusOne [3]
 
 <p>One more thing. The above implementations -which actually work really great in functional programming languages- wouldn't work in languages like PHP. The reason is simple: we would get stack overflows pretty quickly; In functional programming languages, there are things called tail call optimizations that can be made. They make sure that you don't blow the stack, even if you recurse a thousand times. This is not really possible in PHP functions right now. Try it out! But after it, just use <code>array_map()</code> and <code>array_reduce()</code> if you want to do stuff like this 😉!</p>
 
-<p>Happy programming y'aλλ! 🖖</p>
+<p>Hope you liked that, see you in <a href="/blog/2018/10/08/lambda-monoids">the next post</a>! Happy programming y'aλλ! 🖖</p>
 ]]></content>
         </entry>
             <entry>
@@ -659,6 +659,8 @@ double 4 = 8
 <p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
 
 <p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
+
+<p>See you in <a href="/blog/2018/06/27/lambda-recursion">the next post</a>!</p>
 ]]></content>
         </entry>
             <entry>
@@ -938,6 +940,8 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <li><a href="/blog/2018/06/04/lambda-pure-functions">Pure Functions</a></li>
 <li><a href="/blog/2018/06/27/lambda-recursion">Recursion</a></li>
 <li><a href="/blog/2018/10/08/lambda-monoids">Monoids</a></li>
+<li><a href="/blog/2018/11/28/lambda-syntax">Syntax</a></li>
+<li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
 <li>...</li>
 </ul>
 ]]></content>
