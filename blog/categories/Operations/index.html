@@ -37,81 +37,77 @@
         </style>
                                     </head>
     <body>
-        <header>
-            <nav class="navbar navbar-inverse navbar-fixed-top">
-                <div class="container">
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" id="logo" href="http://developers.engagor.com">
-                            <img src="/images/logo_cxsocial.png" />
-                            <span class="dev-tagline">developers</span>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd ">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="http://developers.engagor.com/" class="primary">
+                            Clarabridge Development
                         </a>
-                    </div>
-                    <div id="navbar" class="collapse navbar-collapse">
-                        <ul class="nav navbar-nav">
-                            <li>
-                                <a href="https://developers.engagor.com/">
-                                    <span class="en-icon en-icon-document"></span> API Documentation
-                                </a>
-                            </li>
-                            <li>
-                                <a href="http://engagor.github.io/" class="active">
-                                    <span class="en-icon en-icon-bubble-2"> Blog
-                                </a>
-                            </li>
-                            <li>
-                                <a href="https://developers.engagor.com/team">
-                                    <span class="en-icon en-icon-users"></span> Team
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    </li>
+                    <li>
+                        <a href="http://engagor.github.io/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/documentation" class="primary <!-- if 
+Notice: Array to string conversion in /data/jenkins/workspace/Dev Blog/vendor/twig/twig/lib/Twig/Environment.php(421) : eval()'d code on line 143
+Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title ">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                                    <h1>Build products that connect <span class="highlight">consumer</span> questions with <span class="highlight">brand</span> answers.</h1>
+                                            </h1>
                 </div>
             </nav>
         </header>
-        <div class="mainContent container">
-            <div class="row-fluid">
-                <div class="span4 sidebar">
-                    <div class="well sidebar-nav">
-                        <ul class="dev-nav">
-                            <li>
-                                <a href="/blog">
-                                    <span class="en-icon en-icon-clock"></span> Posts Archive
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/blog/categories">
-                                    <span class="en-icon en-icon-folder-open"></span> Categories
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/blog/tags">
-                                    <span class="en-icon en-icon-tag"></span> Tags
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="hiring-block">
-                        <a href="http://www.clarabridge.com/jobs" target="blank" class="clearfix">
-                            <h2>we're</h2>
-                            <h1>Hiring!</h1>
-                            <span>Join The Team</span>
-                        </a>
-                    </div>
-                </div>
-                <div class="span8 dev-content">
-                    <h2>Category: Operations</h2>
-            <h3>January 2018</h3>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                                            </ul>
+            <div class="right dev-content-block">
+                <h1><span class="en-icon en-icon-folder-open"></span>  Category: Operations</h1>
+            <h2>January 2018</h2>
     <div class="post-listing">
-        <h4 class="post-title"><a href="/blog/2018/01/08/xinetd-APIs">On-the-fly API&#039;s using Xinetd</a></h4>
+        <h5 class="post-title"><a href="/blog/2018/01/08/xinetd-APIs">On-the-fly API&#039;s using Xinetd</a></h5>
         <div class="author-avatar">
             <img src="https://www.gravatar.com/avatar/262225c206e50b5fb7902b1d537cc380" alt="Jeffry Degrande avatar" />
-            Jeffry Degrande on
+            <strong>Jeffry Degrande</strong> on
             <time class="post-publish-date" datetime="2018-01-08T10:00:00+00:00" pubdate>
                 <span class='month'>Jan</span> <span class='day'>8th</span> <span class='year'>2018</span>
             </time>
@@ -120,16 +116,19 @@
 
 <div>
 </div>
-                </div>
             </div>
         </div>
-        <footer class="container">
-            &copy; 2019 CX Social Dev Blog
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                &copy;2019 Clarabridge&reg;. All rights reserved.
+            </div>
         </footer>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
         <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
                 
         
         <script type="text/javascript">
