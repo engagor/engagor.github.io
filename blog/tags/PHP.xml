@@ -3,9 +3,143 @@
     <title><![CDATA[CX Social Dev Blog]]></title>
     <link href="/blog/tags/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-04-29T09:42:25+00:00</updated>
+    <updated>2019-05-24T12:53:49+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Exceptional Exceptions]]></title>
+            <link href="/blog/2019/05/22/exceptional-exceptions"/>
+            <updated>2019-05-22T15:00:00+00:00</updated>
+            <id>/blog/2019/05/22/exceptional-exceptions</id>
+            <content type="html"><![CDATA[<p>You've made it to this post thinking "Why do we still need to talk about Exceptions?". Well, they're used everywhere in OOP codebases, but sometimes they're used in a way that make debugging a bit difficult. Let's look at some ways to make debugging exceptions a bit more fun!</p>
+
+<p>You know that feeling when you're trying to investigate an Exception that was thrown, but you can't seem to find the origin of it? You dig a bit deeper and you find that it's an exception that was caught and not rethrown, e.g.:</p>
+
+<pre><code class="php">try {
+    $this-&gt;doSomeImportantStuffWith($foo);
+} catch (VeryDescriptiveException $e) {
+    // do some stuff here
+
+    throw new SomethingWentWrongException('oh no!');
+}
+</code></pre>
+
+<p>Now, when you encounter this <code>SomethingWentWrongException</code>, you'll see that the trace takes you back to the 6th line of this code example. All information that was inside the <code>VeryDescriptiveException</code>, including its message, stack trace and other useful information is gone. Of course, debugging that error in <code>doSomeImportantStuffWith()</code> would be much easier if you had all that info.</p>
+
+<pre><code class="php">Fatal error: Uncaught SomethingWentWrongException: oh no! in test.php:6
+Stack trace:
+#0 /Users/toon/Projects/devblog/test.php(34): Test-&gt;withoutPrevious()
+#1 {main}
+  thrown in /Users/toon/Projects/devblog/test.php on line 6
+</code></pre>
+
+<h2 id="prevent-information-loss-by-using-%60%24previous%60">Prevent information loss by using <code>$previous</code></h2>
+
+<p>The obvious answer to this simplified example would be to just rethrow the <code>VeryDescriptiveException</code> instead of throwing a more general <code>SomethingWentWrongException</code>... And that would be valid, but let's say we're implementing an Interface that prescribes that we only throw <code>SomethingWentWrongException</code>s. We can't let the <code>VeryDescriptiveException</code> through or we'll break the <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov Substitution Principle</a>. We want to throw that specific <code>SomethingWentWrongException</code>, while still somehow preserving the information of that previous exception that we caught. Let's check <a href="https://www.php.net/manual/en/exception.construct.php">the docs</a>:</p>
+
+<p><img src="/images/2019-05-24-exceptional-exceptions/php-docs-exception-construct.png" alt="PHP Docs for the Exception Constructor" /></p>
+
+<p>That <code>Throwable $previous = null</code> is what we're looking for! I've almost never seen this being used in the wild, but it's great for our usecase:</p>
+
+<pre><code class="php">try {
+    $this-&gt;doSomeImportantStuffWith($foo);
+} catch (VeryDescriptiveException $e) {
+    // do some stuff here
+
+    throw new SomethingWentWrongException('oh no!', 0, $e);
+}
+</code></pre>
+
+<p>this results in this error:</p>
+
+<pre><code class="php">Fatal error: Uncaught VeryDescriptiveException: hello there! in test.php:15
+Stack trace:
+#0 /Users/toon/Projects/devblog/test.php(23): Test-&gt;doSomeImportantStuffWith('test')
+#1 /Users/toon/Projects/devblog/test.php(34): Test-&gt;withPrevious()
+#2 {main}
+
+Next SomethingWentWrongException: oh no! in test.php:6
+Stack trace:
+#0 /Users/toon/Projects/devblog/test.php(34): Test-&gt;withPrevious()
+#1 {main}
+  thrown in /Users/toon/Projects/devblog/test.php on line 6
+</code></pre>
+
+<p>As you can see, the stack trace of the original exception along with the one we wrapped it in are presented to us on error! We can see the message as well, and we can even add our own properties to the exception and be presented with them here if we just implement the <code>__toString()</code> method of the exception.</p>
+
+<h2 id="custom-properties-in-exceptions">Custom properties in exceptions</h2>
+
+<p>Let's say we've been building an API client that does some HTTP requests to an endpoint. Something can go wrong during the HTTP request, and we want to thrown an <code>ApiConnectionFailed</code> exception whenever the HTTP response code is not <code>2xx</code> or something else fails, so that the rest of our application has one single Exception it needs to prepare for. It would be very handy to debug if that exception contained our HTTP Request &amp; Response objects, e.g.:</p>
+
+<pre><code class="php">final class ApiConnectionFailed extends Exception
+{
+    private $request;
+    private $response;
+
+    public static function withHttpRequestAndResponse(
+        $message,
+        Request $request = null,
+        Response $response = null,
+        Throwable $previous = null
+    ) {
+        $exception = new static($message, 0, $previous);
+        $exception-&gt;request = $request;
+        $exception-&gt;response = $response;
+
+        return $exception;
+    }
+
+    public function __toString()
+    {
+        $string = parent::__toString();
+        $string .= "\n{$this-&gt;request}";
+        $string .= "\n{$this-&gt;response}";
+
+        return $string;
+    }
+}
+</code></pre>
+
+<p>As you can see, we used a <a href="http://verraes.net/2014/06/named-constructors-in-php/">named constructor</a> <code>withHttpRequestAndResponse</code> to be able to keep the default constructor for Exceptions, but to also be able to construct it using a lot of extra relevant debugging information. This means that this Exception behaves like other exceptions and is very transparent to other developers.</p>
+
+<p>If something fails, we'll construct the exception like this:</p>
+
+<pre><code class="php">try {
+    $response = $httpClient-&gt;execute($request);
+} catch (HttpClientException $e) {
+    throw ApiConnectionFailed::withHttpRequestAndResponse(
+        'Http connection could not be established',
+        $request,
+        null,
+        $e
+    );
+}
+
+if ($response-&gt;getResponseCode() === 500) {
+    throw ApiConnectionFailed::withHttpRequestAndResponse(
+        'We got a 500 error from the host',
+        $request,
+        $response
+    );
+}
+</code></pre>
+
+<p>The exception will always contain all relevant information to be able to debug.</p>
+
+<h2 id="recap">Recap</h2>
+
+<p>To quickly recap, you can make your life a lot easier by</p>
+
+<ul>
+<li>providing exceptions with descriptive names</li>
+<li>providing the <code>$previous</code> exception when rethrowing</li>
+<li>providing all relevant data to an exception</li>
+<li>providing named constructors for your exceptions to be able to add debugging info but keep the original constructor</li>
+</ul>
+
+<p>Hope that helps! Until next time, have fun coding! 🖖</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Lambda To The Rescue: Implementation Details]]></title>
             <link href="/blog/2019/01/28/lambda-implementation-details"/>
@@ -1665,132 +1799,6 @@ final class LineSegment
 <p>If we wanted to represent the nested Value Objects as a string, e.g. to be able to save them in a field in the database, we could just make the <code>Point</code> represent itself as <code>(x, y)</code> and the <code>LineSegment</code> as <code>[(Xa, Ya), (Xb, Yb)]</code> by letting the <code>LineSegment</code>'s <code>__toString</code> method call that of the nested <code>Point</code> objects. For parsing the string representation back into a <code>LineSegment</code>, we'll need a <code>fromString()</code> <a href="http://verraes.net/2014/06/named-constructors-in-php/">alternative constructor</a> that can parse those strings and instantiate the correct objects for them, but I'll leave that as an exercise for the reader!</p>
 
 <p>So, these were our take-aways after introducing Value Objects into our codebase. Did we forget something?</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Our Favorite Content Of 2017]]></title>
-            <link href="/blog/2017/12/22/our-favorite-content-of-2017"/>
-            <updated>2017-12-22T14:30:00+00:00</updated>
-            <id>/blog/2017/12/22/our-favorite-content-of-2017</id>
-            <content type="html"><![CDATA[<p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. We asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
-
-<h1 id="people-%26-community">People &amp; Community</h1>
-
-<p><img src="https://media.giphy.com/media/pTY9EtkiakcU/giphy.gif" alt="The Blind" /></p>
-
-<h3 id="in-the-kingdom-of-the-blind"><a href="https://bridgetkromhout.com/blog/in-the-kingdom-of-the-blind/">In The Kingdom Of The Blind</a></h3>
-
-<blockquote>
-  <p>As you can imagine, there are plenty of reasons that under-represented people in tech aren't going to jump the second your event's CFP opens. But submissions will pour in nonetheless... from the folks whose (devrel/marketing/field engineer) vendor job includes public speaking (and on-the-job time to fine-tune their abstracts). And spoiler alert, many of them will fall into the majority cis het white male demographic.</p>
-</blockquote>
-
-<p>Ursula recommends this for the great ideas on how to improve diversity at conferences, and an excellent candid overview of the reasons why underrepresented minorities do not speak at or attend tech conferences as often.</p>
-
-<h3 id="we-fired-our-top-talent.-best-decision-we-ever-made."><a href="https://medium.freecodecamp.org/we-fired-our-top-talent-best-decision-we-ever-made-4c0a99728fde">We fired our top talent. Best decision we ever made.</a></h3>
-
-<blockquote>
-  <p>Your team's strength is not a function of the talent of individual members. It's a function of their collaboration, tenacity, and mutual respect.</p>
-</blockquote>
-
-<p>Hans likes this because when there's a smart guy around, you'll find it tempting to just go ask him instead of trying to do the research yourself and learn something new. He doesn't like developers who think that they know everything. They don't. In fact, you'll never know everything. Sharing knowledge and working together as a team is something we should focus on instead. Each person has their own strengths.</p>
-
-<h3 id="the-myth-of-the-%22cool-tech-girl%22"><a href="https://code.likeagirl.io/the-myth-of-the-cool-tech-girl-7868fa63769b">The myth of the "cool tech girl"</a></h3>
-
-<blockquote>
-  <p>Don't reward good behaviour with scotch, don't tap kegs at 12pm, and don't host video game or ping pong tournaments. Don't call your employees "rockstars". Shine a harsh light on some of your internal slack channels. If your company doesn't perpetuate the kind of culture that makes women feel like they need to be 'one of the boys', they won't need the coping mechanism of the "cool tech girl".</p>
-</blockquote>
-
-<p>Ursula has seen this type of behaviour from women in tech in many countries. "I would almost go as far as to say that if you don't fit into the 'cool tech girl' box, it's difficult to survive. As a woman in tech I think you have a responsibility to speak up for diversity in the industry. It's really hard, and it's great to hear viewpoints that identify that."</p>
-
-<h1 id="engineering">Engineering</h1>
-
-<p><img src="https://pbs.twimg.com/media/C3G2KYAWYAEj9km.jpg" alt="Stickies on the wall kind of engineering" /></p>
-
-<h3 id="transactions-redefined"><a href="https://www.youtube.com/watch?v=NqKNqIsB8_k">Transactions Redefined</a></h3>
-
-<blockquote>
-  <p>Event Storming is my pizza, you can add your toppings, as long as it's not database tables or pineapple</p>
-</blockquote>
-
-<p>Toon recommends this because Alberto Brandolini is a great speaker, and his vision on Domain Driven Design and software development in general is really clear and deep. He goes a long way to understand the business, and the problems associated with the business. He goes out of his way to find out how he can solve them.</p>
-
-<h3 id="modern-software-over-engineering-mistakes"><a href="https://medium.com/@rdsubhas/10-modern-software-engineering-mistakes-bc67fbef4fc8">Modern Software Over-Engineering Mistakes</a></h3>
-
-<blockquote>
-  <p>Duplication is better than the wrong abstraction</p>
-</blockquote>
-
-<p>Jurriaan likes this because too much of technical literature is about how you should start doing things, and how everything you’ve done in the past is probably wrong. This article captures the essence of trying to architect real-life development projects.</p>
-
-<h3 id="kubernetes-at-github"><a href="https://githubengineering.com/kubernetes-at-github/">Kubernetes at Github</a></h3>
-
-<blockquote>
-  <p>With a self-service application provisioning workflow in place, SRE can devote more of our time to delivering infrastructure products to the rest of the engineering organisation in support of our best practices, building toward a faster and more resilient GitHub experience for everyone.</p>
-</blockquote>
-
-<p>Jeffry liked this because everybody and their dog are rethinking how to do platform now that the technology to do so has matured. This write-up from Github offers a great look into the decision making and preparation that goes into gradually building up confidence. He gives the author additional points for sprinkling snippets of inspiration throughout the post: e.g. chatops-rpc to make our hubot do more than offer drunk commentary, Kelsey Hightower's "Kubernetes the hard way" which he has set his mind to working through over the holidays, flipper and mission control bar and simulating kernel panics with sysrq-trigger.</p>
-
-<h1 id="think-differently">Think Differently</h1>
-
-<p><img src="https://media.giphy.com/media/ximCDHoBlx4UU/giphy.gif" alt="Excel on mobile, epic experience" /></p>
-
-<h3 id="exploring-time"><a href="https://www.youtube.com/watch?v=Zm95cYAtAa8">Exploring Time</a></h3>
-
-<blockquote>
-  <p>It’s impossible to know if this talk started on time</p>
-</blockquote>
-
-<p>Toon recommends this because Eric Evans uses his own Domain Driven Design to explore better ways to think about time. Very inspiring. He shows how "generic" subdomains of software development are not generally "solved problems", and how you can make a difference there, as a programmer.</p>
-
-<h3 id="clojure-for-the-brave-and-true"><a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a></h3>
-
-<blockquote>
-  <p>Humor has a certain relationship to seriousness. It is appropriate to joke about serious things, but only after the right amount of time has passed. For example, it took years for me to be able to crack a smile when I remember my favorite uncle’s last words: "Hold my beer".</p>
-  
-  <p>I'm so proud of you, little teapot. You've run your first Clojure program! Not only that, but you've become acquainted with the REPL, one of the most important tools for developing Clojure software. Amazing!</p>
-</blockquote>
-
-<p>Niek thinks this book is a hilarious and down-to-earth explanation of yet another programming language to learn. Clojure is a Lisp dialect and will melt your brain with its elegance!</p>
-
-<h3 id="you-suck-at-excel"><a href="https://www.youtube.com/watch?v=0nbkaYsR94c">You Suck At Excel</a></h3>
-
-<blockquote>
-  <p>This material is -I guess- kinda like basic to intermediate, but for you all it's going to be stupid hard, so try paying attention and don't slow me down.</p>
-</blockquote>
-
-<p>Toon enjoyed this because this guy solves real world problems for people using Excel. "I learned a 100 things from seeing him work like this." He knows Excel inside out.</p>
-
-<h3 id="lemme-tell-you-about-the-most-successful-program-i-ever-wrote"><a href="https://twitter.com/revin/status/940700486117634050">Lemme tell you about the most successful program I ever wrote</a></h3>
-
-<h6 id="twitter-thread">(twitter thread)</h6>
-
-<blockquote>
-  <p>It was the first time I genuinely understood that users don't care how something is implemented; they care how it makes them feel</p>
-</blockquote>
-
-<p>Hans thinks we put so much effort in making our application code clean and future-proof while just a tiny poorly written program (that works) can make someone really happy. Software can seem magical for some people.</p>
-
-<h1 id="big-data">Big Data</h1>
-
-<p><img src="https://media.giphy.com/media/xydGi3nSTlkqs/giphy.gif" alt="Ben Stiller as Big Data" /></p>
-
-<h3 id="wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen%3F"><a href="https://medium.com/@ransbottyn/wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen-e25a703668b4">Wat als Tomorrowland alles met je data en privacy zou mogen doen?</a></h3>
-
-<blockquote>
-  <p>Zo'n bracelet (gelinkt aan je identiteitsbewijs trouwens) is dus een mes dat aan twee kanten snijdt: handig, maar misschien ook de reden waarom u de volgende keer net iets minder "gewenst" bent.</p>
-</blockquote>
-
-<p>Jasper likes this because it's incredible how much data a festival organizer track and save about you with just a bracelet, and also, what they (can possibly) do with it.</p>
-
-<h3 id="deep-learning-for-chatbots"><a href="http://www.wildml.com/2016/07/deep-learning-for-chatbots-2-retrieval-based-model-tensorflow/">Deep Learning for Chatbots</a></h3>
-
-<blockquote>
-  <p>Generative models are an active area of research, but we’re not quite there yet. If you want to build a conversational agent today your best bet is most likely a retrieval-based model.</p>
-</blockquote>
-
-<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for CX Social.</p>
-
-<p>Those were our highlights for 2017, let us know if we missed something!</p>
 ]]></content>
         </entry>
     </feed>

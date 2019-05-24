@@ -102,6 +102,48 @@ Array === 'documentation' -->active<!-- endif -->">
             <div class="right dev-content-block">
                     <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/04/09/some-tips-for-distraction-free-programming">Tips For Distraction-Free Programming</a></h1>
+        </header>
+        <div>
+            <p>I'm very easily distracted. The slightest movement or conversation in the room takes my focus right away, not to mention the endless stream of information and notifications that e.g. services like Slack (team chat) and e-mail generate. I might be working on something with a colleague or on my own, when a simple notification pops in. My brain glitches for a moment while I process the notification and get back to where I was, but it's enough to completely lose focus. When pair programming with someone that isn't easily distracted, it's mostly fixed in an instant by getting back to the conversation or repeating the last question, but it's a lot more difficult when working on a feature alone. Over time I tried to change a few things to make this kind of interruptions less frequent or pervasive. Let's check some out:</p>
+
+<h2 id="%F0%9F%8F%9D-environment">🏝 Environment</h2>
+
+<p>The room I'm working in has a huge impact on my concentration levels. People talking or walking around are direct hits, as is any movement in my surroundings, even behind me. This is mostly fixed in our case since we don't have an open floor plan, so we don't share rooms with other teams, and when it's noisy in the room next to ours, we can just close the door. To prevent people talking from disrupting my concentration and the other way around, I'll put on headphones when working alone (mostly to prevent myself from listening in on the conversation), and I'll move to another room when pair programming. I know it sounds antisocial and makes me less approachable for questions or consultation, but I try to only do this when there's noise.</p>
+
+<h2 id="%F0%9F%93%B1-phone-%26-social-media">📱 Phone &amp; Social Media</h2>
+
+<p>My phone is out of sight. When I get a message I will read it when I find the time. When someone calls me I mostly take the call. It might sound strange because we're a social media company, but I'm not logged in to any of my personal social media accounts during the day. This really helps me concentrate, because my Twitter timeline is a real timesink for me. If I'm looking at that, I'm certainly not concentrating 😏. For testing stuff, I'll aways use test accounts.</p>
+
+<h2 id="%F0%9F%96%A5-full-screen-applications">🖥 Full Screen Applications</h2>
+
+<p>Although I don't like Full Screen Applications, I started using them more and more. They hide anything that might be happening in other windows, covering unwanted distractions up until you switch to the other application. I still don't like the oversight that is taken away by using an app in Full Screen mode though. The cool thing for me specifically is that iTerm behaves a bit like a tiling window manager for me, since I do most of my development in Vim &amp; the terminal, using iTerm splits. A great tip there is that you can use <code>Cmd + Shift + Enter</code> in an iTerm split to make it appear Full Screen temporarily.</p>
+
+<h2 id="%F0%9F%9B%8E-osx-notification-center">🛎 OSX Notification center</h2>
+
+<p><img src="/images/2018-04-09-some-tips-for-distraction-free-programming/1.png" alt="do not disturb" /></p>
+
+<p>I already hinted at it earlier on, but notifications of any kind really disturb me. They pop over any fullscreen application that might be open, and I really can't help looking at them. This is why I set the <code>DO NOT DISTURB</code> mode on during workdays. You can configure Mac OSX to enable it by default during work hours, or you can do it manually when you notice being distracted. Notifications I get are mostly from Slack, Calendar and Mail. You can also configure this on a per-application basis in your System Preferences.</p>
+
+<h2 id="%F0%9F%8E%88-osx-application-badges">🎈 OSX Application Badges</h2>
+
+<p><img src="/images/2018-04-09-some-tips-for-distraction-free-programming/2.png" alt="dock icons with badges" /></p>
+
+<p>What's really annoying me is that Mac OS displays so-called "badges" -the red circle icons with a number in them- on applications that received notifications, and these badges are visible in the Dock and the Application Switcher (<code>Cmd + Tab</code>). When I'm switching to my browser, I don't want to see how many Slack messages I missed. I'll check those later. I just went to Notification Center in System Preferences and disabled these badges for Slack, Calendar and Mail. I believe that I can be more productive when I read these things periodically instead of during other tasks. In the screenshot above, I enabled them temporarily for Calendar to show you what I mean, but what you can't see is that I have 25+ unread messages in Slack. Don't worry, I'll read them after I get this blogpost out! 😉</p>
+
+<h2 id="%F0%9F%93%A2-slack">📢 Slack</h2>
+
+<p>Some great things to do in Slack are to Leave channels you don't use, and to use the Mute 🔇 functionality on channels that are not urgent but you can't really leave. Of course, I disabled Slack's notification sounds by default.</p>
+
+<p>I hope these tips were helpful, they certainly help me concentrate a bit better. If you think of anything else, comment below, I want to hear it! Happy pair programming!</p>
+
+        </div>
+                    <p class="tags">
+            <strong>Tags:</strong>
+                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/People" class="tag">People</a>                        <a href="/blog/tags/Team" class="tag">Team</a>                        <a href="/blog/tags/Notifications" class="tag">Notifications</a>                        <a href="/blog/tags/Slack" class="tag">Slack</a>                        </p>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">Lambda To The Rescue: Lists to wrap failure</a></h1>
         </header>
         <div>
@@ -454,165 +496,21 @@ point 4
             <strong>Tags:</strong>
                         <a href="/blog/tags/Vim" class="tag">Vim</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/IDE" class="tag">IDE</a>                        </p>
             </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/02/05/wishful-development">Wishful Development</a></h1>
-        </header>
-        <div>
-            <p>In this blogpost I'm going to try and explain the main way I solve problems by delaying things that I don't want to think about at the time that I'm solving them. I use "wishful thinking" for that (hence the title of this blog post), but I guess this could also be called <em>Interface Discovery</em>. Let's look at a specific problem:
-For the CoffeeRun application that we used as an example in <a href="/blog/2017/11/15/refactoring-to-collections/">previous posts</a>, we want to make a tool that compares prices of a given drink between a list of shops in our neighbourhood. What's interesting to us is the comparison logic:</p>
-
-<ol>
-<li>We ask the tool to find the cheapest {drink of a certain type}</li>
-<li>The tool shows us the cheapest coffee shop in our neighbourhood where we can get a {drink of that type}</li>
-</ol>
-
-<h2 id="wishful-thinking">Wishful Thinking</h2>
-
-<p>Let's write that in a very naïve way: I wish there was a comparison class with a method to find the cheapest drink.</p>
-
-<pre><code class="php">final class CompareCoffeeShops
-{
-    public function findCheapest(Drink $drink): CoffeeShop
-    {
-        $cheapestShop = array_reduce(
-            $this-&gt;shops,
-            function($cheapestShop, $nextShop) use ($drink) {
-                $cheapestPrice = $cheapestShop-&gt;getPriceFor($drink);
-                $nextPrice = $nextShop-&gt;getPriceFor($drink);
-
-                if ($nextPrice-&gt;lowerThan($cheapestPrice)) {
-                    return $nextShop;
-                }
-
-                return $cheapestShop;
-            },
-            reset($this-&gt;shops)
-        );
-
-        return $cheapestShop;
-    }
-}
-</code></pre>
-
-<p>We just made assumptions about <em>everything</em>. Let's see.</p>
-
-<ol>
-<li><p>We assumed there was a <code>Drink</code> class. There wasn't, so let's make it happen:</p>
-
-<pre><code class="php">final class Drink
-{
-    private $name;
-
-    public function __construct(string $name)
-    {
-        $this-&gt;name = $name;
-    }
-}
-</code></pre></li>
-<li><p>We assumed there was a list of coffee shops, oops, there was no such thing. Let's fix that by adding a constructor parameter:</p>
-
-<pre><code class="php">final class CompareCoffeeShops
-{
-    private $shops;
-
-    public function __construct(array $shops)
-    {
-        $this-&gt;shops = $shops;
-    }
-
-    public function findCheapest(Drink $drink): CoffeeShop
-    {
-        // ...
-    }
-}
-</code></pre></li>
-<li><p>Each <code>CoffeeShop</code> in the list seems to have a <code>getPriceFor(Drink)</code> method which returns a <code>Price</code>...</p>
-
-<pre><code class="php">interface CoffeeShop
-{
-    public function getPriceFor(Drink $drink): Price;
-}
-</code></pre></li>
-<li><p>Talking about <code>Price</code>, how do prices look? They certainly seem to have a <code>lowerThan(Price)</code> method</p>
-
-<pre><code class="php">final class Price
-{
-    private $price;
-
-    public function __construct(int $price)
-    {
-        $this-&gt;price = $price;
-    }
-
-    public function lowerThan(Price $other): bool
-    {
-        return $this-&gt;price &lt; $other-&gt;price;
-    }
-}
-</code></pre></li>
-</ol>
-
-<p>Let's write a test too:</p>
-
-<pre><code class="php">&lt;?php
-
-use PHPUnit\Framework\TestCase;
-
-class CompareCoffeeShopsTest extends TestCase
-{
-    public function test_it_finds_the_cheapest_cappuccino()
-    {
-        $shop1 = $this-&gt;createMock('CoffeeShop');
-        $shop1-&gt;method('getPriceFor')-&gt;willReturn(new Price(200));
-
-        $shop2 = $this-&gt;createMock('CoffeeShop');
-        $shop2-&gt;method('getPriceFor')-&gt;willReturn(new Price(195));
-
-        $shop3 = $this-&gt;createMock('CoffeeShop');
-        $shop3-&gt;method('getPriceFor')-&gt;willReturn(new Price(250));
-
-        $shops = array($shop1, $shop2, $shop3);
-
-        $comparisons = new CompareCoffeeShops($shops);
-
-        $cheapest = $comparisons-&gt;findCheapest(new Drink('Cappuccino'));
-
-        $this-&gt;assertEquals($shop2, $cheapest);
-    }
-}
-</code></pre>
-
-<p>Wait, what? The test passes! (I know, I know, it's not complete...)</p>
-
-<h2 id="why-is-this-great%3F">Why is this great?</h2>
-
-<p>We just tested and implemented most of the comparison logic through "wishful thinking" (although in a very naïve way). The details about looking up the real prices of a cappuccino in all shops in our neighbourhood were left out. We didn't need them! We actually wrote the most important thing first, how to compare drinks in multiple shops and find the cheapest place to buy our cappuccino! Nothing even hints at trying to scrape their websites (god forbid) and we can actually give up on that temporarily and implement a hardcoded list of shops and their inventories until we find the courage needed to scrape coffeeshop websites 😱!</p>
-
-<p>In fact, look at the interface that we need to implement to get this to work:</p>
-
-<pre><code class="php">interface CoffeeShop
-{
-    public function getPriceFor(Drink $drink): Price;
-}
-</code></pre>
-
-<p>It's so simple! We could implement this however we want, e.g. have some shops with hardcoded inventories, others with webscrapers. None of our code needs to know about the specific implementation of the shops, it already knows about the available methods. And as a bonus, we didn't write any code we didn't need.</p>
-
-<p>Think about it: if you can imagine it, it already works. Have fun programming! 🖖</p>
-
-        </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Development" class="tag">Development</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        </p>
-            </article>
     <nav class="pager">
         <a href="/page/4" class="left">Newer Posts</a>        <a href="/page/6" class="right">Older Posts</a>    </nav>
             </div>
         </div>
         <footer class="dev-container">
             <div class="dev-content-block">
-                &copy;2019 Clarabridge&reg;. All rights reserved.
+                <div class="left">
+                    &copy;2019 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
             </div>
         </footer>
 
