@@ -3,9 +3,212 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Development.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-06-25T11:10:38+00:00</updated>
+    <updated>2019-07-05T08:33:07+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Why Inheritance Makes Me Cry]]></title>
+            <link href="/blog/2019/07/05/why-inheritance-makes-me-cry"/>
+            <updated>2019-07-05T11:00:00+00:00</updated>
+            <id>/blog/2019/07/05/why-inheritance-makes-me-cry</id>
+            <content type="html"><![CDATA[<p>People receiving code reviews from me on a regular basis will know this by now, but if I see inheritance happening in new code, I get moody. I look the <code>extends</code> in the eye and prepare for battle. I pick up my <em>SOLID</em> axe and start examining the principle that will allow me to slay this sub-class beast. And then I cry a little because I'll have to explain again where this centuries-old grudge comes from.</p>
+
+<p>Now, don't get me wrong. I do understand the usefulness of inheritance in very specific cases. But most of the time when I encounter a subclassed beast during a code review I go all out offensive on it. Let's explore why:</p>
+
+<h2 id="single-responsibility-principle">Single Responsibility Principle</h2>
+
+<p>If you've been Object Oriented Programming for some time and you've been looking around a bit, you've definitely encountered the <a href="https://en.wikipedia.org/wiki/SOLID">SOLID principles</a>. These are basically principles (not rules) that, when followed, will help you produce code that's easier to comprehend, change and test than when you were not following them. The first principle is the Single Responsibility Principle, which states that <em>a class should have only one responsibility</em>, or "one reason for change".</p>
+
+<p>Let's try and use that to mitigate this case of inheritance:</p>
+
+<pre><code class="php">interface Users
+{
+    public function getById(UserId $id): User;
+}
+
+class UsersDB implements Users
+{
+    protected $db;
+
+    public function __construct(DB $db)
+    {
+        $this-&gt;db = $db;
+    }
+
+    public function getById(UserId $id): User
+    {
+        // ...
+    }
+}
+
+class UsersCached extends UsersDB
+{
+    protected $cache;
+
+    public function __construct(Cache $cache, DB $db)
+    {
+        parent::__construct($db);
+
+        $this-&gt;cache = $cache;
+    }
+
+    public function getById(UserId $id): User
+    {
+        // get from cache?
+
+        // if not in cache
+        $user = parent::getById($id);
+
+        // put in cache
+
+        return $user;
+    }
+}
+</code></pre>
+
+<p>Apart from all other issues that we have here, let's try to find out if the <em>Single Responsibility Principle</em> holds for this implementation. Looking at the class <code>UsersDB</code>, we can clearly see that it has just one responsibility: it represents a bunch of <code>User</code>s that are persisted to our database. It has no other reasons to change than for the purpose of representing users persisted in our database.</p>
+
+<p>Now let's look at the <code>UsersCached</code> implementation. It represents a bunch of <code>User</code>s as well, in this case it caches them. We could think that this class has only one responsibility, until we see the <code>parent::getById()</code> call. It basically calls a method that we inherited (so it's available in our class) from the parent class. The knowledge needed to query the database is actually in our class because of the inheritance!</p>
+
+<p>You could argue that it's still ok since it's clearly a parent class and nothing's wrong there, but let's look at it through the lense of <em>a class should have only one reason for change</em>. What if we decide that the constructor of the <code>UsersDB</code> class will now take a <code>PDO</code> instance instead of our own <code>DB</code> class? Guess what! The implementation of our <code>UsersCached</code> needs to change as well, because it needs to pass the PDO instance on to its parent. So a decision about the database made us change the caching class. And it's obvious that changing the caching mechanism would also affect the caching class. Which gives us more than one reason for change of this class.</p>
+
+<p>This is clearly a violation of the Single Responsibility Principle.</p>
+
+<p>We could fix this e.g. by using the <a href="https://en.wikipedia.org/wiki/Decorator_pattern">Decorator Pattern</a>:</p>
+
+<pre><code class="php">interface Users
+{
+    public function getById(UserId $id): User;
+}
+
+final class UsersDB implements Users
+{
+    private $db;
+
+    public function __construct(DB $db)
+    {
+        $this-&gt;db = $db;
+    }
+
+    public function getById(UserId $id): User
+    {
+        // ...
+    }
+}
+
+final class UsersCached implements Users
+{
+    private $users;
+    private $cache;
+
+    public function __construct(Users $users, Cache $cache)
+    {
+        $this-&gt;users = $users;
+        $this-&gt;cache = $cache;
+    }
+
+    public function getById(UserId $id): User
+    {
+        // get from cache?
+
+        // if not in cache, get from nested user object
+        $user = $this-&gt;users-&gt;getById($id);
+
+        // put in cache
+
+        return $user;
+    }
+}
+</code></pre>
+
+<p>As you can see, it's only a very small change.</p>
+
+<ul>
+<li>we added <code>final</code> keywords to our classes and <code>private</code> to our variables to indicate that we don't want inheritance to happen 😏</li>
+<li>we made both classes <code>implement</code> the <code>Users</code> interface</li>
+<li>we injected an implementation of the <code>Users</code> interface into the constructor of the <code>UsersCached</code>, which will be called when no user is found in the cache.</li>
+</ul>
+
+<p>You could try and argue that this is no better because we still rely on the <code>Users</code> interface to stay stable. But if that interface changes, the responsibility "representing a bunch of users" changes, which is exactly the one responsibility that we have for our class. Changing the implementation of our <code>UsersDB</code> class will not affect the <code>UsersCached</code> class anymore, except when the contract of the interface is broken. Great!</p>
+
+<h2 id="dependency-inversion-principle">Dependency Inversion Principle</h2>
+
+<p>Let's take a short second look at the same code examples from above, now while trying to look at it from another one of the SOLID principles, the <a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle">Dependency Inversion Principle</a>. The principle comes down to <em>depending on abstractions instead of concretions</em>. In the case of the first example, the <code>UsersCached</code> extends <code>UsersDB</code>, which it needs when there's nothing found in the cache. We depend on a concrete class, which is a violation of the principle. In the second example, we made <code>UsersCached</code> implement the interface directly instead of extending from <code>UsersDB</code>. We then inject another implementation of <code>Users</code> in the constructor of <code>UsersCached</code>. Since we depend on the <em>interface</em> here, we don't depend on a concrete class anymore, and any implementation of the <code>Users</code> interface should work! This solution follows the principle! An added benifit of this is that our <code>UsersCached</code> instance is now much easier to test: we just need to inject a fake <code>Users</code> interface and see if it gets called when the cache doesn't have the value that we look for.</p>
+
+<p>You could do the same with the other SOLID principles really, take e.g. <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov Substitution Principle</a>. If a class extends from our class, it can easily overwrite a method to behave completely differently than what it was, so the principle doesn't hold. Again, it's easy to make a violation there.</p>
+
+<h2 id="shared-dependencies">Shared Dependencies</h2>
+
+<p>Now that we have a few SOLID reasons to say that inheritance is not a desirable solution for our problems, let's look at some other ways that I think it is misused. Consider this example:</p>
+
+<pre><code class="php">abstract class Notification
+{
+    protected $id;
+
+    public function __construct(Id $id)
+    {
+        $this-&gt;id = $id;
+    }
+
+    public function toUrl($relative = true): string
+    {
+        $path = "/notifications/{$this-&gt;id}";
+
+        if ($relative === true) {
+            return $path;
+        } else {
+            return "https://domain.of.application{$path}";
+        }
+    }
+}
+</code></pre>
+
+<p>I see this kind abstract classes quite often. It's a form of deduplication (people think they shouldn't repeat code), but what's problematic is the fact that you won't always know what kinds of exceptions to the rule there are going to be. Consider a class <code>AccountSpecificNotification</code> which extends from <code>Notification</code>. It wants to overwrite the <code>toUrl()</code> method, because account specific notifications are at <code>/account/{accountId}/notifications/{notificationId}</code>. Trouble is, we have to again implement the absolute and relative paths rule, and the chance of making mistakes becomes higher. Also the absolute URL of our domain is now in two classes. The knowledge about converting a notification to a URL is also in two classes. If we have a few of these exceptions, stuff gets difficult to keep track of.</p>
+
+<p>As a solution, you could just make this class an interface and specify the <code>toUrl()</code> method on <code>Notification</code> instances. This way you always know the implementation for a certain type of <code>Notification</code> will be in the class itself. Then you'll have to live with the duplication. This is personally how I often do it. I <a href="https://medium.com/@nicolopigna/this-is-not-the-dry-you-are-looking-for-a316ed3f445f">duplicate stuff when in doubt and refactor later</a>, with the benefit of hindsight.</p>
+
+<p>Another thing that you could do is look at the <code>toUrl()</code> method, and see that it's in fact a shared dependency between <code>Notification</code>s with another responsibility than "representing a notification". It could become another class. Let's write a separate class for it:</p>
+
+<pre><code class="php">final class NotificationToUrl
+{
+    public function getFullUrlForNotification(Notification $notification): string
+    {
+        $url = '/notifications/' . $notification-&gt;getId();
+
+        if ($notification instanceof AccountSpecificNotification) {
+            $url = '/account/' . $notification-&gt;getAccountId();
+            $url .= '/notifications/' . $notification-&gt;getId();
+        }
+
+        return $url;
+    }
+
+    public function getFullUrlForNotification(Notification $notification): string
+    {
+        $path = $this-&gt;getRelativeUrlForNotification($notification);
+
+        return "https://domain.of.application{$path}";
+    }
+}
+</code></pre>
+
+<p>Of course this is not perfect either, but it's at least a bit better from some standpoints: we get all the knowledge of converting notifications to URLs in one place, and we don't need inheritance!</p>
+
+<h2 id="in-short">In short</h2>
+
+<p>If you're using inheritance to fix a problem, I propose that you take a second and ask yourself why. In this post I propose a few ways of looking at inheritance that could help you come to a better solution in some cases.</p>
+
+<ul>
+<li>Are you violating one of the SOLID principles? Try and look for a solution where you can adhere to them more.</li>
+<li>Are you trying to remove duplication? Try to <a href="https://medium.com/@nicolopigna/this-is-not-the-dry-you-are-looking-for-a316ed3f445f">postpone your decisions about the abstraction</a> that you're going to use to remove the duplication.</li>
+<li>Do you have a shared method that multiple classes need? Try extracting it to a separate class.</li>
+</ul>
+
+<p>Since most of the time one of these methods produces a result that I find more desirable as explained in this post, I'll mostly oppose strongly against the use of inheritance when it's not strictly needed.</p>
+
+<p>Hope that you'll be with me on slaying this beast! Until next time, happy programming! 🐲</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Exceptional Exceptions]]></title>
             <link href="/blog/2019/05/22/exceptional-exceptions"/>
@@ -1327,352 +1530,6 @@ class CompareCoffeeShopsTest extends TestCase
 <p>It's so simple! We could implement this however we want, e.g. have some shops with hardcoded inventories, others with webscrapers. None of our code needs to know about the specific implementation of the shops, it already knows about the available methods. And as a bonus, we didn't write any code we didn't need.</p>
 
 <p>Think about it: if you can imagine it, it already works. Have fun programming! 🖖</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Some insights regarding Value Objects]]></title>
-            <link href="/blog/2018/01/22/some-insights-regarding-value-objects"/>
-            <updated>2018-01-22T15:00:00+00:00</updated>
-            <id>/blog/2018/01/22/some-insights-regarding-value-objects</id>
-            <content type="html"><![CDATA[<p>We've been using Value Objects more and more over the years, and although there's a lot of info out there, there are some things that we found particularly interesting to talk about in a blog post.</p>
-
-<h2 id="what%27s-a-value-object%3F">What's a Value Object?</h2>
-
-<p>Value Objects are simply put <em>objects that represent a value</em>, i.e. objects that don't have an identity except for the value they represent. Very frequently used examples are <code>Money</code> (if someone owes me €5 and they pay me €2 + €2 + €1 I'm happy) and <code>DateTime</code>, but there are lots of things that would qualify. For instance, combined values like a <code>TimeSlot</code> which comprises of two <code>DateTime</code> objects <code>start</code> and <code>end</code>, which is equal to another <code>TimeSlot</code> object if both <code>start</code> and <code>end</code> for both <code>TimeSlot</code> objects are equal. Or points in a 2D plane with <code>x</code> and <code>y</code> coordinates, where -you guessed it- two points are equal if both points have the same <code>x</code> and <code>y</code> coordinates.</p>
-
-<p>A lot of people wonder why they should use Value Objects, instead of passing around primitive values. Let's take some user input in the form of a telephone number, and treat it as a <code>String</code>. We want to pass it around in our code. Somewhere in our code there's a function that expects a telephone number as a parameter. How can it be sure that we passed a telephone number? It can't... Since we're just passing around a <code>String</code>, it needs to do some checks: Does the string look like a telephone number? Does it have a valid country code? etc. The next function that takes a telephone number as a parameter needs to do these checks again. There are some rules about what makes a valid telephone number, which can't be encapsulated in the <code>String</code> representation. If we make a specialized object to represent that phone number, we we can check these rules upon creation of the object, and thus prevent invalid state before it occurs. If some part of our code now gets that <code>PhoneNumber</code> object, it can be sure that it's a valid phone number.</p>
-
-<h2 id="yes%2C-value-objects-should-be-immutable">Yes, Value Objects should be immutable</h2>
-
-<p>Earlier we said that <code>DateTime</code> is a Value Object. Since a <code>DateTime</code> is just a value, once it is instantiated it should represent that value. Let's check something out:</p>
-
-<pre><code class="php">$noon1 = new DateTime('today noon');
-$noon2 = new DateTime('today noon');
-var_dump($noon1 == $noon2); // bool(true)
-
-$noon3 = $noon1-&gt;modify('+ 2 hours');
-
-var_dump($noon1 == $noon2); // bool(false)
-</code></pre>
-
-<p>What happened? I instantiated two <code>DateTime</code> objects that were equal to each other, representing "today at noon". I created a third <code>DateTime</code> object that should represent "today, two hours later than noon". After that, one of the objects that represented "noon" a second ago doesn't anymore. It's like saying: "here you have a 3", and when you start calculating with it, it changed to a 4. This essentially teleported us to another universe where 3 means 4 suddenly.</p>
-
-<p>The reason this happened is because of the fact that the <code>-&gt;modify()</code> call mutates the <code>DateTime</code> object. If we prevent our objects from being changed (make them immutable), they will become a lot safer to work with. In this regard, you should probably always use <a href="https://secure.php.net/manual/en/class.datetimeimmutable.php"><code>DateTimeImmutable</code></a>.</p>
-
-<h2 id="how-to-introduce-a-value-object%3F">How to introduce a Value Object?</h2>
-
-<p>Let's say we have some code that takes a user's <a href="https://help.twitter.com/en/managing-your-account/twitter-username-rules">Twitter handle</a> to perform some operations:</p>
-
-<pre><code class="php">final class Twitter
-{
-    public function publicTimelineFor(string $handle)
-    {
-        $this-&gt;assertValidTwitterHandle($handle);
-
-        // ... fetch &amp; return timeline
-    }
-
-    public function tweepsFollowing(string $handle)
-    {
-        $this-&gt;assertValidTwitterHandle($handle);
-
-        // ... fetch &amp; return followers
-    }
-
-    /**
-     * @param string $handle
-     *
-     * @throws InvalidArgumentException when not valid
-     */
-    private function assertValidTwitterHandle(string $handle)
-    {
-        // check the rules here, throw exception if not valid
-    }
-}
-</code></pre>
-
-<p>The <code>assertValidTwitterHandle()</code> must happen in every call that uses the concept of a Twitter handle, but it's so easy to forget when you write a new function! Also, it's impossible to know if a given string has been approved in a previous call. If you now call <code>publicTimelineFor($handle)</code> and <code>tweepsFollowing($handle)</code> in succession for the same <code>$handle</code>, you're basically repeating yourself for no reason. Let's refactor this!</p>
-
-<p>The first thing that you want to do is make sure you get your code under test (it should already be that way 😘). What I like to do in this case, is at least have some tests for what a "valid Twitter handle" means. Since I'll be working towards an object that can only represent a valid Twitter handle, I'll make the <code>private</code> assertion <code>public</code>, write some unit tests against the assertion, and be done with it. We'll change the test later on.</p>
-
-<pre><code class="php">class TwitterHandleTest extends \PHPUnit_Framework_TestCase
-{
-    public function setUp()
-    {
-        $this-&gt;twitter = new Twitter();
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function test_it_throws_when_longer_than_16_chars()
-    {
-        $this-&gt;twitter-&gt;assertValidTwitterHandle('@VeryVeryVeryLongHandleThatShouldThrow');
-    }
-
-    // Tests for other rules go here too
-    // - handle is a string and should start with '@'
-    // - handle contains only uppercase chars, lowercase chars, digits and underscores
-    // - make sure to provide some happy path cases as well
-    // - you can of course use data providers in your tests to test multiple examples per test
-}
-</code></pre>
-
-<p>Then create a very basic class for our Value Object:</p>
-
-<pre><code class="php">final class TwitterHandle
-{
-    private $handle;
-
-    public function __construct(string $handle)
-    {
-        $this-&gt;assertValidTwitterHandle($handle);
-
-        $this-&gt;handle = $handle;
-    }
-
-    private function assertValidTwitterHandle(string $handle)
-    {
-        // check the rules here, throw exception if not valid
-    }
-
-    public function __toString(): string
-    {
-        return $this-&gt;handle;
-    }
-}
-</code></pre>
-
-<p>As you can see I created a basic class with the Twitter handle as a string as a constructor parameter. If we use the class as a string, it will cast to the exact Twitter handle as a string that we got as input. This is a temporary measure. I then just moved the <code>assertValidTwitterHandle()</code> method from the <code>Twitter</code> class to <code>TwitterHandle</code>, and made it private. I can fix my tests by just using the constructor of the <code>TwitterHandle</code> class as entry point:</p>
-
-<pre><code class="php">/**
- * @expectedException InvalidArgumentException
- */
-public function test_it_throws_when_longer_than_16_chars()
-{
-    new TwitterHandle('@VeryVeryVeryLongHandleThatShouldThrow');
-}
-</code></pre>
-
-<p>The code that used to work with handlers in the string form can now easily be changed to accept our object:</p>
-
-<pre><code class="php">public function publicTimelineFor(TwitterHandle $handle)
-{
-    // ... fetch &amp; return timeline
-}
-</code></pre>
-
-<p>As you can see, we just typehint on the Value Object in the function definition, and since the <code>__toString()</code> method is defined to return the same string as we had before, everything just keeps working. With the one perk that the check for valid handles is gone from all our functions! We don't need it anymore, since it's now impossible to pass an invalid handle to them! Now you just need to handle the case of the invalid Twitter handle the moment you get it from the user.</p>
-
-<p>As a final measure, I make sure that the output from the <code>__toString()</code> method can always be parsed back into the same Value Object again, by just giving it to the constructor. In this case that means that I need to return the complete value that the object was instantiated with (which is already the case). If you're tempted to use the <code>__toString()</code> method for other presentational purposes, <a href="http://verraes.net/2013/02/2013-02-16-casting-value_objects/#1-dont-use-_tostring-for-presentation">you're advised to create a specific function for that</a>.</p>
-
-<h2 id="comparing-value-objects">Comparing Value Objects</h2>
-
-<p>Let's say we want to represent points in a <code>x</code> by <code>y</code> two-dimentional plane using a <code>Point</code> Value Object. We've got something like this:</p>
-
-<pre><code class="php">final class Point
-{
-    private $x;
-    private $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this-&gt;x = $x;
-        $this-&gt;y = $y;
-    }
-}
-</code></pre>
-
-<p>Comparing two of these <code>Point</code>s for equality is easy. We can just use PHP's built-in <code>==</code>, which will compare the objects by the values of their properties (exactly what we want for now).</p>
-
-<pre><code class="php">$c1 = new Point(10, 20);
-$c2 = new Point(10, 30);
-$c3 = new Point(10, 20);
-
-var_dump($c1 == $c2); // false
-var_dump($c1 == $c3); // true
-</code></pre>
-
-<p>This gets more complicated when we want to e.g. calculate the distance between two <code>Point</code>s. Aren't those <code>x</code> and <code>y</code> properties private to the object?</p>
-
-<pre><code class="php">final class Point
-{
-    private $x;
-    private $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this-&gt;x = $x;
-        $this-&gt;y = $y;
-    }
-
-    public function distanceTo(Point $other): float
-    {
-        return sqrt(pow($this-&gt;x - $other-&gt;x, 2) + pow($this-&gt;y - $other-&gt;y, 2));
-    }
-}
-</code></pre>
-
-<p>Yes. But since these are two objects of the same type, they can access each other private properties! The code above just works! Be careful though, that you don't change any properties (and therefore make the objects mutable...).</p>
-
-<h2 id="nested-value-objects">Nested Value Objects</h2>
-
-<p>With the <code>Point</code> Value Object that we defined above, we can go a little bit further and represent other things in 2D planes, e.g. line segments, which are defined by two points A and B:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    private $a;
-    private $b;
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-    }
-}
-</code></pre>
-
-<p>As you can see, we just created a Value Object that encapsulates two other Value Objects. This is great, we can successfully represent a <code>LineSegment</code> with this, but there's a problem with this:</p>
-
-<p>The math (the domain in this case) tells us that two line segments are equal if they have the same delimiting points. In our case, we called them <code>$a</code> and <code>$b</code>, but actually, the order is not important. This means the <code>==</code> check I described above won't work like this:</p>
-
-<pre><code class="php">$pointA = new Point(0, 0);
-$pointB = new Point(5, 5);
-
-$line1 = new LineSegment($pointA, $pointB);
-$line2 = new LineSegment($pointB, $pointA);
-
-var_dump($line1 == $line2); // false
-</code></pre>
-
-<p>We can solve that problem using an <code>equals()</code> method:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    private $a;
-    private $b;
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-    }
-
-    public function equals(LineSegment $other): bool
-    {
-        return ($this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b)
-            || ($this-&gt;a == $other-&gt;b &amp;&amp; $this-&gt;b == $other-&gt;a);
-    }
-}
-</code></pre>
-
-<p>This can now be used to compare lines, but the <code>==</code> still gives wrong results. This is the point where I tell you <code>==</code> is not the best thing to use with Objects in PHP. You cannot override it, or make it work in all cases. It actually breaks encapsulation and checks private properties of objects. But we still want to make it work so that if it gets used instead of the <code>equals()</code> method, nothing breaks. We can then use a rule in our static analysis tools to check for <code>==</code> used with our object. We can make the <code>==</code> work using a fixed order in which point A and B get assigned inside <code>LineSegment</code>'s constructor:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    // ...
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-
-        if ($a-&gt;greaterThan($b)) {
-            $this-&gt;a = $b;
-            $this-&gt;b = $a;
-        }
-    }
-
-    // ...
-}
-</code></pre>
-
-<p>Our <code>Point</code> objects now need the <code>greaterThan()</code> method, which can be implemented a bit like this:</p>
-
-<pre><code class="php">final class Point
-{
-    // ...
-
-    public function greaterThan(Point $other): bool
-    {
-        if ($this-&gt;x == $other-&gt;x) {
-            return $this-&gt;y &gt; $other-&gt;y;
-        }
-
-        return $this-&gt;x &gt; $other-&gt;x;
-    }
-}
-</code></pre>
-
-<p>Now we can simplify <code>LineSegment</code>'s <code>equals()</code> method, since <code>$a</code> and <code>$b</code> will be assigned in order:</p>
-
-<pre><code class="php">final class LineSegment
-{
-    // ...
-
-    public function equals(LineSegment $other): bool
-    {
-        return $this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b;
-    }
-
-    // ...
-}
-</code></pre>
-
-<p>Even though we don't want people to use <code>==</code> with our <code>LineSegment</code> Value Object, we made it work. Like this, we can prevent unexpected errors in our code. The final code looks like this:</p>
-
-<pre><code class="php">final class Point
-{
-    private $x;
-    private $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this-&gt;x = $x;
-        $this-&gt;y = $y;
-    }
-
-    public function distanceTo(Point $other): float
-    {
-        return sqrt(pow($this-&gt;x - $other-&gt;x, 2) + pow($this-&gt;y - $other-&gt;y, 2));
-    }
-
-    public function greaterThan(Point $other): bool
-    {
-        if ($this-&gt;x == $other-&gt;x) {
-            return $this-&gt;y &gt; $other-&gt;y;
-        }
-
-        return $this-&gt;x &gt; $other-&gt;x;
-    }
-}
-
-final class LineSegment
-{
-    private $a;
-    private $b;
-
-    public function __construct(Point $a, Point $b)
-    {
-        $this-&gt;a = $a;
-        $this-&gt;b = $b;
-
-        if ($a-&gt;greaterThan($b)) {
-            $this-&gt;a = $b;
-            $this-&gt;b = $a;
-        }
-    }
-
-    public function equals(LineSegment $other): bool
-    {
-        return $this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b;
-    }
-}
-</code></pre>
-
-<p>If we wanted to represent the nested Value Objects as a string, e.g. to be able to save them in a field in the database, we could just make the <code>Point</code> represent itself as <code>(x, y)</code> and the <code>LineSegment</code> as <code>[(Xa, Ya), (Xb, Yb)]</code> by letting the <code>LineSegment</code>'s <code>__toString</code> method call that of the nested <code>Point</code> objects. For parsing the string representation back into a <code>LineSegment</code>, we'll need a <code>fromString()</code> <a href="http://verraes.net/2014/06/named-constructors-in-php/">alternative constructor</a> that can parse those strings and instantiate the correct objects for them, but I'll leave that as an exercise for the reader!</p>
-
-<p>So, these were our take-aways after introducing Value Objects into our codebase. Did we forget something?</p>
 ]]></content>
         </entry>
     </feed>
