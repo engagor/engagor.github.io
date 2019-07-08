@@ -265,7 +265,7 @@ final class UsersCached implements Users
 
 <pre><code class="php">final class NotificationToUrl
 {
-    public function getFullUrlForNotification(Notification $notification): string
+    public function getRelativeUrlForNotification(Notification $notification): string
     {
         $url = '/notifications/' . $notification-&gt;getId();
 

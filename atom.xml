@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/atom.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-07-05T08:33:07+00:00</updated>
+    <updated>2019-07-08T11:32:51+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -171,7 +171,7 @@ final class UsersCached implements Users
 
 <pre><code class="php">final class NotificationToUrl
 {
-    public function getFullUrlForNotification(Notification $notification): string
+    public function getRelativeUrlForNotification(Notification $notification): string
     {
         $url = '/notifications/' . $notification-&gt;getId();
 
