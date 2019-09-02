@@ -3,9 +3,127 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/categories/Team.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-07-08T11:32:51+00:00</updated>
+    <updated>2019-09-02T14:23:01+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[How I Hacked My Future Through Clarabridge]]></title>
+            <link href="/blog/2019/09/02/how-i-hacked-my-future-through-clarabridge"/>
+            <updated>2019-09-02T11:00:00+00:00</updated>
+            <id>/blog/2019/09/02/how-i-hacked-my-future-through-clarabridge</id>
+            <content type="html"><![CDATA[<p>A few months ago, Mohammed joined our Clarabridge Engage development team for an internship and he has since then become one of our full team members. This blog post is about his story and how <a href="https://hackyourfuture.be/">HackYourFuture.be</a> helped him find a place in our company, the technology industry of Gent, and ultimately Belgium.</p>
+
+<blockquote>
+  <p>“Three years ago I decided to leave my homeland, after an exhausting period of war, destruction and loss. I left my family hoping to improve my future and achieve my ambition. 
+  Belgium was my destination and by now I’m pretty sure that it was the right choice. When I got the Belgian residence I started to search for a job based on my resume in Palestine. I had graduated from the 'Information and Technology department' in Gaza, but I knew that I needed more experience and knowledge if I wanted to make it work here.” - Mohammed</p>
+</blockquote>
+
+<h2 id="my-experience-at-hackyourfuture">My Experience at HackYourFuture</h2>
+
+<p>In his search for more education and building more experience, Mohammed was helped by the <a href="https://www.vdab.be/">VDAB</a>, Flanders’ public employment service. They suggested he attend the HackYourFuture course.
+HackYourFuture was founded in 2015 in Amsterdam, with the aim to enable refugees to build digital skills for a career in web development, facilitate the integration of newcomers, and address the shortage of qualified workforce in the IT sector, a shortage reflected by the amount of open positions we have here at <a href="http://clarabridge.com/careers">Clarabridge</a>.<br />
+In May 2018, HackYourFuture Belgium launched its first class in Belgium with 13 highly motivated students, Mohammed being one of them.</p>
+
+<p>Mohammed recalls the course was a perfect match for him for several reasons:</p>
+
+<blockquote>
+  <p>“The course covered programming languages with interesting modules (CSS, HTML, JavaScript, Node.js, React).  Each of the modules are taught by volunteer coaches with experience in the field of programming.“<br />
+  “Because the courses were given on Sundays, it allowed me extra spare time to continue my Dutch lessons and driving lessons. And although I’m learning Dutch, the fact that the lessons were taught in English helped me too.”</p>
+</blockquote>
+
+<p><center>
+<img src="/images/2019-09-02-how-i-hacked-my-future-through-clarabridge/first-class.jpeg" alt="The first class of HackYourFuture Belgium" /><br />
+<em>The first class of HackYourFuture Belgium</em>
+</center></p>
+
+<p>During 6 months the students followed these lessons and for the last 9 weeks they worked on a project together in smaller groups.</p>
+
+<blockquote>
+  <p>“The coaches of HackYourFuture were as excited as we were, because for most of them it was their first time teaching. During the week, when we studied and worked on our assignments, they were always available through Slack to answer our questions.</p>
+</blockquote>
+
+<p>When asked about what makes the HackYourFuture bootcamp stand out from following any of the online courses plentifully available through the internet, Mohammed points to the team aspect:</p>
+
+<blockquote>
+  <p>“By the final project we worked in groups of three, and every Sunday we divided the work between us. During the week we also kept in touch, and often we could use the HackYourFuture offices to work on the project.”</p>
+</blockquote>
+
+<p>Mohammed’s project involved making a website for an institution from Brussels that would help homeless people and refugees to find the right information and help more easily. At the end of the course each team presented that project. At this graduation event one of our Clarabridge team members was also present.<br />
+Of course, for the students, it now became real. Mohammed: “We were worried about the next step, which would either be an internship or a job.” HackYourFuture assigned each student a mentor that would help the student take that next step.</p>
+
+<p><center>
+<img src="/images/2019-09-02-how-i-hacked-my-future-through-clarabridge/mohammed-graduation.jpeg" alt="Mohammed at the graduation" /><br />
+<em>Mohammed at the graduation</em>
+</center></p>
+
+<h2 id="starting-the-internship-at-clarabridge">Starting the internship at Clarabridge</h2>
+
+<p>This was the time when our company came into view for Mohammed. After having seen the projects at the HackYourFuture graduation event, we were impressed how far they got in only 9 weeks. We invited Mohammed for an interview, and his dedication immediately struck us. He explained what he was able to build, and what he learned at the HackYourFuture course, and this for us was the main deciding factor for offering an internship.</p>
+
+<blockquote>
+  <p>“I was lucky to get a four month internship at <a href="https://www.clarabridge.com">Clarabridge</a> in Ghent, Belgium. I have learned new things every day, being surrounded by experienced and talented developers and engineers who are very helpful and very patient. They didn’t seem to get bored of my hundreds of questions.”</p>
+</blockquote>
+
+<p>When an intern joins our team, we first of all look for the right project to work on. The ideal project is typically a stand-alone new feature (so the scope of it is clearly defined), challenging enough (from a technical and product perspective), should have as less external factors as possible (so there’s as little roadblocks as possible), involves enough existing components of the codebase (to evaluate how easy a person finds their way), and most importantly: a project that results in something that we can take into production and is visual to our clients and team. Having that success experience of having your code shipped into production is something we always strive for.</p>
+
+<p>Mohammed started his work on an importer-system that would allow our customers to upload an Excel file with a list of account related settings. The feature would mean a huge time-saver for customers who want to configure several canned responses, tags, or saved filters at once.<br />
+Mohammed was assigned a specific mentor in our team as well (who helped on an almost daily basis), but the whole team got involved in reviewing parts of Mohammed’s code.</p>
+
+<p><center>
+<img src="/images/2019-09-02-how-i-hacked-my-future-through-clarabridge/pull-request.png" alt="Mohammed’s first major Pull Request" /><br />
+<em>Mohammed’s first major Pull Request</em>
+</center></p>
+
+<h2 id="what-i-learned">What I learned</h2>
+
+<p>Four months later, when this and several other projects of Mohammed's have been taken into production, we asked Mohammed what some of his main takeaways since his start in our team are:</p>
+
+<ul>
+<li><p>🏠 “When I started at Clarabridge, my main worry was that I had never written a line of PHP code in my life. I was wondering how I’d be able to get the hang of a complete language in only a couple of months. But actually, I quickly realised that learning PHP was the least of my concerns. Instead, my mentor and I focused a lot on how to write code using the principles of S.O.L.I.D. I probably learned more about programming trying to structure my code this way, than learning about language syntax.”</p></li>
+<li><p>✂️ “I always had to keep in mind that I was writing code for others. At some point in the future, another developer in the team will work on what I wrote, so I had to think wider and wiser, and take future uses and possibilities of my code into account. I refactored my code several times because of this.”</p></li>
+<li><p>🔨 “It’s sometimes tempting to fix an issue by writing code around it, but I realised that often this just causes a new issue. I try to to take more time to solve the problem at its root.”</p></li>
+<li><p>📚 “When I started my internship, I read the blog posts on this <a href="https://engagor.github.io/">Clarabridge Developers Blog</a>. Unfortunately, I had a hard time understanding some of the content. A month later, I re-read them and could already understand more. Until this day, I keep reading the posts which didn’t make sense at that time. Being part of an ambitious team who reads a lot, encouraged me to learn and read more too.”</p></li>
+<li><p>👯 “It’s often a balance between trying to find the answer on your own, and avoiding to be stuck for too long, and eventually asking for help. Time is valuable.<br />
+I started to trust my teammates’ opinions, and worked on giving them a reason to trust me back. I learnt to avoid saying “I can do it alone”  or “It is a piece of cake”. Instead I said “I’ll try to do it but I may need your help”. The team loves to help each other; so if you need help, just say it. When getting help from others, my teammates often had other personal perspectives. I learned to accept that, and picked from those that suited me. Eventually, by experience, you will have your own perspective.”</p></li>
+<li><p>👾 “Never underestimate another programmer, even if you know that you have more experience than him; always try to listen, discuss and understand. 
+During the summer holidays, a talented 18 year old student joined our team. He didn’t know a lot about our application, but in a very short period of time he implemented more than 12 small improvements to the product. The whole team was impressed by what he has done. Because the improvements he worked on were smaller, easy to understand projects, I also learned from him by reviewing and checking his Pull Requests.”</p></li>
+</ul>
+
+<p>That the most important lessons Mohammed lists are mainly about communication and how to learn from others, and the impact of that on how your code is structured, really show he’s become an integral part of our development team. It’s also a testament to the way a product is always built by a team of people (and not a single 10x engineer).
+So it’s no surprise that the project Mohammed is currently helping to build is one of our most requested features.</p>
+
+<h2 id="what-is-next%2C-and-how-can-you-help%3F">What is next, and how can you help?</h2>
+
+<blockquote>
+  <p>“For me, HackYourFuture was my starting point. I was invited to be an assistant coach in the upcoming course - now at its fourth edition already. For me this is a great opportunity to pay back some of their generosity, and of course to continue learning.” - Mohammed</p>
+</blockquote>
+
+<p>Know that HackYourFuture is run by volunteers. They are always on the lookout for people who work with challenging technologies in innovative companies. If you feel like sharing some of your knowledge with the students, maybe think about <a href="https://docs.google.com/forms/d/e/1FAIpQLSef3OH8546MJNllcvrv7KomHelqzrKNpnLRVbI1ZqbeajnluA/viewform">becoming a coach</a>?<br />
+Helping as a coach can mean giving a few lessons, but also just being around when the students do their work, and trying to help out where possible.<br />
+Know that HackYourFuture is not only about programming, it’s also a real <a href="https://www.facebook.com/HackYFutureBE/">community</a> supporting and helping each other to start a new career in Belgium.</p>
+
+<p><center>
+<img src="/images/2019-09-02-how-i-hacked-my-future-through-clarabridge/coaches.jpeg" alt="HackYourFuture Coaches" /><br />
+<em>HackYourFuture Coaches</em>
+</center></p>
+
+<p>If you’re a company interested in hiring some of the graduates, we hope Mohammed’s story helps. We can attest that the students are trained to perform well as junior web developers in a modern IT team, write clean code, and think like problem solvers. From this experience we especially remember the student’s eagerness to learn and start a development career.</p>
+
+<h2 id="mohammed-thanks">Mohammed thanks</h2>
+
+<blockquote>
+  <p>“Clarabridge is my home now, so one of my responsibilities is to make it bigger and keep it safe and shining.<br />
+  With this post, I also want to thank everyone who helped me through my journey, by encouraging words or advice, or even a smile.<br />
+  Thanks HackYourFuture and all of the coaches who showed the way for us, especially Frederik De Bleser who believed in me and kept giving me advice even after the course.<br />
+  Thanks to my mentors at Clarabridge: Anthony, Toon and Cedric. And the other teammates who didn’t hesitate when I asked for help: Jenne, Gheerwijn, Thibaut, Thomas, Jared, Jasper, Hans and Erik. And thanks to Jurriaan who gave me the opportunity to be one of his team members, and for being a human before being a team leader.”</p>
+</blockquote>
+
+<h2 id="want-to-join-the-course%2C-or-do-an-internship-too%3F">Want to join the course, or do an internship too?</h2>
+
+<p>If you feel like joining a HackYourFuture course, know they always accept applications. <em>(The 6th course is starting in a few days!)</em><br />
+And of course, we also invite recent graduates or others interested in doing an internship in our team, to <a href="jurriaan.persyn@clarabridge.com">contact us</a>.</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Our Favorite Content Of 2018]]></title>
             <link href="/blog/2019/01/04/our-favorite-content-of-2018"/>
@@ -658,52 +776,6 @@ And that's about all the info you’ll get, because: "what happens at the bootca
 <p><center><img src="/images/2017-05-22-march-2017-bootcamp/team-polaroid.png" alt="Team Picture" /></center></p>
 
 <p>Want to join our next bootcamp? We’re always on the lookout for bright people to join the team. <a href="https://developers.engagor.com/team">Read about how it’s like to work in our team</a>.</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Emoji as conversation enhancement]]></title>
-            <link href="/blog/2017/04/06/emoji-conversations"/>
-            <updated>2017-04-06T16:15:00+00:00</updated>
-            <id>/blog/2017/04/06/emoji-conversations</id>
-            <content type="html"><![CDATA[<p>At CX Social, we use emoji extensively. 💰💭 We believe they are an enrichment of ongoing conversations, and can be used to express things that can't be expressed in a textual representation. Let's see how and where we use them 👌</p>
-
-<h2 id="slack">Slack</h2>
-
-<p>Our main communication form is chat. We use Slack and we just love the integration of emoji in their application! They're everywhere! 😻</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/1.png" alt="emoji in between text in slack" /></p>
-
-<p>Also, the "reactions" are quite handy to not mess up conversation flow with emoji only.</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/2.png" alt="emoji reactions in slack" /></p>
-
-<p>In full conversation, it looks a bit like this:</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/3.png" alt="mixture of reactions in slack" /></p>
-
-<h2 id="github">GitHub</h2>
-
-<p>Of course, our conversations in Issues and Pull Requests on github resemble those on Slack...</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/4.png" alt="github reviews with emoji" /></p>
-
-<p>And in our commits, we use the <a href="http://gitmoji.carloscuesta.me/">gitmoji</a> way of prefixing commit messages with one or more semi-standardized emoji, to make it <strong>much clearer</strong> what the commit is about.</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/5.png" alt="gitmoji in commit messages" /></p>
-
-<h2 id="emoji-news">Emoji-news</h2>
-
-<p>To top it off, there's a dedicated channel on our company chat for <strong>emoji-only</strong> conversation. It's called <code>#emoji-news</code>.</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/6.png" alt="emoji news, conversations with emoji only" /></p>
-
-<p>The great thing about all this, is that emoji really have positive vibes about them, and they work in an inspiring, encouraging way in conversations. They make you laugh, or they express a feeling that could be very difficult to express in text only. They provide context to what was said. They can be combined to create whole stories in just a few images. They work cross-language. They can be abused. It's just fantastic 😏. We are so into it, that we added 100's of our own custom emoji to slack, which in turn add much more specific things that we could express (you can find some of them in the screenshots above). If you're looking for custom emoji, <a href="http://slackmojis.com">Slackmojis</a> is a great place to start looking.</p>
-
-<p><img src="/images/2017-04-06-emoji-conversations/7.png" alt="a small part of our custom emoji on slack" /></p>
-
-<p>Do you use emoji differently? Do you have tips for us? Let us know 📯</p>
-
-<p>Have a great day! ☕️</p>
 ]]></content>
         </entry>
     </feed>
