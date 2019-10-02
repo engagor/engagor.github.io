@@ -3,9 +3,79 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Rate Limiting.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-09-05T11:13:40+00:00</updated>
+    <updated>2019-10-02T12:26:43+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[A tale of a small Javascript bug]]></title>
+            <link href="/blog/2019/10/02/a-tale-of-a-small-javascript-bug"/>
+            <updated>2019-10-02T14:30:00+00:00</updated>
+            <id>/blog/2019/10/02/a-tale-of-a-small-javascript-bug</id>
+            <content type="html"><![CDATA[<p>Sometimes it's assumed that the frontend is a relatively harmless place to be programming. We've been proven wrong once again.</p>
+
+<h1 id="%F0%9F%94%A5%F0%9F%90%B6%E2%98%95%EF%B8%8F%F0%9F%94%A5-this-is-fine">🔥🐶☕️🔥 This is fine</h1>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/this-is-fine.png" alt="This is fine" /></p>
+
+<p>For a few months now, we were seeing relatively high loads on our web servers. The loads varied from around 90% of the total CPU power available, to a bit over 100% in peak hours. We assumed that that was normal and that our product was just being used more (which it was), and that that was a natural burden on the load on our servers. The approach we were going to take was to continue scaling horizontally.</p>
+
+<p>Two weeks ago however, we noticed daily huge load spikes (up to 1000% of our capacity) during peak hours. We got alert SMS'es of Redis that couldn't handle amount of requests, and saw Kibana logs of very slow user requests to certain routes, effectively rendering our application unusable at times. It was "all hands on deck" immediately, and we started digging in. Before we could find out what was happening it stopped again, and the load dropped to what we assumed was "normal load". We found, also using Kibana, that there were huge amounts of calls to our <code>/find</code> endpoint, and decided to implement a <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis/">rate limiter</a> on those, to prevent our app from going down, and buy us some time to look for the actual issue. However, we couldn't see why that endpoint was hit so hard.</p>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/kibana.png" alt="Kibana showing a lot of requests for one user in a short time frame" /></p>
+
+<h1 id="%F0%9F%90%9B%F0%9F%95%B5%EF%B8%8F%E2%80%8D%E2%99%82%EF%B8%8F--bug-hunting">🐛🕵️‍♂️  Bug Hunting</h1>
+
+<p>A few days later, when we were hit with huge amounts of calls again (this time, they were ratelimited and not producing those huge loads on our servers, but we could see them in the logs and in Kibana), we noticed that most of them were coming from only a limited number of customers. We tried to work in our app as they would do, but couldn't reproduce it. After some time however, we noticed in the network tab of the browser we were working in, that the same call to the <code>/find</code> endpoint was done multiple times simultaneously! Bingo!</p>
+
+<p>Or not Bingo? The code seemed to be fine: When we mount our inbox's react component, we use <code>Sonora.on(eventname, callback)</code> to bind a callback to a given websocket eventname (Sonora is an abstraction around <a href="https://socket.io/">socket.io</a>). When we unmount the react component again, we call <code>Sonora.off(eventname, callback)</code> to stop listening for those events. When such an event comes in, we potentially need more info from the backend and a call to the <code>/find</code> endpoint is issued. It definitely looked like we didn't unregister the callbacks when unmounting that component, seeing that we saw multiple calls being made simultaneously in the console's network tab, whenever a websocket message came in.</p>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/performance-tab.png" alt="Browser's performance tab showing lots of calls to the find endpoint" /></p>
+
+<p>While everything was looking okay in the consuming code of the Sonora <code>.on()</code> and <code>.off()</code> methods, we concluded that something must've been wrong in the wrapper around socket.io itself. When looking inside the <code>.on()</code> method, we found out that there was a debugging statement added like this:</p>
+
+<pre><code class="javascript">const Sonora = {
+    // ...
+
+    on: (event, callback) =&gt; {
+        socket.on(
+            event,
+            () =&gt; {
+                console.log('some debugging here');
+
+                callback.apply(this, arguments);
+            }
+        );
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>As you can see, we wrapped the actual callback inside an anonymous function, and passed that on to Socket.io's <code>.on()</code> handler. Now, when calling <code>.off()</code>, we sent along the original callback which didn't match the wrapped one, and nothing was removed. Since it's possible to have multiple callbacks for each incoming event, this resulted in the same callback being added time after time again and not being removed. So we had basically made all our clients do <em>loads</em> of unnecessary calls to <code>/find</code> by adding a debugging statement! And believe it or not, this debugging statement was there for a while! (Thanks git blame!)</p>
+
+<h1 id="%F0%9F%94%A8%F0%9F%91%A9%E2%80%8D%F0%9F%94%A7-fixing-it">🔨👩‍🔧 Fixing it</h1>
+
+<p>The fix was easy enough: don't add that anonymous function.</p>
+
+<p>The load on our servers dropped immediately when we put that small change in production, and not only during peak hours. It seemed that we had been on a tipping point. A little more users online at any given time, a little more open tabs with our application running in them. The servers constantly running at semi-high loads. And then we went over it. 🔥</p>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/loads-dropping.png" alt="Graph displaying the huge drop in load on our servers" /></p>
+
+<p>Along the way we did some other optimisations:</p>
+
+<ul>
+<li>we implemented a rate limiter on the <code>/find</code> endpoint</li>
+<li>we disallow to register exactly the same callback twice for the same event using <code>Sonora.on()</code></li>
+<li>we fixed a second bug in <code>Sonora.off()</code> where we didn't remove the correct callbacks sometimes</li>
+</ul>
+
+<h1 id="%F0%9F%98%87%F0%9F%92%AD-and-they-lived-happily-ever-after">😇💭 And they lived happily ever after</h1>
+
+<p>This was the tale of the small javascript bug bringing down the huge web application, a modern David and Goliath as you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal to find the issue, so don't forget what you have at your disposal.</p>
+
+<p>We hope you enjoyed reading about our failures! Happy debugging! 👋</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Error: Internal Rate Limit Reached]]></title>
             <link href="/blog/2018/09/11/error-internal-rate-limit-reached"/>
