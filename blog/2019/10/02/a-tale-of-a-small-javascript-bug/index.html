@@ -131,17 +131,17 @@ Array === 'documentation' -->active<!-- endif -->">
 
 <p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/this-is-fine.png" alt="This is fine" /></p>
 
-<p>For a few months now, we were seeing relatively high loads on our web servers. The loads varied from around 90% of the total CPU power available, to a bit over 100% in peak hours. We assumed that that was normal and that our product was just being used more (which it was), and that that was a natural burden on the load on our servers. The approach we were going to take was to continue scaling horizontally.</p>
+<p>For a few months now, we have been seeing relatively high loads on our web servers. The loads varied from around 90% of the total CPU power available, to a bit over 100% in peak hours. We assumed that this was normal and that our product was just being used more (which it was), and that this was a natural burden on the load on our servers. The approach we were going to take was to continue scaling horizontally.</p>
 
-<p>Two weeks ago however, we noticed daily huge load spikes (up to 1000% of our capacity) during peak hours. We got alert SMS'es of Redis that couldn't handle amount of requests, and saw Kibana logs of very slow user requests to certain routes, effectively rendering our application unusable at times. It was "all hands on deck" immediately, and we started digging in. Before we could find out what was happening it stopped again, and the load dropped to what we assumed was "normal load". We found, also using Kibana, that there were huge amounts of calls to our <code>/find</code> endpoint, and decided to implement a <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis/">rate limiter</a> on those, to prevent our app from going down, and buy us some time to look for the actual issue. However, we couldn't see why that endpoint was hit so hard.</p>
+<p>Two weeks ago however, we noticed huge daily load spikes (up to 1000% of our capacity) during peak hours. We got alert SMS'es of Redis that couldn't handle the amount of requests, and saw Kibana logs of very slow user requests to certain routes, effectively rendering our application unusable at times. It was "all hands on deck" immediately, and we started digging. Before we could find out what was happening it stopped again, and the load dropped to what we assumed was "normal load". We found, also using Kibana, that there was a huge amount of calls to our <code>/find</code> endpoint, and so we decided to implement a <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis/">rate limiter</a> on those, to prevent our app from going down, and buy us some time to look for the actual issue. However, we couldn't see why that endpoint was hit so hard.</p>
 
 <p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/kibana.png" alt="Kibana showing a lot of requests for one user in a short time frame" /></p>
 
 <h1 id="%F0%9F%90%9B%F0%9F%95%B5%EF%B8%8F%E2%80%8D%E2%99%82%EF%B8%8F--bug-hunting">🐛🕵️‍♂️  Bug Hunting</h1>
 
-<p>A few days later, when we were hit with huge amounts of calls again (this time, they were ratelimited and not producing those huge loads on our servers, but we could see them in the logs and in Kibana), we noticed that most of them were coming from only a limited number of customers. We tried to work in our app as they would do, but couldn't reproduce it. After some time however, we noticed in the network tab of the browser we were working in, that the same call to the <code>/find</code> endpoint was done multiple times simultaneously! Bingo!</p>
+<p>A few days later, when we were hit with a huge amount of calls again (this time, they were ratelimited and not producing those huge loads on our servers, but we could see them in the logs and in Kibana), we noticed that most of them were coming from only a limited number of customers. We tried to work in our app as they would do, but couldn't reproduce it. After some time however, we noticed in the network tab of the browser we were working in, that the same call to the <code>/find</code> endpoint was done multiple times simultaneously! Bingo!</p>
 
-<p>Or not Bingo? The code seemed to be fine: When we mount our inbox's react component, we use <code>Sonora.on(eventname, callback)</code> to bind a callback to a given websocket eventname (Sonora is an abstraction around <a href="https://socket.io/">socket.io</a>). When we unmount the react component again, we call <code>Sonora.off(eventname, callback)</code> to stop listening for those events. When such an event comes in, we potentially need more info from the backend and a call to the <code>/find</code> endpoint is issued. It definitely looked like we didn't unregister the callbacks when unmounting that component, seeing that we saw multiple calls being made simultaneously in the console's network tab, whenever a websocket message came in.</p>
+<p>Or not Bingo? The code seemed to be fine: When we mount our inbox's react component, we use <code>Sonora.on(eventname, callback)</code> to bind a callback to a given websocket eventname (Sonora is an abstraction around <a href="https://socket.io/">socket.io</a>). When we unmount the react component again, we call <code>Sonora.off(eventname, callback)</code> to stop listening for those events. When such an event comes in, we would potentially need more info from the backend and a call to the <code>/find</code> endpoint is issued. It definitely looked like we didn't unregister the callbacks when unmounting that component, given how we saw multiple calls being made simultaneously in the console's network tab, whenever a websocket message came in.</p>
 
 <p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/performance-tab.png" alt="Browser's performance tab showing lots of calls to the find endpoint" /></p>
 
@@ -165,13 +165,13 @@ Array === 'documentation' -->active<!-- endif -->">
 }
 </code></pre>
 
-<p>As you can see, we wrapped the actual callback inside an anonymous function, and passed that on to Socket.io's <code>.on()</code> handler. Now, when calling <code>.off()</code>, we sent along the original callback which didn't match the wrapped one, and nothing was removed. Since it's possible to have multiple callbacks for each incoming event, this resulted in the same callback being added time after time again and not being removed. So we had basically made all our clients do <em>loads</em> of unnecessary calls to <code>/find</code> by adding a debugging statement! And believe it or not, this debugging statement was there for a while! (Thanks git blame!)</p>
+<p>As you can see, we wrapped the actual callback inside an anonymous function, and passed that on to Socket.io's <code>.on()</code> handler. Now, when calling <code>.off()</code>, we sent along the original callback which didn't match the wrapped one, and nothing was removed. Since it's possible to have multiple callbacks for each incoming event, this resulted in the same callback being added time after time and not being removed. So we had basically made all our clients do <em>loads</em> of unnecessary calls to <code>/find</code> by adding a debugging statement! And believe it or not, this debugging statement was there for a while! (Thanks git blame!)</p>
 
 <h1 id="%F0%9F%94%A8%F0%9F%91%A9%E2%80%8D%F0%9F%94%A7-fixing-it">🔨👩‍🔧 Fixing it</h1>
 
 <p>The fix was easy enough: don't add that anonymous function.</p>
 
-<p>The load on our servers dropped immediately when we put that small change in production, and not only during peak hours. It seemed that we had been on a tipping point. A little more users online at any given time, a little more open tabs with our application running in them. The servers constantly running at semi-high loads. And then we went over it. 🔥</p>
+<p>The load on our servers dropped immediately when we put that small change into production, and not only during peak hours. It seemed that we had been on a tipping point. A few more users online at any given time, a few more open tabs with our application running in them. The servers constantly running at semi-high loads. And then we went over it. 🔥</p>
 
 <p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/loads-dropping.png" alt="Graph displaying the huge drop in load on our servers" /></p>
 
@@ -179,13 +179,13 @@ Array === 'documentation' -->active<!-- endif -->">
 
 <ul>
 <li>we implemented a rate limiter on the <code>/find</code> endpoint</li>
-<li>we disallow to register exactly the same callback twice for the same event using <code>Sonora.on()</code></li>
+<li>we disallowed to register exactly the same callback twice for the same event using <code>Sonora.on()</code></li>
 <li>we fixed a second bug in <code>Sonora.off()</code> where we didn't remove the correct callbacks sometimes</li>
 </ul>
 
 <h1 id="%F0%9F%98%87%F0%9F%92%AD-and-they-lived-happily-ever-after">😇💭 And they lived happily ever after</h1>
 
-<p>This was the tale of the small javascript bug bringing down the huge web application, a modern David and Goliath as you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal to find the issue, so don't forget what you have at your disposal.</p>
+<p>This was the tale of the small javascript bug bringing down the huge web application, a modern David and Goliath if you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal finding the issue, so don't forget what you have at your disposal.</p>
 
 <p>We hope you enjoyed reading about our failures! Happy debugging! 👋</p>
 
