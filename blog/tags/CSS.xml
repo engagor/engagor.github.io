@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/CSS.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-02T13:32:07+00:00</updated>
+    <updated>2019-10-03T11:34:48+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -15,7 +15,7 @@
 
 <h2 id="setting-expectations">Setting expectations</h2>
 
-<p>One of the most impactful changes you can do is to make sure to set expectations with your designer. At the start it's a good idea to get your team together and figure out which parts of the design will or will not work in reality. If you're lucky you'll have an amazing product team that has done this for you. In reality the developer usually comes up with a technical pain point in the design. For example, if you find that some of the design won't translate in all browsers, you could come up with a compromise with your designer. For example, our gallery of canned responses uses a masonry layout. This layout doesn't look as perfect in Internet Explorer, but we were willing to put up with this because it meant we could use CSS for the masonry layout and not require to use a heavy javascript polyfill plugin. This slight compromise means our website will not have to forsake any page speed for the design.</p>
+<p>One of the most impactful changes you can do is to make sure to set expectations with your designer. At the start it's a good idea to get your team together and figure out which parts of the design will or will not work in reality. If you're lucky you'll have an amazing product team that has done this for you. In reality the developer usually comes up with a technical pain point in the design. For example, if you find that some of the design won't translate in all browsers, you could come up with a compromise with your designer. For example, our gallery of canned responses uses a masonry layout. This layout doesn't look as perfect in Internet Explorer, but we were willing to put up with this because it meant we could use CSS for the masonry layout and not require to use a heavy JavaScript polyfill plugin. This slight compromise means our website will not have to forsake any page speed for the design.</p>
 
 <p><center>
 <img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-modern.png" alt="Canned responses gallery view in a modern browser" /><br />
@@ -27,7 +27,7 @@
 <small>CX Social Inbox canned responses gallery view in Internet Explorer 10</small>
 </center></p>
 
-<p>Ideally you only use javascript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a javascript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra javascript to your website. It's important to weigh up where your javascript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
+<p>Ideally you only use JavaScript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a JavaScript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra JavaScript to your website. It's important to weigh up where your JavaScript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
 
 <h2 id="useful-plugins">Useful Plugins</h2>
 

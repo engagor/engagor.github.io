@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Deferred.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-02T13:32:07+00:00</updated>
+    <updated>2019-10-03T11:34:48+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -22,7 +22,7 @@ It's a cool feature that gives you the possibility to check which connected Twit
 
 <p>The only thing I could still think of was trying to reduce the calls to the Twitter API or to our own API. Changing the back-end would be a lot of work because the endpoint is used in a lot of places in the front-end. So the only option I wanted to consider was making a change in the one place where we had the problem. In the inbox we loop over the profiles and do a seperate call for every profile. For every call to our API, we wait until we have the response before doing a new call. So instead of doing synchronous calls, we should consider doing the calls asynchronously.</p>
 
-<p>Not knowing if this was possible in Javascript, I started searching and fell upon the <code>Promise</code> object, which does exactly what we need. However, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">the documentation for Promise on MDN</a> quickly revealed that it's not supported by some browsers we still have to support. After some more digging around the internet, we stumbled upon the <code>Deferred</code> object in jQuery which does almost the same, and works in most browsers. From its documentation:</p>
+<p>Not knowing if this was possible in JavaScript, I started searching and fell upon the <code>Promise</code> object, which does exactly what we need. However, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">the documentation for Promise on MDN</a> quickly revealed that it's not supported by some browsers we still have to support. After some more digging around the internet, we stumbled upon the <code>Deferred</code> object in jQuery which does almost the same, and works in most browsers. From its documentation:</p>
 
 <blockquote>
   <p>It can register multiple callbacks into callback queues, invoke callback queues, and relay the success or failure state of any synchronous or asynchronous function</p>

@@ -116,7 +116,7 @@ It's a cool feature that gives you the possibility to check which connected Twit
 
 <p>The only thing I could still think of was trying to reduce the calls to the Twitter API or to our own API. Changing the back-end would be a lot of work because the endpoint is used in a lot of places in the front-end. So the only option I wanted to consider was making a change in the one place where we had the problem. In the inbox we loop over the profiles and do a seperate call for every profile. For every call to our API, we wait until we have the response before doing a new call. So instead of doing synchronous calls, we should consider doing the calls asynchronously.</p>
 
-<p>Not knowing if this was possible in Javascript, I started searching and fell upon the <code>Promise</code> object, which does exactly what we need. However, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">the documentation for Promise on MDN</a> quickly revealed that it's not supported by some browsers we still have to support. After some more digging around the internet, we stumbled upon the <code>Deferred</code> object in jQuery which does almost the same, and works in most browsers. From its documentation:</p>
+<p>Not knowing if this was possible in JavaScript, I started searching and fell upon the <code>Promise</code> object, which does exactly what we need. However, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">the documentation for Promise on MDN</a> quickly revealed that it's not supported by some browsers we still have to support. After some more digging around the internet, we stumbled upon the <code>Deferred</code> object in jQuery which does almost the same, and works in most browsers. From its documentation:</p>
 
 <blockquote>
   <p>It can register multiple callbacks into callback queues, invoke callback queues, and relay the success or failure state of any synchronous or asynchronous function</p>
@@ -176,7 +176,7 @@ return combinedResult.promise();
         </div>
                     <p class="tags">
             <strong>Tags:</strong>
-                        <a href="/blog/tags/Javascript" class="tag">Javascript</a>                        <a href="/blog/tags/Performance" class="tag">Performance</a>                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                        <a href="/blog/tags/Deferred" class="tag">Deferred</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
+                        <a href="/blog/tags/JavaScript" class="tag">JavaScript</a>                        <a href="/blog/tags/Performance" class="tag">Performance</a>                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                        <a href="/blog/tags/Deferred" class="tag">Deferred</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
             </article>
     <article>
         <header class="page-header">
@@ -187,7 +187,7 @@ return combinedResult.promise();
 
 <h2 id="setting-expectations">Setting expectations</h2>
 
-<p>One of the most impactful changes you can do is to make sure to set expectations with your designer. At the start it's a good idea to get your team together and figure out which parts of the design will or will not work in reality. If you're lucky you'll have an amazing product team that has done this for you. In reality the developer usually comes up with a technical pain point in the design. For example, if you find that some of the design won't translate in all browsers, you could come up with a compromise with your designer. For example, our gallery of canned responses uses a masonry layout. This layout doesn't look as perfect in Internet Explorer, but we were willing to put up with this because it meant we could use CSS for the masonry layout and not require to use a heavy javascript polyfill plugin. This slight compromise means our website will not have to forsake any page speed for the design.</p>
+<p>One of the most impactful changes you can do is to make sure to set expectations with your designer. At the start it's a good idea to get your team together and figure out which parts of the design will or will not work in reality. If you're lucky you'll have an amazing product team that has done this for you. In reality the developer usually comes up with a technical pain point in the design. For example, if you find that some of the design won't translate in all browsers, you could come up with a compromise with your designer. For example, our gallery of canned responses uses a masonry layout. This layout doesn't look as perfect in Internet Explorer, but we were willing to put up with this because it meant we could use CSS for the masonry layout and not require to use a heavy JavaScript polyfill plugin. This slight compromise means our website will not have to forsake any page speed for the design.</p>
 
 <p><center>
 <img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-modern.png" alt="Canned responses gallery view in a modern browser" /><br />
@@ -199,7 +199,7 @@ return combinedResult.promise();
 <small>CX Social Inbox canned responses gallery view in Internet Explorer 10</small>
 </center></p>
 
-<p>Ideally you only use javascript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a javascript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra javascript to your website. It's important to weigh up where your javascript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
+<p>Ideally you only use JavaScript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a JavaScript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra JavaScript to your website. It's important to weigh up where your JavaScript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
 
 <h2 id="useful-plugins">Useful Plugins</h2>
 

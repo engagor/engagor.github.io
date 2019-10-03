@@ -3,11 +3,11 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Bug Fixing.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-02T13:32:07+00:00</updated>
+    <updated>2019-10-03T11:34:48+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
-            <title type="html"><![CDATA[A tale of a small Javascript bug]]></title>
+            <title type="html"><![CDATA[A tale of a small JavaScript bug]]></title>
             <link href="/blog/2019/10/02/a-tale-of-a-small-javascript-bug"/>
             <updated>2019-10-02T14:30:00+00:00</updated>
             <id>/blog/2019/10/02/a-tale-of-a-small-javascript-bug</id>
@@ -71,7 +71,7 @@
 
 <h1 id="%F0%9F%98%87%F0%9F%92%AD-and-they-lived-happily-ever-after">😇💭 And they lived happily ever after</h1>
 
-<p>This was the tale of the small javascript bug bringing down the huge web application, a modern David and Goliath if you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal finding the issue, so don't forget what you have at your disposal.</p>
+<p>This was the tale of the small JavaScript bug bringing down the huge web application, a modern David and Goliath if you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal finding the issue, so don't forget what you have at your disposal.</p>
 
 <p>We hope you enjoyed reading about our failures! Happy debugging! 👋</p>
 ]]></content>
