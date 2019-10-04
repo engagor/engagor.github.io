@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Bug Fixing.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-03T11:34:48+00:00</updated>
+    <updated>2019-10-04T09:51:27+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -13,7 +13,7 @@
             <id>/blog/2019/10/02/a-tale-of-a-small-javascript-bug</id>
             <content type="html"><![CDATA[<p>Sometimes it's assumed that the frontend is a relatively harmless place to be programming. We've been proven wrong once again.</p>
 
-<h1 id="%F0%9F%94%A5%F0%9F%90%B6%E2%98%95%EF%B8%8F%F0%9F%94%A5-this-is-fine">🔥🐶☕️🔥 This is fine</h1>
+<h2 id="%F0%9F%94%A5%F0%9F%90%B6%E2%98%95%EF%B8%8F%F0%9F%94%A5-this-is-fine">🔥🐶☕️🔥 This is fine</h2>
 
 <p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/this-is-fine.png" alt="This is fine" /></p>
 
@@ -23,7 +23,7 @@
 
 <p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/kibana.png" alt="Kibana showing a lot of requests for one user in a short time frame" /></p>
 
-<h1 id="%F0%9F%90%9B%F0%9F%95%B5%EF%B8%8F%E2%80%8D%E2%99%82%EF%B8%8F--bug-hunting">🐛🕵️‍♂️  Bug Hunting</h1>
+<h2 id="%F0%9F%90%9B%F0%9F%95%B5%EF%B8%8F%E2%80%8D%E2%99%82%EF%B8%8F--bug-hunting">🐛🕵️‍♂️  Bug Hunting</h2>
 
 <p>A few days later, when we were hit with a huge amount of calls again (this time, they were ratelimited and not producing those huge loads on our servers, but we could see them in the logs and in Kibana), we noticed that most of them were coming from only a limited number of customers. We tried to work in our app as they would do, but couldn't reproduce it. After some time however, we noticed in the network tab of the browser we were working in, that the same call to the <code>/find</code> endpoint was done multiple times simultaneously! Bingo!</p>
 
@@ -53,7 +53,7 @@
 
 <p>As you can see, we wrapped the actual callback inside an anonymous function, and passed that on to Socket.io's <code>.on()</code> handler. Now, when calling <code>.off()</code>, we sent along the original callback which didn't match the wrapped one, and nothing was removed. Since it's possible to have multiple callbacks for each incoming event, this resulted in the same callback being added time after time and not being removed. So we had basically made all our clients do <em>loads</em> of unnecessary calls to <code>/find</code> by adding a debugging statement! And believe it or not, this debugging statement was there for a while! (Thanks git blame!)</p>
 
-<h1 id="%F0%9F%94%A8%F0%9F%91%A9%E2%80%8D%F0%9F%94%A7-fixing-it">🔨👩‍🔧 Fixing it</h1>
+<h2 id="%F0%9F%94%A8%F0%9F%91%A9%E2%80%8D%F0%9F%94%A7-fixing-it">🔨👩‍🔧 Fixing it</h2>
 
 <p>The fix was easy enough: don't add that anonymous function.</p>
 
@@ -69,7 +69,7 @@
 <li>we fixed a second bug in <code>Sonora.off()</code> where we didn't remove the correct callbacks sometimes</li>
 </ul>
 
-<h1 id="%F0%9F%98%87%F0%9F%92%AD-and-they-lived-happily-ever-after">😇💭 And they lived happily ever after</h1>
+<h2 id="%F0%9F%98%87%F0%9F%92%AD-and-they-lived-happily-ever-after">😇💭 And they lived happily ever after</h2>
 
 <p>This was the tale of the small JavaScript bug bringing down the huge web application, a modern David and Goliath if you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal finding the issue, so don't forget what you have at your disposal.</p>
 
