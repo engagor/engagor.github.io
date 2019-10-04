@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/STEM.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:55:40+00:00</updated>
+    <updated>2019-10-04T09:58:01+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -27,7 +27,7 @@ This blog post puts a spotlight on these initiatives and explains how you can he
 
 <p>The initiative started in 2013 and had grown to 44000 activities reaching 2.7 million people all over Europe by last year, all run by volunteers. The EU Code Week includes a.o. well-known initiatives like CoderDojo.</p>
 
-<p><img src="/images/2019-10-04-teaching-kids-to-build-andprogram-a-drawing-robot/code-week-participation.png" alt="Code Week Participants" /></p>
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/code-week-participation.png" alt="Code Week Participants" /></p>
 
 <h2 id="%F0%9F%A4%96-wegostem">🤖 WeGoSTEM</h2>
 
@@ -36,7 +36,7 @@ This blog post puts a spotlight on these initiatives and explains how you can he
 
 <p>WeGoSTEM's mission is to organise a fun workshop in as many schools as possible (mainly in Brussels &amp; Flanders) to give as many 11 to 12 year olds as possible a first introduction to programming. Here's the robot we're building:</p>
 
-<p><img src="/images/2019-10-04-teaching-kids-to-build-andprogram-a-drawing-robot/drawing.png" alt="The Drawing Bot In Action" /></p>
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/drawing.png" alt="The Drawing Bot In Action" /></p>
 
 <p>WeGoSTEM is a project of the NGO's <a href="https://dwengo.org/">Dwengo</a> &amp; <a href="http://www.shegoesict.be/">SheGoesICT</a>. Dwengo is organising teaching activities for people who want to experiment with micro-controllers, all around the world, and more specifically in socially-disadvantaged countries. SheGoesICT has as clear goal to advocate gender diversity in IT companies in Belgium.</p>
 
@@ -68,7 +68,7 @@ There's also several training sessions around Belgium where the core team of WeG
 
 <p>Maybe you helped inspire a kid to choose an education path focusing on STEM? Maybe you gave the teacher of that class the empowerment &amp; tools to incorporate programming in some of their lessons? Maybe you helped show policy makers the importance of digital literacy and drive change?</p>
 
-<p><img src="/images/2019-10-04-teaching-kids-to-build-andprogram-a-drawing-robot/class.png" alt="A class with all their drawings ..." /></p>
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/class.png" alt="A class with all their drawings ..." /></p>
 
 <p>WeGoSTEM is 100% supported by volunteers in all participating countries. Workshops for the code week start next week, but there's definitely some free spots for coaches still. If you want to participate, check out the dedicated websites: <a href="https://wegostem.be/">WeGoSTEM Belgium</a> and <a href="https://wegostem.gr/">WeGoSTEM Greece</a>.<br />
 After the Code Week, all volunteers can also always use the workshop materials needed to give an extra sessions in a school where you have a friend, kid or nephew or niece, so if you want to help us host a workshop, do let us know ...</p>
