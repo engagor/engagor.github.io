@@ -125,7 +125,7 @@ Array === 'documentation' -->active<!-- endif -->">
                     <article>
         <h1>Distributed Processing via RabbitMQ</h1>
         <div>
-            <p>Looking at <a href="https://stackshare.io/clarabridge-cx-social/web-application-stack">the tech stack of our CX Social product</a>, there's tens of components involved, and this post will go into detail about one of the most central components of our system: our RabbitMQ service.</p>
+            <p>Looking at <a href="https://stackshare.io/clarabridge-cx-social/web-application-stack">the tech stack of our Clarabridge Engage product</a>, there's tens of components involved, and this post will go into detail about one of the most central components of our system: our RabbitMQ service.</p>
 
 <p>RabbitMQ, or at least the concept of "Message Brokers" it implements, is central to the way we capture and digest the hundreds of social media messages we track each second, but also in how we throw around workload and tasks. Actually, it's so central we often take it for granted. So, let's take a step back and see why we use it ...</p>
 
@@ -135,7 +135,7 @@ Array === 'documentation' -->active<!-- endif -->">
 
 <p><center><img src="/images/2017-01-07-distributed-processing-via-rabbit-mq/queue.png" alt="What Is A Queue?" /></center></p>
 
-<p>At Clarabridge CX Social, we use <a href="https://www.rabbitmq.com/">RabbitMQ</a>, but there's also <a href="https://kafka.apache.org/">Apache Kafka</a> or <a href="https://aws.amazon.com/sqs/">Amazon SQS</a> as often used alternatives.</p>
+<p>At Clarabridge Engage, we use <a href="https://www.rabbitmq.com/">RabbitMQ</a>, but there's also <a href="https://kafka.apache.org/">Apache Kafka</a> or <a href="https://aws.amazon.com/sqs/">Amazon SQS</a> as often used alternatives.</p>
 
 <p>Below is a screenshot of our RabbitMQ dashboard, showing a.o. about 3000 messages per second being processed.</p>
 
@@ -147,7 +147,7 @@ Array === 'documentation' -->active<!-- endif -->">
 
 <p>If at any point in our code we can procrastinate, we try to do so. If it's not super important to execute a certain function immediately, we push a message onto one of our RabbitMQ queues containing enough information to execute the function later, potentially by someone else. Easy. And lazy.</p>
 
-<p>An example where we do this, is in the processing of webhooks for Facebook. For every like or comment that happens on one of the Facebook Pages that our CX Social clients own, Facebook sends us a real-time update containing who commented/liked which post. This information needs to be added to our clients' inboxes as soon as possible, but it's not vital that that's done in the same webhook-request that Facebook sends us. So, this page just pushes whatever information it gets from Facebook onto a queue. And an army of consumers for this queue turns these messages in e.g. comment objects to add to our data cluster.<br />
+<p>An example where we do this, is in the processing of webhooks for Facebook. For every like or comment that happens on one of the Facebook Pages that our Clarabrige Engage clients own, Facebook sends us a real-time update containing who commented/liked which post. This information needs to be added to our clients' inboxes as soon as possible, but it's not vital that that's done in the same webhook-request that Facebook sends us. So, this page just pushes whatever information it gets from Facebook onto a queue. And an army of consumers for this queue turns these messages in e.g. comment objects to add to our data cluster.<br />
 Whenever a Facebook post we monitor turns out to be hugely popular, and hundreds of post interactions per second is no exception, this queue serves both as a buffer (so we can handle these peak moments) and as a distributor (so multiple processes can massage and index the data).</p>
 
 <p>Other common use cases include emailing or notifying several people. Say you have an online shop, and you want to notify a whole bunch of subscribers as soon as you add a new item to the inventory. Instead of sending these notifications in the same web request that the admin adds a product in, you push the notification-job on a queue, and let a different process send the actual emails or push notifications. Your initial request ("Add product x") stays fast, while all necessary emails are sent in the background.</p>
@@ -156,7 +156,7 @@ Whenever a Facebook post we monitor turns out to be hugely popular, and hundreds
 
 <p>Queues are also particularly handy to split up heavy tasks into smaller, more manageable chunks of work. By using queues as the glue between these steps, you create more visibility into this chain of events.</p>
 
-<p>One such chain that is vital to CX Social is the processing of a new incoming message (a tweet, an Instagram photo, etc.). Whenever a new messages is capture by our data crawling systems, there's several steps we need to do to get it to our clients, including:</p>
+<p>One such chain that is vital to Clarabrige Engage is the processing of a new incoming message (a tweet, an Instagram photo, etc.). Whenever a new messages is capture by our data crawling systems, there's several steps we need to do to get it to our clients, including:</p>
 
 <ol>
 <li>Checking which of our clients are interested in the message by matching it to the set-up of their accounts.<br />
@@ -178,7 +178,7 @@ Whenever a Facebook post we monitor turns out to be hugely popular, and hundreds
 
 <h3 id="4.-cross-service-communication">4. Cross-Service Communication</h3>
 
-<p>We also use RabbitMQ in case different services need to talk to each other. At Clarabridge CX Social we have a service for real-time communication to a user's browser using websockets (via node.js/Socket.io). Every other service in our cluster can just send their messages there via RabbitMQ.
+<p>We also use RabbitMQ in case different services need to talk to each other. At Clarabrige Engage we have a service for real-time communication to a user's browser using websockets (via node.js/Socket.io). Every other service in our cluster can just send their messages there via RabbitMQ.
 If a certain php process needs to send a real-time notification to a certain logged in user, the php process publishes an event to a RabbitMQ queue. A node.js server will then consume the event, and passes it on the client via socket.io.<br />
 Using RabbitMQ as the intermediate we allow services written in a multitude of different languages to talk to each other.</p>
 

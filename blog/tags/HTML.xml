@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/HTML.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:51:27+00:00</updated>
+    <updated>2019-10-04T09:55:40+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -19,12 +19,12 @@
 
 <p><center>
 <img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-modern.png" alt="Canned responses gallery view in a modern browser" /><br />
-<small>CX Social Inbox canned responses gallery view in a modern browser</small>
+<small>Clarabrige Engage Inbox canned responses gallery view in a modern browser</small>
 </center></p>
 
 <p><center>
 <img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-ie.png" alt="Canned responses gallery view in a Internet Explorer" /><br />
-<small>CX Social Inbox canned responses gallery view in Internet Explorer 10</small>
+<small>Clarabrige Engage Inbox canned responses gallery view in Internet Explorer 10</small>
 </center></p>
 
 <p>Ideally you only use JavaScript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a JavaScript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra JavaScript to your website. It's important to weigh up where your JavaScript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>

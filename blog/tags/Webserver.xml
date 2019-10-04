@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Webserver.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:51:27+00:00</updated>
+    <updated>2019-10-04T09:55:40+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -28,7 +28,7 @@ JVM languages are examples of libraries for this.</p>
 much, much simpler. Fortunately, it turns out Linux already comes with
 everything you need. First, we need a problem to solve though.</p>
 
-<p>At CX Social we deal with a lot of data. We need to do some maintenance work in
+<p>At Clarabrige Engage we deal with a lot of data. We need to do some maintenance work in
 order to keep this data relevant and efficient. What we don't want is to
 interfere with the processing we do for our users. We'd rather err on the side
 of caution and only run these maintenance jobs when we are sure that servers

@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Achievements.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:51:27+00:00</updated>
+    <updated>2019-10-04T09:55:41+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -15,10 +15,10 @@
 
 <h2 id="what-do-we-do%3F">What do we do?</h2>
 
-<p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.<br />
+<p>The Clarabrige Engage team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.<br />
 <a href="https://developers.engagor.com/team">Read more about what we do</a>.</p>
 
-<p>As of September 2017, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2017 to June 2018)</em>, to work as part of the CX Social development team. As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, Elasticsearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.<br />
+<p>As of September 2017, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2017 to June 2018)</em>, to work as part of the Clarabrige Engage development team. As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, Elasticsearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.<br />
 We are looking for a student with interest and knowledge of both front-end and back-end technologies.</p>
 
 <p>Want to hear from a previous intern what it’s like to join our team? Read about <a href="https://engagor.github.io/blog/2017/06/01/internship-gheerwijn-cx-social-developer/">Gheerwijn’s experiences</a>.</p>
@@ -27,11 +27,11 @@ We are looking for a student with interest and knowledge of both front-end and b
 
 <p>A big percentage of users work in our customer care tool full time, day-in day-out. So it’s important for us to keep the user experience for them smooth and enjoyable. We want to make the experience more fun by developing an achievement based system in the web-application.</p>
 
-<p>Apart from making CX Social more fun for agents to work in, we aim to improve team work, increase retention and let users discover new features.</p>
+<p>Apart from making Clarabrige Engage more fun for agents to work in, we aim to improve team work, increase retention and let users discover new features.</p>
 
 <p><center>
 <img src="/images/2017-06-30-internship-achievements/notification.png" alt="NMBS Twitter Profile" /><br />
-<small>An achievement notification popping up in the CX Social interface.</small>
+<small>An achievement notification popping up in the Clarabrige Engage interface.</small>
 </center></p>
 
 <p>Some of the tasks we’re thinking of...</p>
@@ -46,7 +46,7 @@ We are looking for a student with interest and knowledge of both front-end and b
 
 <p><center>
 <img src="/images/2017-06-30-internship-achievements/achievements.png" alt="NMBS Twitter Profile" /><br />
-<small>A series of achievements for using one of CX Social's features: Canned Responses.</small>
+<small>A series of achievements for using one of Clarabrige Engage's features: Canned Responses.</small>
 </center></p>
 
 <h2 id="interested%3F">Interested?</h2>

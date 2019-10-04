@@ -293,9 +293,15 @@ interface WebHooks
 <p>That's it, enjoy writing better tests!</p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/Unit%20Tests" class="tag">Unit Tests</a>                        <a href="/blog/tags/PHPUnit" class="tag">PHPUnit</a>                        </p>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Unit%20Tests" class="tag">Unit Tests</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/PHPUnit" class="tag">PHPUnit</a>                    </li>
+                            </ul>
             </article>
     <article>
         <header class="page-header">
@@ -306,18 +312,18 @@ interface WebHooks
 
 <p>Perceived performance refers to how fast a user thinks your site is, rather than the actual site speed. It's a metric measured by humans rather than a site speed test tool. How fast does the website feel? For example, Facebook appears faster by loading a placeholder for posts in the News Feed. It's useful to know that a site is only loading rather than functioning slowly.</p>
 
-<h2 id="how-cx-social-handles-perceived-performance">How CX Social Handles Perceived Performance</h2>
+<h2 id="how-clarabrige-engage-handles-perceived-performance">How Clarabrige Engage Handles Perceived Performance</h2>
 
-<p>CX Social is a large application that has a complex interface. The "inbox" part of our system has multiple small features, that all appear to be on a single page. The perceived performance of the inbox is more important than the actual speed, especially because it provides a seamless user experience. The following are a few things we do to portray a speedier performance!</p>
+<p>Clarabrige Engage is a large application that has a complex interface. The "inbox" part of our system has multiple small features, that all appear to be on a single page. The perceived performance of the inbox is more important than the actual speed, especially because it provides a seamless user experience. The following are a few things we do to portray a speedier performance!</p>
 
 <h2 id="when-a-mention-is-resolved">When a mention is resolved</h2>
 
-<p>In CX Social we process small pieces of information we call "mentions". A mention is any blog post, news article, tweet, etc. that matches any of your specified criteria. All mentions are refined into the CX Social inbox, where support agents can mark them as <em>resolved</em> when they are replied to/labelled as no action needed, etc. When a mention is <em>resolved</em> the support agent is automatically shown the next <em>mention</em> to attend to.
+<p>In Clarabrige Engage we process small pieces of information we call "mentions". A mention is any blog post, news article, tweet, etc. that matches any of your specified criteria. All mentions are refined into the Clarabrige Engage inbox, where support agents can mark them as <em>resolved</em> when they are replied to/labelled as no action needed, etc. When a mention is <em>resolved</em> the support agent is automatically shown the next <em>mention</em> to attend to.
 When a mention is resolved we manipulate the DOM and remove the element <em>before</em> the request is completed successfully. This gives you the impression that your action is completed instantly. In the rare case that the request fails, we replace the DOM element and display a relevant error message, so that the user knows what's going on and can resolve the mention again.</p>
 
 <p><center>
-<img src="/images/2017-07-10-perceived-performance/mentionresolve.gif" alt="Resolving a mention in CX Social Inbox" /><br />
-<small>Resolving a mention in CX Social Inbox</small>
+<img src="/images/2017-07-10-perceived-performance/mentionresolve.gif" alt="Resolving a mention in Clarabrige Engage Inbox" /><br />
+<small>Resolving a mention in Clarabrige Engage Inbox</small>
 </center></p>
 
 <h2 id="loading-indicators">Loading Indicators</h2>
@@ -338,12 +344,12 @@ When a mention is resolved we manipulate the DOM and remove the element <em>befo
 
 <h2 id="placeholder-mentions-in-inbox">Placeholder mentions in inbox</h2>
 
-<p>Similar to how Facebook shows a preview of your feed by showing mini placeholders for each post, we show a placeholder when loading a list of mentions in CX Social. 
+<p>Similar to how Facebook shows a preview of your feed by showing mini placeholders for each post, we show a placeholder when loading a list of mentions in Clarabrige Engage. 
 We immediately show the selected mention, but for other mentions in the thread we automatically show a mention placeholder while they're loading. Then when the user scrolls farther in the thread, we pop in the next mentions. This gives structure to the page, while data is loading and thus makes it easier for the eye/mind to prepare for that data to be there.</p>
 
 <p><center>
 <img src="/images/2017-07-10-perceived-performance/inboxloading.gif" alt="Loading of inbox" /><br />
-<small>Placeholder sections for mentions in the CX Social inbox</small>
+<small>Placeholder sections for mentions in the Clarabrige Engage inbox</small>
 </center></p>
 
 <h2 id="additional-information-in-dropdowns%2Fpopups">Additional information in dropdowns/popups</h2>
@@ -357,16 +363,22 @@ We immediately show the selected mention, but for other mentions in the thread w
 
 <h2 id="loading-new-content-without-a-page-reload">Loading new content without a page reload</h2>
 
-<p>We have a large sidebar in CX Social for navigation, as well as a top menu bar. When switching between pages, we just request the content for the main part of the page, and insert the new main content. This saves us doing a full page load.</p>
+<p>We have a large sidebar in Clarabrige Engage for navigation, as well as a top menu bar. When switching between pages, we just request the content for the main part of the page, and insert the new main content. This saves us doing a full page load.</p>
 
 <h2 id="wrapping-up">Wrapping up</h2>
 
 <p>Have you implemented any features to improve perceived performance? We'd love to hear about it!</p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Performance" class="tag">Performance</a>                        <a href="/blog/tags/UX" class="tag">UX</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Performance" class="tag">Performance</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/UX" class="tag">UX</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/UI" class="tag">UI</a>                    </li>
+                            </ul>
             </article>
     <article>
         <header class="page-header">
@@ -377,10 +389,10 @@ We immediately show the selected mention, but for other mentions in the thread w
 
 <h2 id="what-do-we-do%3F">What do we do?</h2>
 
-<p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.<br />
+<p>The Clarabrige Engage team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.<br />
 <a href="https://developers.engagor.com/team">Read more about what we do</a>.</p>
 
-<p>As of September 2017, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2017 to June 2018)</em>, to work as part of the CX Social development team. As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, Elasticsearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.<br />
+<p>As of September 2017, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2017 to June 2018)</em>, to work as part of the Clarabrige Engage development team. As an intern you are an integral part of the R&amp;D team working on different parts of the application using technologies like PHP, React, MySQL, Redis, memcached, Elasticsearch, RabbitMQ, a.o. The other team members include a designer, front-end developer, data scientist, and several system engineers &amp; full-stack web developers.<br />
 We are looking for a student with interest and knowledge of both front-end and back-end technologies.</p>
 
 <p>Want to hear from a previous intern what it’s like to join our team? Read about <a href="https://engagor.github.io/blog/2017/06/01/internship-gheerwijn-cx-social-developer/">Gheerwijn’s experiences</a>.</p>
@@ -389,11 +401,11 @@ We are looking for a student with interest and knowledge of both front-end and b
 
 <p>A big percentage of users work in our customer care tool full time, day-in day-out. So it’s important for us to keep the user experience for them smooth and enjoyable. We want to make the experience more fun by developing an achievement based system in the web-application.</p>
 
-<p>Apart from making CX Social more fun for agents to work in, we aim to improve team work, increase retention and let users discover new features.</p>
+<p>Apart from making Clarabrige Engage more fun for agents to work in, we aim to improve team work, increase retention and let users discover new features.</p>
 
 <p><center>
 <img src="/images/2017-06-30-internship-achievements/notification.png" alt="NMBS Twitter Profile" /><br />
-<small>An achievement notification popping up in the CX Social interface.</small>
+<small>An achievement notification popping up in the Clarabrige Engage interface.</small>
 </center></p>
 
 <p>Some of the tasks we’re thinking of...</p>
@@ -408,7 +420,7 @@ We are looking for a student with interest and knowledge of both front-end and b
 
 <p><center>
 <img src="/images/2017-06-30-internship-achievements/achievements.png" alt="NMBS Twitter Profile" /><br />
-<small>A series of achievements for using one of CX Social's features: Canned Responses.</small>
+<small>A series of achievements for using one of Clarabrige Engage's features: Canned Responses.</small>
 </center></p>
 
 <h2 id="interested%3F">Interested?</h2>
@@ -423,9 +435,13 @@ We are looking for a student with interest and knowledge of both front-end and b
 </center></p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/Internship" class="tag">Internship</a>                        <a href="/blog/tags/Achievements" class="tag">Achievements</a>                        </p>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Internship" class="tag">Internship</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Achievements" class="tag">Achievements</a>                    </li>
+                            </ul>
             </article>
     <nav class="pager">
         <a href="/page/11" class="left">Newer Posts</a>        <a href="/page/13" class="right">Older Posts</a>    </nav>

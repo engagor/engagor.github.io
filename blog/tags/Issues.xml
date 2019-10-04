@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Issues.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:51:27+00:00</updated>
+    <updated>2019-10-04T09:55:40+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -73,16 +73,16 @@
 
 <h2 id="first-line-support">First Line Support</h2>
 
-<p>CX Social is software that allows companies to respond to their incoming social data (Twitter mentions, Facebook wall posts, etc.) as fast and as efficiently as possible. The customer care agents of companies like Telenet, De Lijn, NMBS (in Belgium), and Lufthansa, Turkish Airlines, T-Mobile (worldwide) use CX Social day-in day-out. They've set-up highly customized workflows within our tool, including automated actions, advanced filtering and real-time communication.<br />
-This makes CX Social a business-critical tool for our clients to serve their customers. To help with set-up, or if clients have discovered a bug in our system, there is direct in-app access to a live chat that puts them in contact with one of our support agents.<br />
+<p>Clarabrige Engage is software that allows companies to respond to their incoming social data (Twitter mentions, Facebook wall posts, etc.) as fast and as efficiently as possible. The customer care agents of companies like Telenet, De Lijn, NMBS (in Belgium), and Lufthansa, Turkish Airlines, T-Mobile (worldwide) use Clarabrige Engage day-in day-out. They've set-up highly customized workflows within our tool, including automated actions, advanced filtering and real-time communication.<br />
+This makes Clarabrige Engage a business-critical tool for our clients to serve their customers. To help with set-up, or if clients have discovered a bug in our system, there is direct in-app access to a live chat that puts them in contact with one of our support agents.<br />
 These support agents handle several chats and incoming emails per hour. We use Olark for in-app live chat, and use Salesforce Desk as the tool to handle incoming emails.</p>
 
-<p><center><img src="/images/2017-03-01-batman-chatman/olark-chat.png" alt="CX Social in-app Live Chat via Olark" /></center></p>
+<p><center><img src="/images/2017-03-01-batman-chatman/olark-chat.png" alt="Clarabrige Engage in-app Live Chat via Olark" /></center></p>
 
 <h2 id="an-empowered-support-agent-means-less-bugs">An Empowered Support Agent Means Less Bugs</h2>
 
 <p>The support agents are the people in our company that know our tool best. In several cases even better than us developers who wrote the code for it. We involve our support agents in testing new features we build. By making support part of the Q&amp;A-process, we assure they have used new features before clients put their hands on it, but also that the product team keeps solving <em>real</em> problems that our clients are having every day.<br />
-Apart from that, we actively maintain FAQ documents that help support agents identify problems, and collect the correct information to reproduce issues. We - try to - regularly organise trainings that go deep into certain aspects of our application. The customer support agents for CX Social know the basics of html, can interpret some - if not most - of our monitoring dashboards and know about <code>oAuth</code> or <code>API's</code> and find their way around the Chrome Developer Tools.<br />
+Apart from that, we actively maintain FAQ documents that help support agents identify problems, and collect the correct information to reproduce issues. We - try to - regularly organise trainings that go deep into certain aspects of our application. The customer support agents for Clarabrige Engage know the basics of html, can interpret some - if not most - of our monitoring dashboards and know about <code>oAuth</code> or <code>API's</code> and find their way around the Chrome Developer Tools.<br />
 All with one goal: to be able to solve our clients' problems as fast as possible. (Read: With as little help from a developer as possible 😏 )</p>
 
 <h2 id="a-direct-line-to-development">A Direct Line To Development</h2>
@@ -127,7 +127,7 @@ On the other hand, on active days, the constant flow of messages in the <code>#s
 
 <p>Whenever a Desk case (= client report) results in a GitHub issue (= actual bugreport), we make sure to save the connection between the Desk case and GitHub issue in our own database. <em>(The why is explained later.)</em></p>
 
-<p>In a typical week at CX Social around 10 bugs are reported, and while most of them take about 2 to 3 hours to fix, some take days.</p>
+<p>In a typical week at Clarabrige Engage around 10 bugs are reported, and while most of them take about 2 to 3 hours to fix, some take days.</p>
 
 <h2 id="batman-will-fix-it">Batman Will Fix It</h2>
 
@@ -165,11 +165,11 @@ The agenda for these meetings is:</p>
 
 <p><center><img src="/images/2017-03-01-batman-chatman/issue-stats.png" alt="Amount of open issues over time" /></center></p>
 
-<p>When an issue is closed but without a resolution (it's a duplicate, we were unable to reproduce it, it's a limitation of the external services we use, etc.) we indicate this with a resolution label. And similarly we tag all bugs with a label indicating which CX Social feature group it's related to. These two types of labels help us assess the quality of both our bug reports as identify problem areas with the application.</p>
+<p>When an issue is closed but without a resolution (it's a duplicate, we were unable to reproduce it, it's a limitation of the external services we use, etc.) we indicate this with a resolution label. And similarly we tag all bugs with a label indicating which Clarabrige Engage feature group it's related to. These two types of labels help us assess the quality of both our bug reports as identify problem areas with the application.</p>
 
 <h2 id="prioritising-issues">Prioritising Issues</h2>
 
-<p>The nature of a bug typically entails its priority; if something is a problem with a core feature of CX Social, for multiple accounts at once, it's labeled as "major", and thus has higher priority over bugs classified as "minor". Luckily, the amount of "major" bugs is limited. So, most of the time we spent fixing "minor" bugs. Typically we have between 10 and 30 of these bugs open, and from this to-do list for the Batman it's important we focus on those issues that have the most impact, for whatever reason. It's our support team that decides which of these to work on, since they know a bug's impact on customers best.</p>
+<p>The nature of a bug typically entails its priority; if something is a problem with a core feature of Clarabrige Engage, for multiple accounts at once, it's labeled as "major", and thus has higher priority over bugs classified as "minor". Luckily, the amount of "major" bugs is limited. So, most of the time we spent fixing "minor" bugs. Typically we have between 10 and 30 of these bugs open, and from this to-do list for the Batman it's important we focus on those issues that have the most impact, for whatever reason. It's our support team that decides which of these to work on, since they know a bug's impact on customers best.</p>
 
 <p><center><img src="/images/2017-03-01-batman-chatman/github-screenshot.png" alt="Some open issues" /></center></p>
 

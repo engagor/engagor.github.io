@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/People.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:51:27+00:00</updated>
+    <updated>2019-10-04T09:55:40+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -261,14 +261,14 @@ And of course, we also invite recent graduates or others interested in doing an 
             <id>/blog/2018/07/03/internship-skill-based-routing</id>
             <content type="html"><![CDATA[<h2 id="what-do-we-do%3F">What do we do?</h2>
 
-<p>The Clarabridge CX Social team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of incoming messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.
+<p>The Clarabrige Engage team builds a customer care tool for social media. Our clients use our software to be able to respond to the incoming questions and complaints on their Facebook pages, Twitter accounts, Instagram profiles, a.o. These clients often have a high volume of incoming messages, on several social profiles. We try to make those people’s lives easier by offering automation tools, smart routing of messages and reply suggestions, among others.
 <a href="https://developers.engagor.com/team">Read more about what we do here</a>.</p>
 
-<p>As of September 2018, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2018 to June 2019)</em>, to work as part of the CX Social development team.</p>
+<p>As of September 2018, we have room for one or more enthusiastic interns to join us for (at least) a couple of weeks <em>(preferably 4 days a week, any time between September 2018 to June 2019)</em>, to work as part of the Clarabrige Engage development team.</p>
 
 <h2 id="the-project%3A-skill-based-routing%21">The Project: Skill based routing!</h2>
 
-<p>We’re looking for someone to help us solve this problem for our clients; When a new question or complaints comes in, a customer care agent will handle that complaint; but which agent? Clarabridge CX Social offers several ways and algorithms that can help decide which questions go to which agent at a certain time, but there is still room for improvement … Ideally we want to assign the question to the agent that will be able to handle &amp; answer the question adequately in the shortest amount of time. Several factors are at play here: properties of the question, metadata about the question, metadata from who’s asking, which agents are available, skills of those agents, which mailboxes they work in, etc. We want you to look for ways how we can optimize our current algorithms and help us to implement them.</p>
+<p>We’re looking for someone to help us solve this problem for our clients; When a new question or complaints comes in, a customer care agent will handle that complaint; but which agent? Clarabrige Engage offers several ways and algorithms that can help decide which questions go to which agent at a certain time, but there is still room for improvement … Ideally we want to assign the question to the agent that will be able to handle &amp; answer the question adequately in the shortest amount of time. Several factors are at play here: properties of the question, metadata about the question, metadata from who’s asking, which agents are available, skills of those agents, which mailboxes they work in, etc. We want you to look for ways how we can optimize our current algorithms and help us to implement them.</p>
 
 <p>Here's a real-world example: a question in French about billing comes in 5 minutes before the end of the Paris team shift. Who will handle this question?</p>
 
@@ -452,7 +452,7 @@ We are looking for a student with interest and knowledge of both front-end as ba
   <p>Generative models are an active area of research, but we’re not quite there yet. If you want to build a conversational agent today your best bet is most likely a retrieval-based model.</p>
 </blockquote>
 
-<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for CX Social.</p>
+<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for Clarabrige Engage.</p>
 
 <p>Those were our highlights for 2017, let us know if we missed something!</p>
 ]]></content>

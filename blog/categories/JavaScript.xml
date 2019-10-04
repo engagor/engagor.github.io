@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/categories/JavaScript.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:51:27+00:00</updated>
+    <updated>2019-10-04T09:55:40+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -84,7 +84,7 @@
             <content type="html"><![CDATA[<p>A few weeks ago, I was confronted with a strange issue regarding the "followers" component we have in our inbox.
 It's a cool feature that gives you the possibility to check which connected Twitter account is following or followed by another Twitter account. Most accounts or users don't have that many connected Twitter profiles but of course there are always some exceptions. One of our customers had more than 100 connected profiles. The process to check the relationship between the profiles is rather easy. We do a call to the back-end for every profile. In the back-end we do an API call to Twitter to fetch the relationship details. So you can imagine it takes some time if we have to do this for many profiles. In the front-end the component became very slow and it looked like the component crashed.</p>
 
-<p><img src="/images/2017-11-02-javascript-deferred/followers.png" alt="CX Social followers dropdown in inbox" /></p>
+<p><img src="/images/2017-11-02-javascript-deferred/followers.png" alt="Clarabrige Engage followers dropdown in inbox" /></p>
 
 <p>After finding out what the problem is, the next step is of course solving it. I started with checking the back-end for some improvements. Instead of calling Twitter's API for every single profile, I checked if we could ask for multiple relations at once. Sadly this wasn't the case. So this trail was a dead end.</p>
 

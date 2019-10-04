@@ -552,9 +552,21 @@ $stoppedOrderingForTheseRuns = $coffeeRuns
 <p>PS: I gave a talk on this subject at the <a href="http://php.gent/">PHP.GENT meetup</a>, you can find the slides <a href="https://speakerdeck.com/turanct/the-language-of-collections">here</a>.</p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                        <a href="/blog/tags/OOP" class="tag">OOP</a>                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                        <a href="/blog/tags/Collections" class="tag">Collections</a>                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                        </p>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/OOP" class="tag">OOP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/SOLID" class="tag">SOLID</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Collections" class="tag">Collections</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                    </li>
+                            </ul>
             </article>
     <article>
         <header class="page-header">
@@ -564,7 +576,7 @@ $stoppedOrderingForTheseRuns = $coffeeRuns
             <p>A few weeks ago, I was confronted with a strange issue regarding the "followers" component we have in our inbox.
 It's a cool feature that gives you the possibility to check which connected Twitter account is following or followed by another Twitter account. Most accounts or users don't have that many connected Twitter profiles but of course there are always some exceptions. One of our customers had more than 100 connected profiles. The process to check the relationship between the profiles is rather easy. We do a call to the back-end for every profile. In the back-end we do an API call to Twitter to fetch the relationship details. So you can imagine it takes some time if we have to do this for many profiles. In the front-end the component became very slow and it looked like the component crashed.</p>
 
-<p><img src="/images/2017-11-02-javascript-deferred/followers.png" alt="CX Social followers dropdown in inbox" /></p>
+<p><img src="/images/2017-11-02-javascript-deferred/followers.png" alt="Clarabrige Engage followers dropdown in inbox" /></p>
 
 <p>After finding out what the problem is, the next step is of course solving it. I started with checking the back-end for some improvements. Instead of calling Twitter's API for every single profile, I checked if we could ask for multiple relations at once. Sadly this wasn't the case. So this trail was a dead end.</p>
 
@@ -630,9 +642,19 @@ return combinedResult.promise();
 <p>That's how we fixed this for now, hopefully we can move to the more modern approach of using <code>Promise</code> in the near future!</p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/JavaScript" class="tag">JavaScript</a>                        <a href="/blog/tags/Performance" class="tag">Performance</a>                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                        <a href="/blog/tags/Deferred" class="tag">Deferred</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/JavaScript" class="tag">JavaScript</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Performance" class="tag">Performance</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Deferred" class="tag">Deferred</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/UI" class="tag">UI</a>                    </li>
+                            </ul>
             </article>
     <article>
         <header class="page-header">
@@ -647,12 +669,12 @@ return combinedResult.promise();
 
 <p><center>
 <img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-modern.png" alt="Canned responses gallery view in a modern browser" /><br />
-<small>CX Social Inbox canned responses gallery view in a modern browser</small>
+<small>Clarabrige Engage Inbox canned responses gallery view in a modern browser</small>
 </center></p>
 
 <p><center>
 <img src="/images/2017-10-16-coding-web-design-tips/canned-responses-gallery-ie.png" alt="Canned responses gallery view in a Internet Explorer" /><br />
-<small>CX Social Inbox canned responses gallery view in Internet Explorer 10</small>
+<small>Clarabrige Engage Inbox canned responses gallery view in Internet Explorer 10</small>
 </center></p>
 
 <p>Ideally you only use JavaScript when absolutely nescessary for a design. I've seen it happen before that designers have asked for a <code>&lt;select&gt;</code> dropdown list of <code>&lt;option&gt;</code>'s to be styled, as the default is not as pretty as in other browsers. This requires a JavaScript plugin (I wrote one to do this myself at one point). But it's completely unnecessary when it does not affect the user experience that deeply. Users are used to the style of the default option list and it's not worth adding the extra JavaScript to your website. It's important to weigh up where your JavaScript is <em>really</em> enhancing the user experience. A slower website makes for a less smooth user experience!</p>
@@ -740,9 +762,17 @@ return combinedResult.promise();
 <p>What developer tools do you use to help you implement designs?</p>
 
         </div>
-                    <p class="tags">
-            <strong>Tags:</strong>
-                        <a href="/blog/tags/HTML" class="tag">HTML</a>                        <a href="/blog/tags/CSS" class="tag">CSS</a>                        <a href="/blog/tags/UX" class="tag">UX</a>                        <a href="/blog/tags/UI" class="tag">UI</a>                        </p>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/HTML" class="tag">HTML</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/CSS" class="tag">CSS</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/UX" class="tag">UX</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/UI" class="tag">UI</a>                    </li>
+                            </ul>
             </article>
     <nav class="pager">
         <a href="/page/8" class="left">Newer Posts</a>        <a href="/page/10" class="right">Older Posts</a>    </nav>
