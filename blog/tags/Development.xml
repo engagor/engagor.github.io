@@ -3,9 +3,70 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Development.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-10-04T09:58:01+00:00</updated>
+    <updated>2019-11-29T08:39:59+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Some Pairing and Mobbing takeaways]]></title>
+            <link href="/blog/2019/10/29/some-pairing-and-mobbing-take-aways"/>
+            <updated>2019-10-29T13:30:00+00:00</updated>
+            <id>/blog/2019/10/29/some-pairing-and-mobbing-take-aways</id>
+            <content type="html"><![CDATA[<p>As you could already read in <a href="/blog/2018/12/07/one-month-of-pairing">one of our previous posts</a>, we started working in pairs some time ago. Now there's also some Mob Programming being done from time to time, and we started automatically doing some things to make our own lives easier. Some examples:</p>
+
+<h2 id="%F0%9F%9B%8B-%F0%9F%93%BA-make-yourself-comfortable">🛋 📺 Make yourself comfortable</h2>
+
+<p><img src="/images/2019-11-29-some-pairing-and-mobbing-take-aways/mobbing-team.jpg" alt="Keyboard Switcher in macOS" /></p>
+
+<p>Make sure everyone has a good chair and good visibility of the screen you're working on. If you're pairing, this means that you should work on an external screen of some kind, instead of on a laptop. Make sure there's enough light, not too much noise, and that everyone has drinks and food if they need it.</p>
+
+<p>You can work best if you're not focussing on something else. Taking away small distractions like restlessness or poor visibility of the screen can do wonders!</p>
+
+<h2 id="%E2%8C%A8%EF%B8%8F%F0%9F%92%BB-set-your-machine-up-for-everyone">⌨️💻 Set your machine up for everyone</h2>
+
+<p>Make sure the machine you're working on is set up so that you can switch drivers often and so that every driver is working comfortably on it. Of course, it's mostly impossible to all agree on the same set of shortcuts and keyboard setups, but we found a great compromise:</p>
+
+<p><img src="/images/2019-11-29-some-pairing-and-mobbing-take-aways/keyboard-switcher.png" alt="Keyboard Switcher in macOS" /></p>
+
+<ul>
+<li>On macOS you can make the keyboard settings available from the top bar so that you can really quickly switch keyboard layouts</li>
+<li>In PhpStorm or other editors, there are options to export your settings and import other ones. I just created a backup of my settings by exporting them and I ask everyone at the beginning of the session to send me their configs. When they start, they can select their own config from my desktop! After the session I can easily restore my own settings.</li>
+<li>On macOS it's also possible to connect multiple Bluetooth keyboards, mice, etc. We have an AZERTY and a QUERTY keyboard available, as well as a trackpad and a mouse. They are easily passed on and ready to use by the next driver!</li>
+</ul>
+
+<p>These three small changes come a long way to make you feel as if you're working on your own machine!</p>
+
+<h2 id="%E2%9B%94%EF%B8%8F%F0%9F%93%B1-only-allow-one-screen">⛔️📱 Only allow one screen</h2>
+
+<p>Being distracted already came up in the previous tip, but here we go again! Ask everyone in the room to put their phones on silent and put them in their pockets. Ask them to close their laptops, they're not going to need them. If you need to look something up, or if you're unsure about what a given piece of code does, ask the driver to put it on the big screen.</p>
+
+<p>This way, nobody dives off into their own cocoon and let their minds escape the group's focus.</p>
+
+<h2 id="%F0%9F%8E%A8%E2%97%BB%EF%B8%8F--to-the-drawing-board">🎨◻️  To the drawing board</h2>
+
+<p>Try to find a way to make things visible. If you have a whiteboard available, great! Do you have a wall? Use stickies or put up big pieces of paper. As a last resort, there's still just pieces of paper that you can draw on. Just make sure that you can make something visible so that you have something to talk about when a discussion is in order.</p>
+
+<h2 id="%F0%9F%98%B0-%E2%9E%A1-%F0%9F%98%81-keeping-everyone-engaged">😰 ➡ 😁 Keeping everyone engaged</h2>
+
+<p>Two rules:</p>
+
+<ul>
+<li>Switch drivers often</li>
+<li>Take breaks often</li>
+</ul>
+
+<p>We use <a href="http://mobster.cc/">this simple app</a> to notify us when to switch and when to take breaks. If the app doesn't tell you to take a break but you feel like it anyway, just do it. You'll be more productive after the break.</p>
+
+<h2 id="%F0%9F%92%BB%F0%9F%8F%A1-remote-work-and-mobbing">💻🏡 Remote work and mobbing</h2>
+
+<ul>
+<li>Make sure both parties have a perfect internet connection</li>
+<li>Make sure the setup for audio is working properly. We use a Jabra kit that picks up less ambient noise and makes everything clear to understand</li>
+<li>Use e.g. Slack screen sharing features to your advantage: you can draw on the screen and you can switch drivers easily!</li>
+</ul>
+
+<p>Hope these takeaways can help you as well! Happy Mobbing!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[A tale of a small JavaScript bug]]></title>
             <link href="/blog/2019/10/02/a-tale-of-a-small-javascript-bug"/>
@@ -1351,107 +1412,6 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
 <li>...</li>
 </ul>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Why Vim Doesn&#039;t Need Multiple Cursors]]></title>
-            <link href="/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors"/>
-            <updated>2018-02-21T10:00:00+00:00</updated>
-            <id>/blog/2018/02/21/why-vim-doesnt-need-multiple-cursors</id>
-            <content type="html"><![CDATA[<p>We're back with a Vim Special! A lot of people that get to the point where they want to learn Vim often start looking for a plugin to do something like the Multiple Cursors feature that they're used to from other text editors. This post will try to show you why you don't need this feature in Vim.</p>
-
-<p>Let's jump right in with the first basic feature that Vim provides us to make life simple.</p>
-
-<h2 id="%60%3B.%60-repeat-movement%2C-repeat-command"><code>;.</code> Repeat movement, Repeat command</h2>
-
-<p>As you know, almost all <em>movements</em> in Vim can be done efficiently and fast, using e.g. <code>h j k l w b e f t F T ( ) { }</code>. The cool thing is, Vim remembers the last movement you made and makes it available to repeat immediately using the <code>;</code> key. If you just jumped to the last word beginning with <code>I</code> by typing <code>FI</code>, you can jump back even more by using <code>;</code>.</p>
-
-<p>Next up is the <em>command</em>. For instance, we want to lowercase the letter we jumped to: <code>gul</code>. Vim also remembers this command and makes it available using the dot operator: <code>.</code>.</p>
-
-<p>You can now combine those to repeat movement and action over multiple occurences.</p>
-
-<h2 id="%60%2F%60-search%2C-%60gn%60-text-object%2C-dot-operator"><code>/</code> Search, <code>gn</code> Text object, Dot operator</h2>
-
-<p>If you want to combine the power of Vim's search with the dot operator, that's perfectly possible. Let's say you searched for <code>/ruby\|php\|python\|javascript\|java</code> and want to replace some of the matches with <code>Haskell</code>. Just jump to the first one using <code>n</code> and replace it using the <code>gn</code> text object, like this: <code>cgn</code> type <code>Haskell</code> and then hit <code>&lt;Esc&gt;</code>. Since <code>cgn</code> is a command, we can now use <code>.</code> the dot operator to repeat that. If you want to skip an occurrence or undo what you did you can use <code>n</code> and <code>u</code> respectively.</p>
-
-<h2 id="search-%26-replace-with-confirm">Search &amp; Replace with confirm</h2>
-
-<ul>
-<li><p>You most probably know you can search &amp; replace in your whole file by using</p>
-
-<pre><code>:%s/search goes here/replace goes here/g
-</code></pre></li>
-<li><p>or in a visual selection by making a visual selection using <code>v</code> or <code>V</code> and then typing</p>
-
-<pre><code>:s/search goes here/replace goes here/g
-</code></pre>
-
-<p>you should see something like <code>:'&lt;, '&gt;s/search/replace/</code> which is again some Vim magic. <code>'&lt;</code> points to the beginning of the last visual select, and <code>'&gt;</code> to the end of it. The <code>,</code> that separates them is making a range of it. It's like saying <code>:1,5</code> if you want to do something with the first 5 lines of your file.</p></li>
-</ul>
-
-<p>Now, this is really nice, but you might want to skip some matches, or you want to be sure that you don't replace matches that you didn't want to replace. You can use the <code>c</code> modifier to your search, and Vim will ask you to confirm every match using <code>y</code> or <code>n</code>. E.g.:</p>
-
-<pre><code>:'&lt;, '&gt;s/search/replace/gc
-</code></pre>
-
-<h2 id="visual-block-mode">Visual Block mode</h2>
-
-<p>If the things you want to change are neatly aligned with each other, you can make a Visual Block change:</p>
-
-<pre><code>point 1
-point 2
-point 3
-point 4
-</code></pre>
-
-<p>I want to uppercase those first <code>p</code>'s of the words, and I want to make this an enumeration using <code>-</code>. Let's make a Visual Block selection in the beginning of those lines using <code>0&lt;C-v&gt;3j</code> and then use <code>U</code> to uppercase the first letters. Then <code>gv</code> to go back to the visual select and <code>I- &lt;Esc&gt;</code> to make the enumeration happen.</p>
-
-<pre><code>- Point 1
-- Point 2
-- Point 3
-- Point 4
-</code></pre>
-
-<h2 id="macro%27s">Macro's</h2>
-
-<p>If you need to do more than just a few inserts or updates on multiple lines or more complicated edits in json, for instance, Vim's macro's can really come in handy. They allow you to "record" a sequence of edits and movements, and replay that sequence as many times as you want. Let's see how we can use this to convert some copied JSON to a PHP array:</p>
-
-<pre><code class="json">{
-    "foo": "bar",
-    "baz": "qux",
-    "vim": "sexy",
-    "rest": "lazy"
-}
-</code></pre>
-
-<ul>
-<li>We'll start with the cursor on the first <code>:</code> of the file. We'll start recording to register <code>i</code> by pressing <code>qi</code>.</li>
-<li>As a standard practice, and to increase our chances to reproduce this on the following lines, the first thing I do is move the cursor to the first character of the row: <code>^</code>.</li>
-<li>Then, we'll replace the double quotes we're on with single quotes using <code>r'</code> and look for the next one using <code>f"</code>. This can now be repeated using the dot operator <code>.</code> and the repeat movement operator <code>;</code>.</li>
-<li>We return to the <code>:</code> by using <code>F:</code> and replace it with <code>=&gt;</code> by issuing this command: <code>cw =&gt;</code></li>
-<li>We did all changes to the first line, so we can end our recording by going to the next line using <code>j</code> (again, to increase our chances of repeating this easily), and ending the recording with <code>q</code>.</li>
-<li>repeating this is as easy as executing the register <code>i</code> to which we recorded this using <code>@i</code>. You can also use a multiplyer if you need to do this 100 times: <code>100@i</code>.</li>
-</ul>
-
-<p>We now have</p>
-
-<pre><code>{
-    'foo' =&gt; 'bar',
-    'baz' =&gt; 'qux',
-    'vim' =&gt; 'sexy',
-    'rest' =&gt; 'lazy'
-}
-</code></pre>
-
-<p>Changing the brackets to PHP's <code>array()</code> should be easy.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>I hear you: you now need to learn 5 different ways of doing replaces which could all be solved by using multiple cursors. But all of these have some great benefits. They are deliberately executed on a piece of text, you can undo them easily (and one by one), and they are faster and less error-prone than multiple cursors (when you know them by heart). Also, Vim's autocompletion keeps working when using them, as opposed to all multiple cursor plugins that I've tried.</p>
-
-<p>That said, I still have <a href="https://github.com/terryma/vim-multiple-cursors">a multiple cursors plugin</a> installed, for when I'm doing pair programming.</p>
-
-<p>Have fun Vimming! 🎹⌨️</p>
 ]]></content>
         </entry>
     </feed>

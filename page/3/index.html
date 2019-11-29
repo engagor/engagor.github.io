@@ -102,6 +102,171 @@ Array === 'documentation' -->active<!-- endif -->">
             <div class="right dev-content-block">
                     <article>
         <header class="page-header">
+            <h1><a href="/blog/2019/01/28/lambda-implementation-details">Lambda To The Rescue: Implementation Details</a></h1>
+        </header>
+        <div>
+            <p><strong>This is the sixth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%F0%9F%A4%94-how-do-you-hide-your-internals%3F">🤔 How do you hide your internals?</h2>
+
+<p>In OOP, we're used to hiding the implementation details of our classes by using interfaces. We can just define a contract that the rest of the application needs to adhere to, and keep the knowledge of the internals completely separate from the rest of the system. Let's look at a simple interface:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace Dns;
+
+interface Client
+{
+    public function resolve(Request $request): Response;
+}
+</code></pre>
+
+<p>As a consumer of this interface, we actually know everything we need to know to start programming. We'll inject the class we're making with a <code>DNS\Client</code> instance later, the actual implementation of it doesn't concern us right now. We have enough information to create our application knowing that we can send the client a <code>Request</code> and get a <code>Response</code> back. The internals of the <code>Dns\Client</code> can be changed at will, without altering our program.</p>
+
+<p>For me, this was the biggest breakthrough of learning an Object Oriented language, the moment when using interfaces as contracts clicked. That's why, when I started to dive into Functional Programming languages, I wasn't really happy with what I saw. Where were the interfaces at?</p>
+
+<h2 id="%F0%9F%98%85-exporting-from-modules-as-interface">😅 Exporting from modules as interface</h2>
+
+<p>The first Functional Programming language I learnt was <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">Scheme</a>. It was great! When you start learning it, you start to see the recursion patterns, see that syntax is only so important as the language makes it, and countless other nice things (programming with continuations, anyone?). What bothered me was that lists are used as the main data structure everywhere! You'll sometimes find libraries that do something like this:</p>
+
+<pre><code class="scheme">(define address
+  (list "Toon Daelman" "FooBarStreet 42" "9000 Ghent" "Belgium"))
+</code></pre>
+
+<p>Yes, that's a workable data structure, but it's not ideal... To get a person's country from their address, you need to do something like this:</p>
+
+<pre><code class="scheme">(list-ref address 3)
+</code></pre>
+
+<p>Which means, from the <code>address</code> list, take the <code>3rd</code> (zero-based) index. That's not very readable at all, and it doesn't hide any of the details of our data structure. If we want to change it, every function interacting with this data structure will need to change as well.</p>
+
+<p>Luckily, the problem was me. I didn't look far enough, and most people working with lisps have other ways of hiding their internals, for instance:</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (list name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (list-ref address 3)))
+)
+</code></pre>
+
+<p>This is a scheme module, that exports two functions <code>address</code> and <code>country</code>. It uses the base library <code>scheme</code>. It defines a function <code>address</code>, that acts like a constructor and returns a black box object, that you can deconstruct using separate functions. In this case we only have a <code>country</code> function that takes an <code>address</code> and returns its <code>country</code>. Consuming modules of this <code>address</code> module need only now the constructor and the other functions, not that the underlying object is still a list!</p>
+
+<p>And this lets us change the implementation as well!</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (vector name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (vector-ref address 3)))
+)
+</code></pre>
+
+<p>We're now using <code>vector</code>s as the datatype for <code>address</code> instead of <code>list</code>s, but the <code>address</code> constructor and the <code>country</code> getter function are still called the same and behave exactly the same. We could use the records features as well, still keeping the same public interface...</p>
+
+<h2 id="%F0%9F%8E%A9-types">🎩 Types</h2>
+
+<p>The second Functional Programming language I started to look into was <a href="https://en.wikipedia.org/wiki/Haskell_(programming_language)">Haskell</a>. It immediately blew my mind with its type system. Let's check out this piece of code:</p>
+
+<pre><code class="haskell">type AddressLine = String
+type Country = String
+
+data Address = Address
+  { name :: String
+  , line1 :: AddressLine
+  , line2 :: AddressLine
+  , country :: Country
+  } deriving (Show)
+
+countryFrom :: Address -&gt; Country
+countryFrom = country
+</code></pre>
+
+<p>We define two type aliasses <code>AddressLine</code> and <code>Country</code>. Then we say that an <code>Address</code> consists of a <code>name</code>, a <code>line1</code> which is an <code>AddressLine</code>, a <code>line2</code> (also an <code>AddressLine</code>) and a <code>country</code> of the type <code>Country</code>. Then we define a function called <code>countryFrom</code> that takes an <code>Address</code> and returns a <code>Country</code>, which is implemented by just saying it's equal to <code>country</code>, the function that is automatically created to unwrap <code>Record</code>s.</p>
+
+<p>In fact, creating the <code>countryFrom</code> function was just done as an example to show off the type annotations in a situation analogous to the previous example in scheme. The type system in Haskell allows us to not only write the contract of a function, but it allows us to write abstractions as well! Check this out:</p>
+
+<pre><code class="haskell">head :: [a] -&gt; a
+</code></pre>
+
+<p>This is the type of the <code>head</code> function, which operates on lists. It takes a list of <code>a</code>s and returns an <code>a</code>. The <code>a</code> is a <em>type variable</em>, it substitutes for every type you can think of. This way, you can strictly type a function that can work with all sorts of types! Take for instance a list of <code>Address</code>es! Call <code>head</code> on that list, and you'll get the first <code>Address</code> of the list.</p>
+
+<p>🎩➡️🐰</p>
+
+<p>😍 I love this, it's like magic! And it goes even further. Let's say you want to be able to declare the function <code>==</code> which takes two arguments and checks if they're equal to each other. You would think that that would be easy using <em>type variables</em>, doing something like this:</p>
+
+<pre><code class="haskell">(==) :: a -&gt; a -&gt; Bool
+</code></pre>
+
+<p>Which means, a function <code>==</code> which takes two arguments of the same type (we use <code>a</code> for both arguments, which means we don't care which type it is, but it should be the same for both arguments) and returns a <code>Bool</code>. The problem is that there's no certainty that the type <code>a</code> has a concept of equality to it. It could be that we want to be able to define our own rules for equality on a type-by-type basis as well... That's why that signature <code>a -&gt; a -&gt; Bool</code> isn't enough.</p>
+
+<p>Haskell actually has another abstraction over their types to allow us to put the <code>a -&gt; a -&gt; Bool</code> in a context:</p>
+
+<pre><code class="haskell">class Eq a where
+  (==) :: a -&gt; a -&gt; Bool
+  x == y = not (x /= y)
+
+  (/=) :: a -&gt; a -&gt; Bool
+  x /= y = not (x == y)
+</code></pre>
+
+<p>This is a typeclass named <code>Eq</code> that defines equality for every type <code>a</code> that we say is part of the typeclass. It defines two functions, <code>==</code> and <code>/=</code>, which both take two arguments of the type <code>a</code> and return a <code>Bool</code>. What's also nice, is that they're both defined in terms of each other. <code>==</code> says that it's <code>not (/=)</code> and vice versa.</p>
+
+<p>Now, if we want to make our <code>Address</code> type part of the typeclass <code>Eq</code>, we can just implement the <code>==</code> function, and we get the other one for free because it's defined in terms of <code>==</code>. Let's look at an example:</p>
+
+<pre><code class="haskell">instance Eq Address where
+  x == y = sameAddressLines &amp;&amp; sameCountry
+    where sameAddressLines = (line1 x == line1 y) &amp;&amp; (line2 x == line2 y)
+          sameCountry = country x == country y
+</code></pre>
+
+<p>In this case, we say <code>Address</code>es are the same if their <code>AddressLine</code>s and <code>Country</code> are the same. We don't take <code>name</code> into consideration. Now we can <code>==</code> on <code>Address</code>es everywhere. If you don't need special rules for deriving equality for a given type, the Haskell compiler can derive it for your type using the <code>deriving (Eq)</code> statement.</p>
+
+<h2 id="%F0%9F%A4%93-what-can-we-learn-from-this%3F">🤓 What can we learn from this?</h2>
+
+<p>We've seen two ways of how implementation details can be hidden in a functional programming environment. When we're in Object Oriented environments we do almost the same things, but we use interfaces for them. And we use interfaces to describe contracts for many other things we want to do. That's why I'm sometimes confused when I stumble upon an interface: what's the primary reason for it to be here? Is it there to define a contract for external systems? Is it meant to hide implementation details or is it just part of a design pattern used in this package? Is it a marking interface used to indicate the type of the implementing class? Not every class needs to be implementing an interface... It already has one! All public methods of a concrete class can be seen as its public interface. And I think in most cases like the first example in scheme where we want to hide the internals of a datatype, a concrete class can be enough (think <code>ValueObject</code>s).</p>
+
+<p>I find that in Object Oriented Programming, thinking about types as you do when writing e.g. Haskell, tends to help when defining your interfaces effectively. One of the biggest differences is the manifestation of side-effects: In Haskell, there's a type for functions with side effects, while interfaces in Object Oriented languages mostly don't give you any insights into that (I've often thought about annotating side-effects in the docblocks of my interfaces).</p>
+
+<p>While PHP doesn't allow you to implement your own Equality rules for your classes, some Object Oriented languages do. Compare these examples:</p>
+
+<pre><code class="php">$foo == $bar;
+</code></pre>
+
+<pre><code class="php">$foo-&gt;equals($bar);
+</code></pre>
+
+<p>In the first example, we can't influence how PHP compares two instances of our class, while in the second one, we have complete control (even over the name of the method). It depends on taste what's best, certainly when your language allows you to overload <code>==</code> for your classes. Always try to make it as readable as possible!</p>
+
+<p>Wow, we made it through! Hope to see you in the next episode! Happy programming y'aλλ! 🖖</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Scheme" class="tag">Scheme</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2019/01/04/our-favorite-content-of-2018">Our Favorite Content Of 2018</a></h1>
         </header>
         <div>
@@ -262,134 +427,6 @@ Array === 'documentation' -->active<!-- endif -->">
                         <a href="/blog/tags/Issues" class="tag">Issues</a>                    </li>
                                     <li>
                         <a href="/blog/tags/Bug%20Fixing" class="tag">Bug Fixing</a>                    </li>
-                            </ul>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/11/28/lambda-syntax">Lambda To The Rescue: Syntax</a></h1>
-        </header>
-        <div>
-            <p><strong>This is the fifth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
-
-<h2 id="%E2%9C%A8-syntactic-sugar">✨ Syntactic Sugar</h2>
-
-<p>When I was first reading <a href="http://learnyouahaskell.com/">Learn You A Haskell For Great Good</a>, I came across the term <em>Syntactic Sugar</em> and I was confused... My background in OOP languages made me cringe a little when I read about how you can create your own syntax in Haskell using infix operators and DSLs. It even goes so far that some functional languages have almost no syntax at all! Let's look at an example of "sugar":</p>
-
-<pre><code class="haskell">map reverse
-    (filter (\x -&gt; length x &lt; 5)
-            ["foo", "bar", "baz", "qux", "ramsam"])
-</code></pre>
-
-<p>We're taking the list <code>["foo", "bar", "baz", "qux", "ramsam"]</code>, filtering out items that are 5 characters or longer, and reversing them all, one by one. The result is <code>["oof", "rab", "zab", "xuq"]</code>.</p>
-
-<p>We can make this a little bit more readable by using Haskell's <code>$</code> infix operator, which allows us to remove some of the parentheses by evaluating the expression on its righthand side first:</p>
-
-<pre><code class="haskell">map reverse $ filter (\x -&gt; length x &lt; 5) $ ["foo", "bar", "baz", "qux", "ramsam"]
-</code></pre>
-
-<p>Although the parentheses are gone, we still have to read from right to left if we want to know what exactly the result of this will be. We basically pipe the result of the expression on the right of the <code>$</code> to the expression on the left side of it. Some languages like F# have the <code>|&gt;</code> operator which allows you to pipe from left to right, so the exact opposite of the <code>$</code> operator. It's not idiomatic Haskell, but in some cases we might want to use it to create some clarity.</p>
-
-<p>Since we know <code>|&gt;</code> is the exact opposite of <code>$</code>, let's just try to write it ourselves. In Haskell, infix operators are just normal functions with two parameters. Here's an example:</p>
-
-<pre><code class="haskell">*repl &gt; 2 + 3
-5
-
-*repl &gt; (+) 2 3
-5
-</code></pre>
-
-<p>The function <code>(+)</code> can be used as a normal Haskell function, writing the function first and its arguments after it, or as an infix operator, without the parentheses. So we know <code>($)</code> is a function taking two parameters, and we have <code>flip</code> which takes a function with two parameters, and flips the order of them!</p>
-
-<pre><code class="haskell">(|&gt;) = flip ($)
-</code></pre>
-
-<p>Easy! Let's now write the original example using <code>(|&gt;)</code>:</p>
-
-<pre><code class="haskell">["foo", "bar", "baz", "qux", "ramsam"]
-  |&gt; filter (\x -&gt; length x &lt; 5)
-  |&gt; map reverse
-</code></pre>
-
-<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as the last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
-
-<h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
-
-<p>As you saw in the last example, we can create our own infix functions in Haskell. This can be very useful to create more readable code, using the language of the domain. Let's see a typical example of a function that doesn't do that:</p>
-
-<pre><code class="haskell">changeAddress :: Client -&gt; Address -&gt; Client
-</code></pre>
-
-<p>Now when we use this function in the classical way, it looks like this:</p>
-
-<pre><code class="haskell">let abbeyRoad3 = "3 Abbey Road, London NW8 9AY, UK"
-let updatedClient = changeAddress client abbeyRoad3
-</code></pre>
-
-<p>which doesn't read very well... What if we could use an infix here?</p>
-
-<pre><code class="haskell">let updatedClient = client `changedAddressTo` abbeyRoad3
-</code></pre>
-
-<p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
-
-<p><code>client changedAddressTo abbeyRoad3</code></p>
-
-<p>This is now the function type:</p>
-
-<pre><code class="haskell">changedAddressTo :: Client -&gt; Address -&gt; Client
-</code></pre>
-
-<p>So a simple changed lead to a better understanding of the code.</p>
-
-<h2 id="%F0%9F%93%89-the-absolute-minimum">📉 The Absolute Minimum</h2>
-
-<p>In the previous examples, you could see how we can mold the existing syntax to our likings, and use that to create very understandable code. Now let's see what happens when you take a language that has almost no syntax at all, like <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">scheme</a>. Literally, the only syntax in scheme is <code>(</code> and <code>)</code>. The rest are functions. Let's check out some code:</p>
-
-<pre><code class="scheme">(define sum
-  (lambda (list)
-    (cond
-      ((null? list) 0)
-      (else (+ (car list) (sum (cdr list)))))))
-</code></pre>
-
-<p>As you can see, there are lots of <code>(</code>s and <code>)</code>s. Basically, every <code>()</code> combo is a function call.</p>
-
-<ul>
-<li><code>(define name body)</code> defines a variable. In this case, it's called <code>sum</code>.</li>
-<li><code>(lambda (arguments) body)</code> defines a function. In this case, it has an argument called <code>list</code>.</li>
-<li><code>(cond (condition result1) (else result2))</code> creates a conditional. If the <code>condition</code> is <code>#t</code> (true), we return <code>result1</code>, else <code>result2</code>.</li>
-<li><code>(null? list)</code> checks if a list is empty.</li>
-<li><code>(+ a b)</code> returns the sum of two numbers.</li>
-<li><code>(car list)</code> returns the first item of a list (the <code>head</code> of the list).</li>
-<li><code>(sum list)</code> is the recursive call to our own defined function.</li>
-<li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
-</ul>
-
-<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parsers or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macros which will let you manipulate your own code!</p>
-
-<h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
-
-<p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
-
-<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do to make your code more meaningful. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
-
-<p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
-
-<p>That concludes this post. See you in the <a href="/blog/2019/01/28/lambda-implementation-details">next Lambda To The Rescue post</a>! Happy programming y'aλλ! 🖖</p>
-
-        </div>
-                    <h5 class="tags-title">Tags:</h5 class="tags">
-            <ul class="tags-list">
-                                    <li>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Scheme" class="tag">Scheme</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                    </li>
                             </ul>
             </article>
     <nav class="pager">

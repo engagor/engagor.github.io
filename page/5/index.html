@@ -102,6 +102,86 @@ Array === 'documentation' -->active<!-- endif -->">
             <div class="right dev-content-block">
                     <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/09/11/error-internal-rate-limit-reached">Error: Internal Rate Limit Reached</a></h1>
+        </header>
+        <div>
+            <p>A while ago we wrote about <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">building a sliding window rate limiter with redis</a>. We needed this rate limiter for counting the amount of API calls we did to the <a href="https://www.instagram.com/developer/">Instagram API</a>. This has been working great for us. You might have heard of the deprecation of the Instagram API. Facebook introduced a <a href="https://developers.facebook.com/docs/instagram-api">new instagram API</a> as part of the Facebook graph API.</p>
+
+<p>The new Instagram API uses the same <a href="https://developers.facebook.com/docs/graph-api/advanced/rate-limiting">rate limit measures</a> as the Facebook graph API (depends on the active users of your application). Our integration with the new Instagram API uses the same sliding window rate limiter. If our internal rate limit is reached we throw an exception: "Internal rate limit reached". This exception triggers a timeout, the timeout increases when the exception is thrown again.</p>
+
+<p>When we deployed our integration we noticed that when an access token reached the internal rate limit, the tasks refused to do any calls to the Instagram API, even when it was allowed again, because our rate limiter was still holding them back. This resulted in data delays, not good!</p>
+
+<p>If a combustion engine gets excessive fuel in the combustion chamber, the engine becomes flooded. You'll need to release the throttle to stop the flooding. This is exactly what's happening in our rate limiter.</p>
+
+<p>Each time we do an API call, the following commands are sent to Redis (<a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">We explained this in our previous blogpost</a>):</p>
+
+<pre><code>&gt; MULTI
+&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
+&gt; ZRANGE $accessToken 0 -1
+&gt; ZADD $accessToken $now $now
+&gt; EXPIRE $accessToken $slidingWindow
+&gt; EXEC
+</code></pre>
+
+<p>Do you see why the rate limiter gets "flooded"?</p>
+
+<p>If you are thinking about the <code>ZADD</code> command, you're right!</p>
+
+<p>Even when we're not allowed to do an API call we still add a timestamp. We knew this and we agreed that this was okay for our use case. However, we're using a lower rate limit (compared to the old Instagram API), which resulted in a lot of internal rate limit reached exceptions for busy Instagram accounts.</p>
+
+<p>How can we solve this? It's important that we execute <code>ZRANGE</code> and <code>ZADD</code> in the same transaction. We want to avoid race conditions because the tasks that do these API calls are distributed. How can we check the result of <code>ZRANGE</code> before doing the <code>ZADD</code> command in the same transaction? <a href="https://github.com/itamarhaber">Itamar Haber</a> from <a href="https://redislabs.com/">Redis Labs</a> wrote a comment on our <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">previous blogpost</a> suggesting to <a href="https://gist.github.com/itamarhaber/254bac4283d1675c5a5569639b0322aa">use a Lua script</a> (Thanks, Itamar!). Using a Lua script we can execute Redis commands conditionally in an atomic way.</p>
+
+<p>This is what we came up with:</p>
+
+<pre><code class="lua">local token = KEYS[1]
+local now = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local limit = tonumber(ARGV[3])
+
+local clearBefore = now - window
+redis.call('ZREMRANGEBYSCORE', token, 0, clearBefore)
+
+local amount = redis.call('ZCARD', token)
+if amount &lt; limit then
+    redis.call('ZADD', token, now, now)
+end
+redis.call('EXPIRE', token, window)
+
+return limit - amount
+</code></pre>
+
+<p>Let's break it down (Yeah, yeah 🎶):</p>
+
+<ol>
+<li>Assign the script arguments to variables.</li>
+<li>Call <code>ZREMRANGEBYSCORE</code> to cleanup timestamps before the window.</li>
+<li>Instead of <code>ZRANGE</code> we'll use <code>ZCARD</code> to know how many calls we already did.</li>
+<li>Call <code>ZADD</code> when we've not reached the limit yet.</li>
+<li>Call <code>EXPIRE</code> to make sure the sorted set, that holds the timestamps, gets cleaned up after the window has passed.</li>
+</ol>
+
+<p>In PHP we can evaluate the script using <a href="https://github.com/phpredis/phpredis">https://github.com/phpredis/phpredis</a>:</p>
+
+<pre><code class="php">$this-&gt;redis-&gt;eval($script, [$key, $now, $window, $limit], 1);
+</code></pre>
+
+<p>This works great. Our tasks are now doing as much API calls as possible without flooding the rate limiter. 👏😎</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Redis" class="tag">Redis</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Rate%20Limiting" class="tag">Rate Limiting</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Sliding%20Window" class="tag">Sliding Window</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/API" class="tag">API</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/07/03/internship-skill-based-routing">Skill Based Routing: Secure an Internship with us</a></h1>
         </header>
         <div>
@@ -424,111 +504,6 @@ plusOne [3]
 <p>One more thing. The above implementations -which actually work really great in functional programming languages- wouldn't work in languages like PHP. The reason is simple: we would get stack overflows pretty quickly; In functional programming languages, there are things called tail call optimizations that can be made. They make sure that you don't blow the stack, even if you recurse a thousand times. This is not really possible in PHP functions right now. Try it out! But after it, just use <code>array_map()</code> and <code>array_reduce()</code> if you want to do stuff like this 😉!</p>
 
 <p>Hope you liked that, see you in <a href="/blog/2018/10/08/lambda-monoids">the next post</a>! Happy programming y'aλλ! 🖖</p>
-
-        </div>
-                    <h5 class="tags-title">Tags:</h5 class="tags">
-            <ul class="tags-list">
-                                    <li>
-                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Development" class="tag">Development</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                    </li>
-                            </ul>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/06/04/lambda-pure-functions">Lambda To The Rescue: Pure Functions</a></h1>
-        </header>
-        <div>
-            <p><strong>This is the second post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
-
-<p>Whenever you read up on functional programming on the internet, it's common to come across words like "pure" and "transparent", and for good reason. Let's explore their meaning in the functional programming world. 🕵️‍♂️</p>
-
-<h2 id="%F0%9F%92%8E-purity">💎 Purity</h2>
-
-<p>Let's pretend we need to represent the number of cylinders in an engine <code>2</code> in our code. In a normal scenario, we would assign it to a variable and be done with it. We'll use <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
-
-<pre><code class="haskell">cylinders :: Int
-cylinders = 2
-</code></pre>
-
-<p>In the example, we start with a type annotation. You can read the first line as "cylinders <strong>is an</strong> Int". Then we write our statement.</p>
-
-<p>Now, whenever we need the number of cylinders for computation, we could just get it from the variable right? Sure! Let's try something else, since we're talking about "pure" functions. Let's try to use a function that doesn't take any input and always returns the number of cylinders, instead of a variable:</p>
-
-<pre><code class="haskell">cylinders :: Int
-cylinders = 2
-</code></pre>
-
-<p>Wait? WAT? That is exactly the same?</p>
-
-<p>Yes, in Haskell, a function without parameters is the same as a value. And that's logical right? No computation needs to happen when there's no input... right?</p>
-
-<p>Well... Let me disappoint you:</p>
-
-<pre><code class="php">function cylinders()
-{
-    echo rand();
-
-    return 2;
-}
-</code></pre>
-
-<p>In PHP, and in practically any other language, you can do things in functions that have side effects. In this case</p>
-
-<ul>
-<li>we created output on the <code>stdout</code></li>
-<li>we called <code>rand()</code> which in turn tried to create a random number by reading from a randomness source</li>
-</ul>
-
-<p>Of course this can result in A LOT of unexpected behaviour. By just looking at the function, you can't always immediately see what's going to happen. And this is what the word <code>pure</code> refers to. This function has "side effects", so it's not "pure".</p>
-
-<p>In Haskell though, if you want to do side effects within a function it will be marked with an <code>IO</code> tag. In fact, this is a type that behaves a bit like an environment. Getting a random number and echo'ing it requires <code>IO</code>, so the type can't just be <code>Int</code>, it's <code>IO Int</code>.</p>
-
-<pre><code class="haskell">cylinders :: IO Int
-</code></pre>
-
-<p>This way, you can always clearly see, just by looking at the types, that the function has side effects, and thus is not "pure".</p>
-
-<h2 id="%F0%9F%91%93-transparency">👓 Transparency</h2>
-
-<p>While these terms are used interchangibly, in my book the word "transparency" makes this very clear: you can "look straight through" a function.</p>
-
-<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
-double x = 2 * x
-</code></pre>
-
-<p>For every numeric value, we can calculate its <code>double</code>. You could really write this as a complete mapping from every number to its double:</p>
-
-<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
-double 0 = 0
-double 1 = 2
-double 2 = 4
-double 3 = 6
-double 4 = 8
--- ... etcetera
-</code></pre>
-
-<p>As you can see, we reduced the function to (essentially) "values" again, as in the first example of this post. Calls to transparent functions could in theory be replaced by their values. In functional programming jargon this is called "referential transparancy".</p>
-
-<p>A lot of functions can be made in an entirely transparent way, even quite complex things like parsing structured text or doing extensive computation.</p>
-
-<h2 id="%F0%9F%A4%A9-consequences">🤩 Consequences</h2>
-
-<h4 id="reduced-mental-overhead">Reduced mental overhead</h4>
-
-<p>As you can imagine, being able to reason about functions as "values" makes things <em>much</em> easier. Otherwise you have to deal with side effects that can change the world while you just expected an Integer representing the number of cylinders in a motorcycle. The same goes for the other case, where an <code>IO Int</code> lets you know instantly that there will be stuff happening behind the curtains, and you're not getting your <code>Int</code> for free.</p>
-
-<h4 id="in-fp-as-well-as-oop-environments">In FP as well as OOP environments</h4>
-
-<p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
-
-<p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
-
-<p>See you in <a href="/blog/2018/06/27/lambda-recursion">the next post</a>!</p>
 
         </div>
                     <h5 class="tags-title">Tags:</h5 class="tags">

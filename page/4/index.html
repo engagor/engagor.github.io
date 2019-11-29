@@ -102,6 +102,134 @@ Array === 'documentation' -->active<!-- endif -->">
             <div class="right dev-content-block">
                     <article>
         <header class="page-header">
+            <h1><a href="/blog/2018/11/28/lambda-syntax">Lambda To The Rescue: Syntax</a></h1>
+        </header>
+        <div>
+            <p><strong>This is the fifth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%9C%A8-syntactic-sugar">✨ Syntactic Sugar</h2>
+
+<p>When I was first reading <a href="http://learnyouahaskell.com/">Learn You A Haskell For Great Good</a>, I came across the term <em>Syntactic Sugar</em> and I was confused... My background in OOP languages made me cringe a little when I read about how you can create your own syntax in Haskell using infix operators and DSLs. It even goes so far that some functional languages have almost no syntax at all! Let's look at an example of "sugar":</p>
+
+<pre><code class="haskell">map reverse
+    (filter (\x -&gt; length x &lt; 5)
+            ["foo", "bar", "baz", "qux", "ramsam"])
+</code></pre>
+
+<p>We're taking the list <code>["foo", "bar", "baz", "qux", "ramsam"]</code>, filtering out items that are 5 characters or longer, and reversing them all, one by one. The result is <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<p>We can make this a little bit more readable by using Haskell's <code>$</code> infix operator, which allows us to remove some of the parentheses by evaluating the expression on its righthand side first:</p>
+
+<pre><code class="haskell">map reverse $ filter (\x -&gt; length x &lt; 5) $ ["foo", "bar", "baz", "qux", "ramsam"]
+</code></pre>
+
+<p>Although the parentheses are gone, we still have to read from right to left if we want to know what exactly the result of this will be. We basically pipe the result of the expression on the right of the <code>$</code> to the expression on the left side of it. Some languages like F# have the <code>|&gt;</code> operator which allows you to pipe from left to right, so the exact opposite of the <code>$</code> operator. It's not idiomatic Haskell, but in some cases we might want to use it to create some clarity.</p>
+
+<p>Since we know <code>|&gt;</code> is the exact opposite of <code>$</code>, let's just try to write it ourselves. In Haskell, infix operators are just normal functions with two parameters. Here's an example:</p>
+
+<pre><code class="haskell">*repl &gt; 2 + 3
+5
+
+*repl &gt; (+) 2 3
+5
+</code></pre>
+
+<p>The function <code>(+)</code> can be used as a normal Haskell function, writing the function first and its arguments after it, or as an infix operator, without the parentheses. So we know <code>($)</code> is a function taking two parameters, and we have <code>flip</code> which takes a function with two parameters, and flips the order of them!</p>
+
+<pre><code class="haskell">(|&gt;) = flip ($)
+</code></pre>
+
+<p>Easy! Let's now write the original example using <code>(|&gt;)</code>:</p>
+
+<pre><code class="haskell">["foo", "bar", "baz", "qux", "ramsam"]
+  |&gt; filter (\x -&gt; length x &lt; 5)
+  |&gt; map reverse
+</code></pre>
+
+<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as the last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
+
+<p>As you saw in the last example, we can create our own infix functions in Haskell. This can be very useful to create more readable code, using the language of the domain. Let's see a typical example of a function that doesn't do that:</p>
+
+<pre><code class="haskell">changeAddress :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>Now when we use this function in the classical way, it looks like this:</p>
+
+<pre><code class="haskell">let abbeyRoad3 = "3 Abbey Road, London NW8 9AY, UK"
+let updatedClient = changeAddress client abbeyRoad3
+</code></pre>
+
+<p>which doesn't read very well... What if we could use an infix here?</p>
+
+<pre><code class="haskell">let updatedClient = client `changedAddressTo` abbeyRoad3
+</code></pre>
+
+<p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
+
+<p><code>client changedAddressTo abbeyRoad3</code></p>
+
+<p>This is now the function type:</p>
+
+<pre><code class="haskell">changedAddressTo :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>So a simple changed lead to a better understanding of the code.</p>
+
+<h2 id="%F0%9F%93%89-the-absolute-minimum">📉 The Absolute Minimum</h2>
+
+<p>In the previous examples, you could see how we can mold the existing syntax to our likings, and use that to create very understandable code. Now let's see what happens when you take a language that has almost no syntax at all, like <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">scheme</a>. Literally, the only syntax in scheme is <code>(</code> and <code>)</code>. The rest are functions. Let's check out some code:</p>
+
+<pre><code class="scheme">(define sum
+  (lambda (list)
+    (cond
+      ((null? list) 0)
+      (else (+ (car list) (sum (cdr list)))))))
+</code></pre>
+
+<p>As you can see, there are lots of <code>(</code>s and <code>)</code>s. Basically, every <code>()</code> combo is a function call.</p>
+
+<ul>
+<li><code>(define name body)</code> defines a variable. In this case, it's called <code>sum</code>.</li>
+<li><code>(lambda (arguments) body)</code> defines a function. In this case, it has an argument called <code>list</code>.</li>
+<li><code>(cond (condition result1) (else result2))</code> creates a conditional. If the <code>condition</code> is <code>#t</code> (true), we return <code>result1</code>, else <code>result2</code>.</li>
+<li><code>(null? list)</code> checks if a list is empty.</li>
+<li><code>(+ a b)</code> returns the sum of two numbers.</li>
+<li><code>(car list)</code> returns the first item of a list (the <code>head</code> of the list).</li>
+<li><code>(sum list)</code> is the recursive call to our own defined function.</li>
+<li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
+</ul>
+
+<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parsers or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macros which will let you manipulate your own code!</p>
+
+<h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
+
+<p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
+
+<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do to make your code more meaningful. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
+
+<p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
+
+<p>That concludes this post. See you in the <a href="/blog/2019/01/28/lambda-implementation-details">next Lambda To The Rescue post</a>! Happy programming y'aλλ! 🖖</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Functional%20Programming" class="tag">Functional Programming</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Haskell" class="tag">Haskell</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Scheme" class="tag">Scheme</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Domain%20Driven%20Design" class="tag">Domain Driven Design</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
             <h1><a href="/blog/2018/10/08/lambda-monoids">Lambda To The Rescue: Monoids</a></h1>
         </header>
         <div>
@@ -549,86 +677,6 @@ So he used <a href="https://expo.io/">Expo</a>. You can compare it a bit with <a
                         <a href="/blog/tags/JavaScript" class="tag">JavaScript</a>                    </li>
                                     <li>
                         <a href="/blog/tags/Node" class="tag">Node</a>                    </li>
-                            </ul>
-            </article>
-    <article>
-        <header class="page-header">
-            <h1><a href="/blog/2018/09/11/error-internal-rate-limit-reached">Error: Internal Rate Limit Reached</a></h1>
-        </header>
-        <div>
-            <p>A while ago we wrote about <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">building a sliding window rate limiter with redis</a>. We needed this rate limiter for counting the amount of API calls we did to the <a href="https://www.instagram.com/developer/">Instagram API</a>. This has been working great for us. You might have heard of the deprecation of the Instagram API. Facebook introduced a <a href="https://developers.facebook.com/docs/instagram-api">new instagram API</a> as part of the Facebook graph API.</p>
-
-<p>The new Instagram API uses the same <a href="https://developers.facebook.com/docs/graph-api/advanced/rate-limiting">rate limit measures</a> as the Facebook graph API (depends on the active users of your application). Our integration with the new Instagram API uses the same sliding window rate limiter. If our internal rate limit is reached we throw an exception: "Internal rate limit reached". This exception triggers a timeout, the timeout increases when the exception is thrown again.</p>
-
-<p>When we deployed our integration we noticed that when an access token reached the internal rate limit, the tasks refused to do any calls to the Instagram API, even when it was allowed again, because our rate limiter was still holding them back. This resulted in data delays, not good!</p>
-
-<p>If a combustion engine gets excessive fuel in the combustion chamber, the engine becomes flooded. You'll need to release the throttle to stop the flooding. This is exactly what's happening in our rate limiter.</p>
-
-<p>Each time we do an API call, the following commands are sent to Redis (<a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">We explained this in our previous blogpost</a>):</p>
-
-<pre><code>&gt; MULTI
-&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
-&gt; ZRANGE $accessToken 0 -1
-&gt; ZADD $accessToken $now $now
-&gt; EXPIRE $accessToken $slidingWindow
-&gt; EXEC
-</code></pre>
-
-<p>Do you see why the rate limiter gets "flooded"?</p>
-
-<p>If you are thinking about the <code>ZADD</code> command, you're right!</p>
-
-<p>Even when we're not allowed to do an API call we still add a timestamp. We knew this and we agreed that this was okay for our use case. However, we're using a lower rate limit (compared to the old Instagram API), which resulted in a lot of internal rate limit reached exceptions for busy Instagram accounts.</p>
-
-<p>How can we solve this? It's important that we execute <code>ZRANGE</code> and <code>ZADD</code> in the same transaction. We want to avoid race conditions because the tasks that do these API calls are distributed. How can we check the result of <code>ZRANGE</code> before doing the <code>ZADD</code> command in the same transaction? <a href="https://github.com/itamarhaber">Itamar Haber</a> from <a href="https://redislabs.com/">Redis Labs</a> wrote a comment on our <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">previous blogpost</a> suggesting to <a href="https://gist.github.com/itamarhaber/254bac4283d1675c5a5569639b0322aa">use a Lua script</a> (Thanks, Itamar!). Using a Lua script we can execute Redis commands conditionally in an atomic way.</p>
-
-<p>This is what we came up with:</p>
-
-<pre><code class="lua">local token = KEYS[1]
-local now = tonumber(ARGV[1])
-local window = tonumber(ARGV[2])
-local limit = tonumber(ARGV[3])
-
-local clearBefore = now - window
-redis.call('ZREMRANGEBYSCORE', token, 0, clearBefore)
-
-local amount = redis.call('ZCARD', token)
-if amount &lt; limit then
-    redis.call('ZADD', token, now, now)
-end
-redis.call('EXPIRE', token, window)
-
-return limit - amount
-</code></pre>
-
-<p>Let's break it down (Yeah, yeah 🎶):</p>
-
-<ol>
-<li>Assign the script arguments to variables.</li>
-<li>Call <code>ZREMRANGEBYSCORE</code> to cleanup timestamps before the window.</li>
-<li>Instead of <code>ZRANGE</code> we'll use <code>ZCARD</code> to know how many calls we already did.</li>
-<li>Call <code>ZADD</code> when we've not reached the limit yet.</li>
-<li>Call <code>EXPIRE</code> to make sure the sorted set, that holds the timestamps, gets cleaned up after the window has passed.</li>
-</ol>
-
-<p>In PHP we can evaluate the script using <a href="https://github.com/phpredis/phpredis">https://github.com/phpredis/phpredis</a>:</p>
-
-<pre><code class="php">$this-&gt;redis-&gt;eval($script, [$key, $now, $window, $limit], 1);
-</code></pre>
-
-<p>This works great. Our tasks are now doing as much API calls as possible without flooding the rate limiter. 👏😎</p>
-
-        </div>
-                    <h5 class="tags-title">Tags:</h5 class="tags">
-            <ul class="tags-list">
-                                    <li>
-                        <a href="/blog/tags/Redis" class="tag">Redis</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Rate%20Limiting" class="tag">Rate Limiting</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/Sliding%20Window" class="tag">Sliding Window</a>                    </li>
-                                    <li>
-                        <a href="/blog/tags/API" class="tag">API</a>                    </li>
                             </ul>
             </article>
     <nav class="pager">
