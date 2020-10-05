@@ -3,9 +3,165 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/PHP.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-11-29T08:39:59+00:00</updated>
+    <updated>2020-10-05T12:39:05+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[A few tips for making your code easier to reason about]]></title>
+            <link href="/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about"/>
+            <updated>2020-10-05T14:30:00+00:00</updated>
+            <id>/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about</id>
+            <content type="html"><![CDATA[<p>It's been a long time since the last post! In previous posts, we already discussed some strategies for making our code easier to reason about by looking at Functional Programming concepts and integrating them in our own workflow. In this post, we go at the problem from a more traditional perspective and look at a few small things that can make our lives a lot easier (as well as the lives of the other people that need to check out our code)!</p>
+
+<h2 id="%F0%9F%8D%8D-%F0%9F%99%85%E2%80%8D%E2%99%82%EF%B8%8F-%F0%9F%8D%95-make-invalid-state-impossible-to-represent">🍍 🙅‍♂️ 🍕 Make invalid state impossible to represent</h2>
+
+<p>Let's say we are building an app that lets people order coffee from a local coffee shop. They pick the product they want to order from a list, and they have to put in the number of items they want to order (the quantity) per product that they picked.</p>
+
+<p>You could write something like</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 3);
+</code></pre>
+
+<p>If you wanted to buy three Espressos.</p>
+
+<p>The problem with this, is that we can easily pass a faulty value to that function:</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 0);
+</code></pre>
+
+<p>or</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), -2);
+</code></pre>
+
+<p>or even</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 3.14);
+</code></pre>
+
+<p>This can become a problem later on, for instance when we are calculating the price of the order. This means that our method needs to guard against faulty input values here, but it's impossible to know from the outside of the method if it does it or not. This will throw an exception:</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), -2);
+</code></pre>
+
+<p>But you don't know that. You need to go and look inside that method to know for sure. Also, you don't know <em>when</em> it will throw...</p>
+
+<p>PHP's type system could be of help in some cases (e.g. to prevent the float value, we could typehint for an integer), but in this case, we're missing a concept: <code>Quantity</code> which is a Value Object that represents the exact value that we need, a positive integer that's bigger than zero.</p>
+
+<p>The method now only accepts instances of that object, which means it doesn't need to do any additional checks.</p>
+
+<pre><code class="php">public function add(ProductId $id, Quantity $quantity): void
+{
+    // ...
+}
+</code></pre>
+
+<p>What's more, every time we pass a <code>Quantity</code> around, or when we are passed one, it's guaranteed to be a verified correct value:</p>
+
+<pre><code class="php">final class Quantity
+{
+    private $quantity;
+
+    public function __construct(int $quantity): Quantity
+    {
+        $this-&gt;assertBiggerThanZero($quantity);
+
+        $this-&gt;quantity = $quantity;
+    }
+
+    private function assertBiggerThanZero(int $quantity): void
+    {
+        if ($quantity &lt;= 0) {
+            throw new InvalidArgumentException('Quantity should be bigger than zero');
+        }
+    }
+}
+</code></pre>
+
+<h2 id="%F0%9F%A4%96-%E2%9E%A1%EF%B8%8F--%F0%9F%98%81--using-annotation-and-static-analysis-to-our-advantage">🤖 ➡️  😁  Using annotation and static analysis to our advantage</h2>
+
+<p>It's good to <em>know</em> that the <code>Quantity</code> object is a Value Object, because this makes it easy to reason about: it behaves like a value, it's immutable. Knowing this, you can forget about passing by reference and other headaches. It's even better if you can let other developers know:</p>
+
+<pre><code class="php">/**
+ * @immutable
+ */
+final class Quantity
+{
+    // ...
+}
+</code></pre>
+
+<p>You can get even more out of it, if you use <a href="https://psalm.dev/">psalm</a>. You can let psalm guard this property for you: if someone would add a method to the <code>Quantity</code> class that made it mutable, your tests would start failing:</p>
+
+<pre><code class="php">/**
+ * @psalm-immutable
+ */
+final class Quantity
+{
+    // ...
+}
+</code></pre>
+
+<p>At this point, you can be pretty sure that no mutation is going to happen. You can also annotate functions/methods like this to let others (and psalm) know that the function is "pure":</p>
+
+<pre><code class="php">/**
+ * @psalm-pure
+ */
+public function addOneFreeCoffee(Quantity $quantity): Quantity
+{
+    return new Quantity($quantity-&gt;toInt() + 1);
+}
+</code></pre>
+
+<p>This annotation makes it impossible to do anything in the body of this method that changes state, or even generates output. It becomes a lot easier to reason about this function: if you give it input <code>a</code>, it will always return output <code>b</code>. It won't magically pull out some random value, or a record from a database. It's <em>transparent</em>.</p>
+
+<h2 id="%E2%9C%85-%E2%9E%A1%EF%B8%8F--%F0%9F%93%96-your-tests-are-domain-expectations">✅ ➡️  📖 Your tests are domain expectations</h2>
+
+<p>Tests are often used as "a way to make sure our code works". While I don't disagree with that, I think good tests are way more valuable than that. If you're working in a Test-Driven manner, they provide confidence and flow during development. They help you to do safe refactors. But also, they document your code. Let's look at an example, would you rather find this:</p>
+
+<pre><code class="php">/**
+ * @test
+ */
+public function shippingIsFreeWhenYouOrderThreeOrMoreProductsAtLeastOneBigLatte()
+{
+    $cart = new Cart();
+
+    $cart-&gt;add(new ProductId('001-esspresso'), new Quantity(2));
+    $cart-&gt;add(new ProductId('002-lungo'), new Quantity(3));
+    $cart-&gt;add(new ProductId('003-latte-big'), new Quantity(1));
+
+    $cart-&gt;checkout();
+
+    $this-&gt;assertTrue($cart-&gt;freeShipping())
+}
+</code></pre>
+
+<p>or this:</p>
+
+<pre><code class="php">/**
+ * @test
+ */
+public function shippingIsFreeWhenYouOrderThreeOrMoreProductsAtLeastOneBigLatte()
+{
+    $cart = new Cart();
+
+    $cart = $this-&gt;givenTheCartContainsThreeOrMoreProducts($cart);
+    $cart = $this-&gt;andTheCartContainsOneOrMoreBigLattes($cart);
+
+    $cart = $this-&gt;whenTheCartIsCheckedOut($cart);
+
+    $this-&gt;thenShippingShouldBeFree($cart);
+}
+</code></pre>
+
+<p>When you look at the first example, the domain rule is expressed in the name of the test only, the test code itself doesn't help you in understanding the actual rule that we're testing. You can see how the <code>Cart</code> is used, but you'll have a harder time finding out or validating what the actual rule is that's being tested. In the second example, there's no chance of missing the domain rule. The domain language is used to express the problem as if you were talking about it. It's a bit harder to see how the <code>Cart</code> is used, but it's easy to click through to the implementation of those methods to see the actual implementations.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Using three simple concepts, we can give our brains a bit of rest when looking at the code because they don't need to keep as much information in "working memory" to understand it.
+I hope these tips will help you to make your code easier to grasp for yourself and your coworkers! Hope to see you for the next post!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Why Inheritance Makes Me Cry]]></title>
             <link href="/blog/2019/07/05/why-inheritance-makes-me-cry"/>
@@ -1508,154 +1664,6 @@ var_dump(div(10, 0)-&gt;bind(@square)); // []
 <li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
 <li>...</li>
 </ul>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Wishful Development]]></title>
-            <link href="/blog/2018/02/05/wishful-development"/>
-            <updated>2018-02-05T14:00:00+00:00</updated>
-            <id>/blog/2018/02/05/wishful-development</id>
-            <content type="html"><![CDATA[<p>In this blogpost I'm going to try and explain the main way I solve problems by delaying things that I don't want to think about at the time that I'm solving them. I use "wishful thinking" for that (hence the title of this blog post), but I guess this could also be called <em>Interface Discovery</em>. Let's look at a specific problem:
-For the CoffeeRun application that we used as an example in <a href="/blog/2017/11/15/refactoring-to-collections/">previous posts</a>, we want to make a tool that compares prices of a given drink between a list of shops in our neighbourhood. What's interesting to us is the comparison logic:</p>
-
-<ol>
-<li>We ask the tool to find the cheapest {drink of a certain type}</li>
-<li>The tool shows us the cheapest coffee shop in our neighbourhood where we can get a {drink of that type}</li>
-</ol>
-
-<h2 id="wishful-thinking">Wishful Thinking</h2>
-
-<p>Let's write that in a very naïve way: I wish there was a comparison class with a method to find the cheapest drink.</p>
-
-<pre><code class="php">final class CompareCoffeeShops
-{
-    public function findCheapest(Drink $drink): CoffeeShop
-    {
-        $cheapestShop = array_reduce(
-            $this-&gt;shops,
-            function($cheapestShop, $nextShop) use ($drink) {
-                $cheapestPrice = $cheapestShop-&gt;getPriceFor($drink);
-                $nextPrice = $nextShop-&gt;getPriceFor($drink);
-
-                if ($nextPrice-&gt;lowerThan($cheapestPrice)) {
-                    return $nextShop;
-                }
-
-                return $cheapestShop;
-            },
-            reset($this-&gt;shops)
-        );
-
-        return $cheapestShop;
-    }
-}
-</code></pre>
-
-<p>We just made assumptions about <em>everything</em>. Let's see.</p>
-
-<ol>
-<li><p>We assumed there was a <code>Drink</code> class. There wasn't, so let's make it happen:</p>
-
-<pre><code class="php">final class Drink
-{
-    private $name;
-
-    public function __construct(string $name)
-    {
-        $this-&gt;name = $name;
-    }
-}
-</code></pre></li>
-<li><p>We assumed there was a list of coffee shops, oops, there was no such thing. Let's fix that by adding a constructor parameter:</p>
-
-<pre><code class="php">final class CompareCoffeeShops
-{
-    private $shops;
-
-    public function __construct(array $shops)
-    {
-        $this-&gt;shops = $shops;
-    }
-
-    public function findCheapest(Drink $drink): CoffeeShop
-    {
-        // ...
-    }
-}
-</code></pre></li>
-<li><p>Each <code>CoffeeShop</code> in the list seems to have a <code>getPriceFor(Drink)</code> method which returns a <code>Price</code>...</p>
-
-<pre><code class="php">interface CoffeeShop
-{
-    public function getPriceFor(Drink $drink): Price;
-}
-</code></pre></li>
-<li><p>Talking about <code>Price</code>, how do prices look? They certainly seem to have a <code>lowerThan(Price)</code> method</p>
-
-<pre><code class="php">final class Price
-{
-    private $price;
-
-    public function __construct(int $price)
-    {
-        $this-&gt;price = $price;
-    }
-
-    public function lowerThan(Price $other): bool
-    {
-        return $this-&gt;price &lt; $other-&gt;price;
-    }
-}
-</code></pre></li>
-</ol>
-
-<p>Let's write a test too:</p>
-
-<pre><code class="php">&lt;?php
-
-use PHPUnit\Framework\TestCase;
-
-class CompareCoffeeShopsTest extends TestCase
-{
-    public function test_it_finds_the_cheapest_cappuccino()
-    {
-        $shop1 = $this-&gt;createMock('CoffeeShop');
-        $shop1-&gt;method('getPriceFor')-&gt;willReturn(new Price(200));
-
-        $shop2 = $this-&gt;createMock('CoffeeShop');
-        $shop2-&gt;method('getPriceFor')-&gt;willReturn(new Price(195));
-
-        $shop3 = $this-&gt;createMock('CoffeeShop');
-        $shop3-&gt;method('getPriceFor')-&gt;willReturn(new Price(250));
-
-        $shops = array($shop1, $shop2, $shop3);
-
-        $comparisons = new CompareCoffeeShops($shops);
-
-        $cheapest = $comparisons-&gt;findCheapest(new Drink('Cappuccino'));
-
-        $this-&gt;assertEquals($shop2, $cheapest);
-    }
-}
-</code></pre>
-
-<p>Wait, what? The test passes! (I know, I know, it's not complete...)</p>
-
-<h2 id="why-is-this-great%3F">Why is this great?</h2>
-
-<p>We just tested and implemented most of the comparison logic through "wishful thinking" (although in a very naïve way). The details about looking up the real prices of a cappuccino in all shops in our neighbourhood were left out. We didn't need them! We actually wrote the most important thing first, how to compare drinks in multiple shops and find the cheapest place to buy our cappuccino! Nothing even hints at trying to scrape their websites (god forbid) and we can actually give up on that temporarily and implement a hardcoded list of shops and their inventories until we find the courage needed to scrape coffeeshop websites 😱!</p>
-
-<p>In fact, look at the interface that we need to implement to get this to work:</p>
-
-<pre><code class="php">interface CoffeeShop
-{
-    public function getPriceFor(Drink $drink): Price;
-}
-</code></pre>
-
-<p>It's so simple! We could implement this however we want, e.g. have some shops with hardcoded inventories, others with webscrapers. None of our code needs to know about the specific implementation of the shops, it already knows about the available methods. And as a bonus, we didn't write any code we didn't need.</p>
-
-<p>Think about it: if you can imagine it, it already works. Have fun programming! 🖖</p>
 ]]></content>
         </entry>
     </feed>

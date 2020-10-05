@@ -3,9 +3,165 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Development.xml" rel="self"/>
     <link href="/"/>
-    <updated>2019-11-29T08:39:59+00:00</updated>
+    <updated>2020-10-05T12:39:05+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[A few tips for making your code easier to reason about]]></title>
+            <link href="/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about"/>
+            <updated>2020-10-05T14:30:00+00:00</updated>
+            <id>/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about</id>
+            <content type="html"><![CDATA[<p>It's been a long time since the last post! In previous posts, we already discussed some strategies for making our code easier to reason about by looking at Functional Programming concepts and integrating them in our own workflow. In this post, we go at the problem from a more traditional perspective and look at a few small things that can make our lives a lot easier (as well as the lives of the other people that need to check out our code)!</p>
+
+<h2 id="%F0%9F%8D%8D-%F0%9F%99%85%E2%80%8D%E2%99%82%EF%B8%8F-%F0%9F%8D%95-make-invalid-state-impossible-to-represent">🍍 🙅‍♂️ 🍕 Make invalid state impossible to represent</h2>
+
+<p>Let's say we are building an app that lets people order coffee from a local coffee shop. They pick the product they want to order from a list, and they have to put in the number of items they want to order (the quantity) per product that they picked.</p>
+
+<p>You could write something like</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 3);
+</code></pre>
+
+<p>If you wanted to buy three Espressos.</p>
+
+<p>The problem with this, is that we can easily pass a faulty value to that function:</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 0);
+</code></pre>
+
+<p>or</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), -2);
+</code></pre>
+
+<p>or even</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 3.14);
+</code></pre>
+
+<p>This can become a problem later on, for instance when we are calculating the price of the order. This means that our method needs to guard against faulty input values here, but it's impossible to know from the outside of the method if it does it or not. This will throw an exception:</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), -2);
+</code></pre>
+
+<p>But you don't know that. You need to go and look inside that method to know for sure. Also, you don't know <em>when</em> it will throw...</p>
+
+<p>PHP's type system could be of help in some cases (e.g. to prevent the float value, we could typehint for an integer), but in this case, we're missing a concept: <code>Quantity</code> which is a Value Object that represents the exact value that we need, a positive integer that's bigger than zero.</p>
+
+<p>The method now only accepts instances of that object, which means it doesn't need to do any additional checks.</p>
+
+<pre><code class="php">public function add(ProductId $id, Quantity $quantity): void
+{
+    // ...
+}
+</code></pre>
+
+<p>What's more, every time we pass a <code>Quantity</code> around, or when we are passed one, it's guaranteed to be a verified correct value:</p>
+
+<pre><code class="php">final class Quantity
+{
+    private $quantity;
+
+    public function __construct(int $quantity): Quantity
+    {
+        $this-&gt;assertBiggerThanZero($quantity);
+
+        $this-&gt;quantity = $quantity;
+    }
+
+    private function assertBiggerThanZero(int $quantity): void
+    {
+        if ($quantity &lt;= 0) {
+            throw new InvalidArgumentException('Quantity should be bigger than zero');
+        }
+    }
+}
+</code></pre>
+
+<h2 id="%F0%9F%A4%96-%E2%9E%A1%EF%B8%8F--%F0%9F%98%81--using-annotation-and-static-analysis-to-our-advantage">🤖 ➡️  😁  Using annotation and static analysis to our advantage</h2>
+
+<p>It's good to <em>know</em> that the <code>Quantity</code> object is a Value Object, because this makes it easy to reason about: it behaves like a value, it's immutable. Knowing this, you can forget about passing by reference and other headaches. It's even better if you can let other developers know:</p>
+
+<pre><code class="php">/**
+ * @immutable
+ */
+final class Quantity
+{
+    // ...
+}
+</code></pre>
+
+<p>You can get even more out of it, if you use <a href="https://psalm.dev/">psalm</a>. You can let psalm guard this property for you: if someone would add a method to the <code>Quantity</code> class that made it mutable, your tests would start failing:</p>
+
+<pre><code class="php">/**
+ * @psalm-immutable
+ */
+final class Quantity
+{
+    // ...
+}
+</code></pre>
+
+<p>At this point, you can be pretty sure that no mutation is going to happen. You can also annotate functions/methods like this to let others (and psalm) know that the function is "pure":</p>
+
+<pre><code class="php">/**
+ * @psalm-pure
+ */
+public function addOneFreeCoffee(Quantity $quantity): Quantity
+{
+    return new Quantity($quantity-&gt;toInt() + 1);
+}
+</code></pre>
+
+<p>This annotation makes it impossible to do anything in the body of this method that changes state, or even generates output. It becomes a lot easier to reason about this function: if you give it input <code>a</code>, it will always return output <code>b</code>. It won't magically pull out some random value, or a record from a database. It's <em>transparent</em>.</p>
+
+<h2 id="%E2%9C%85-%E2%9E%A1%EF%B8%8F--%F0%9F%93%96-your-tests-are-domain-expectations">✅ ➡️  📖 Your tests are domain expectations</h2>
+
+<p>Tests are often used as "a way to make sure our code works". While I don't disagree with that, I think good tests are way more valuable than that. If you're working in a Test-Driven manner, they provide confidence and flow during development. They help you to do safe refactors. But also, they document your code. Let's look at an example, would you rather find this:</p>
+
+<pre><code class="php">/**
+ * @test
+ */
+public function shippingIsFreeWhenYouOrderThreeOrMoreProductsAtLeastOneBigLatte()
+{
+    $cart = new Cart();
+
+    $cart-&gt;add(new ProductId('001-esspresso'), new Quantity(2));
+    $cart-&gt;add(new ProductId('002-lungo'), new Quantity(3));
+    $cart-&gt;add(new ProductId('003-latte-big'), new Quantity(1));
+
+    $cart-&gt;checkout();
+
+    $this-&gt;assertTrue($cart-&gt;freeShipping())
+}
+</code></pre>
+
+<p>or this:</p>
+
+<pre><code class="php">/**
+ * @test
+ */
+public function shippingIsFreeWhenYouOrderThreeOrMoreProductsAtLeastOneBigLatte()
+{
+    $cart = new Cart();
+
+    $cart = $this-&gt;givenTheCartContainsThreeOrMoreProducts($cart);
+    $cart = $this-&gt;andTheCartContainsOneOrMoreBigLattes($cart);
+
+    $cart = $this-&gt;whenTheCartIsCheckedOut($cart);
+
+    $this-&gt;thenShippingShouldBeFree($cart);
+}
+</code></pre>
+
+<p>When you look at the first example, the domain rule is expressed in the name of the test only, the test code itself doesn't help you in understanding the actual rule that we're testing. You can see how the <code>Cart</code> is used, but you'll have a harder time finding out or validating what the actual rule is that's being tested. In the second example, there's no chance of missing the domain rule. The domain language is used to express the problem as if you were talking about it. It's a bit harder to see how the <code>Cart</code> is used, but it's easy to click through to the implementation of those methods to see the actual implementations.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Using three simple concepts, we can give our brains a bit of rest when looking at the code because they don't need to keep as much information in "working memory" to understand it.
+I hope these tips will help you to make your code easier to grasp for yourself and your coworkers! Hope to see you for the next post!</p>
+]]></content>
+        </entry>
             <entry>
             <title type="html"><![CDATA[Some Pairing and Mobbing takeaways]]></title>
             <link href="/blog/2019/10/29/some-pairing-and-mobbing-take-aways"/>
@@ -1167,251 +1323,6 @@ double 4 = 8
 <p>Some great things to do in Slack are to Leave channels you don't use, and to use the Mute 🔇 functionality on channels that are not urgent but you can't really leave. Of course, I disabled Slack's notification sounds by default.</p>
 
 <p>I hope these tips were helpful, they certainly help me concentrate a bit better. If you think of anything else, comment below, I want to hear it! Happy pair programming!</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Lambda To The Rescue: Lists to wrap failure]]></title>
-            <link href="/blog/2018/03/02/lambda-lists-to-wrap-failure"/>
-            <updated>2018-03-02T11:00:00+00:00</updated>
-            <id>/blog/2018/03/02/lambda-lists-to-wrap-failure</id>
-            <content type="html"><![CDATA[<p><strong>This is the first post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Hang tight for more.</strong></p>
-
-<h2 id="readability">Readability</h2>
-
-<p>When we're reading code, one of the most important blocking factors is cognitive overhead. Minimize it, and your code instantly becomes easier to read and understand. Or is it the other way 'round? After some years of playing with functional programming languages in my spare time, I saw some things that functional programming does great in this field. One of them involves lists.</p>
-
-<p>As you might know, lists are among the most important datastructures in functional programming, if not the most important. There's even a whole family of programming languages that took their name from them. Looking at you <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> 😘!</p>
-
-<p>Let's dive in with a typical legacy PHP method discovered in the wild:</p>
-
-<pre><code class="php">&lt;?php
-
-function words($string)
-{
-    if (empty($string)) {
-        return false;
-    }
-
-    return explode(' ', $string);
-}
-
-var_dump(words('')); // returns false
-var_dump(words('foo bar baz')); // returns ['foo', 'bar', 'baz'];
-</code></pre>
-
-<p>The reason the <code>empty</code> check is there, apparently, is that <code>explode(' ', $s)</code> with an empty string will return <code>['']</code> a list with an empty string in it, which is really strange and non-desirable. Arguably, if the <code>$string</code> variable can't be empty, we should throw an exception. But let's say we want to explore our options here. Before I look into the body of a function, I always try to understand it as a black blox.</p>
-
-<blockquote>
-  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string. Except that for empty strings, it will return <code>false</code>.</p>
-</blockquote>
-
-<p>Now, the "black box" already has some mystery to it. Why does it return <code>false</code>? Let's defer the answer to it, and check out if we can write the PHP7 type annotations for it.</p>
-
-<pre><code class="php">function words(string $string): array
-{
-    // ...
-}
-</code></pre>
-
-<p>Now, this is not correct. The exception that is made for empty strings can't be written as a type. In old-skool PHP they would've written a DocBlock like this:</p>
-
-<pre><code class="php">/**
- * @param string $string
- * @return array|false depending on failure
- */
-function words($string)
-{
-    // ...
-}
-</code></pre>
-
-<p>But that is a type signature that is unrepresentable usinig PHP7 types. What if we would represent failure using an empty array?</p>
-
-<pre><code class="php">function words(string $string): array
-{
-    if (empty($string)) {
-        return array();
-    }
-
-    return explode(' ', $string);
-}
-</code></pre>
-
-<p>Now the type signature just works. We turned "failure" into a valid result that we can work with. For instance, all code that works with the return value of this method can now just work with arrays. The type signature now tells a story about the function too:</p>
-
-<blockquote>
-  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string.</p>
-</blockquote>
-
-<p>The base case where the string is empty is now logical: an empty string has no words, so a list of 0 words is returned.</p>
-
-<h2 id="chaining-calls">Chaining calls</h2>
-
-<p>Now, let's say we have a function <code>chars</code> that returns a list of chars in a string:</p>
-
-<pre><code class="php">function chars(string $string): array
-{
-    if (empty($string)) {
-        return array();
-    }
-
-    return str_split($string);
-}
-</code></pre>
-
-<p>We're thinking we should be able to use this to list all the characters that appear within words. Would this work?</p>
-
-<pre><code class="php">chars(words('foo bar baz'));
-</code></pre>
-
-<p>No... We get a fatal error <code>Fatal error: Uncaught TypeError: Argument 1 passed to chars() must be of the type string, array given</code>. Of course, the result of <code>words</code> is an array, which cannot be used as input to our <code>chars</code> function. Let's use <code>array_map</code>:</p>
-
-<pre><code class="php">array_map(@chars, words('foo bar baz'));
-</code></pre>
-
-<p><em>don't worry about the <code>@</code>, it's a trick that I learned while working on <a href="https://github.com/mathiasverraes/lambdalicious/">lambdalicious</a>. <code>@</code> is PHP's error suppressing operator. In this case it allows us to write a function's name as a string, without using string notation, so that it's visually different from a string, BUT is interpreted by PHP as a string...</em></p>
-
-<p>We get this:</p>
-
-<pre><code class="php">[["f","o","o"],["b","a","r"],["b","a","z"]]
-</code></pre>
-
-<p>Of course, after mapping <code>chars</code> over the words, this is what we get... But actually, we wanted this:</p>
-
-<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
-</code></pre>
-
-<p>So how do we get there? We "flatten" the arrays by using <code>concat</code>, which does not exist in php. Let's write it ourselves:</p>
-
-<pre><code class="php">function array_concat(array $arrays): array
-{
-    return call_user_func_array(
-        @array_merge,
-        array_merge(array(array()), $arrays)
-    );
-}
-</code></pre>
-
-<p>Now we can use it to flatten the array:</p>
-
-<pre><code class="php">array_concat(array_map(@chars, words('foo bar baz')));
-</code></pre>
-
-<p>TADAAAA 😆 We get what we wanted!</p>
-
-<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
-</code></pre>
-
-<p>Let's call this combination of <code>array_map</code> and <code>array_concat</code> <code>array_bind</code> for now:</p>
-
-<pre><code class="php">function array_bind(array $array, $f)
-{
-    return array_concat(array_map($f, $array));
-}
-</code></pre>
-
-<p><code>array_bind</code> takes an array of values, and a function that operates of one of those values and returns an array. It returns a new array of values.</p>
-
-<pre><code class="php">array_bind(array_bind(array('foo bar baz'), @words), @chars);
-// returns ["f","o","o","b","a","r","b","a","z"]
-</code></pre>
-
-<p>Now that we have the <code>array_bind</code> function, we can apply functions to something in an array, and the result will always be an array! What happens if we first bind <code>words</code> and then bind <code>chars</code> to an empty string?</p>
-
-<pre><code class="php">array_bind(array_bind(array(''), @words), @chars); // returns []
-</code></pre>
-
-<p>We get an empty array back, which is great!</p>
-
-<p>You saw me wrap the empty string in an array, to be able to use <code>array_bind</code>. This is an act of "providing context". The array serves as a context wrapper for results of the chained functions <code>words</code> and <code>chars</code>. We'll always get our result as an array. If anywhere in the process something fails, we get an empty array, otherwise we get an array with value(s) in it.</p>
-
-<p>I must admit, this doesn't look really great. Let's take a look at how this works in <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
-
-<p>Now, this is the equivalent of what we wrote earlier on in PHP:</p>
-
-<pre><code class="haskell">pure "" &gt;&gt;= words &gt;&gt;= chars
-</code></pre>
-
-<pre><code class="haskell">pure "foo bar baz" &gt;&gt;= words &gt;&gt;= chars
-</code></pre>
-
-<p>These return <code>[]</code> and <code>["f","o","o","b","a","r","b","a","z"]</code>, as expected, but how?</p>
-
-<ul>
-<li><code>pure</code> wraps the string in our "wrapper" list.</li>
-<li><code>&gt;&gt;=</code> is the <code>bind</code> infix function; it takes the "wrapped" value on the left, and applies the function on the right to the wrapped value. It then returns a new wrapped value.</li>
-<li><code>words</code> takes a <code>String</code> and returns a list of strings <code>[String]</code>, split by spaces. It's in Haskell's default module <code>Prelude</code>.</li>
-<li><p><code>chars</code> is a function we made up, it takes a <code>String</code> and returns a list of strings <code>[String]</code>. By default, <code>String</code>s in Haskell are lists of <code>Char</code>s. To break up a given string in a list of strings that represent chars we need to map over the input string. The mapping function <code>(\x -&gt; [x])</code> gets a <code>Char</code> as input and returns a <code>String</code> by wrapping the given <code>Char</code> in a list; check it out:</p>
-
-<pre><code class="haskell">chars :: String -&gt; [String]
-chars s = map (\x -&gt; [x]) s
-</code></pre></li>
-</ul>
-
-<p>As you can see, Haskell was made for this kind of stuff... It also reads a lot better than our PHP implementation.</p>
-
-<h2 id="expanding-on-this-concept">Expanding on this concept</h2>
-
-<p>The reason this doesn't really work in PHP is that we don't have infix operators at our disposal. I've seen <a href="https://github.com/phunkie/phunkie">libraries</a> that do something with method calls along these lines:</p>
-
-<pre><code class="php">pure('foo bar baz')-&gt;bind(@words)-&gt;bind(@chars);
-</code></pre>
-
-<p>which already looks a lot better than what we came up with. Failure can be encapsulated. There's a lot less boilerplate code to read. There's no checking for empty arrays or failure, while it still behaves as we wanted.</p>
-
-<ul>
-<li><code>pure()</code> wraps the value in an object.</li>
-<li><code>bind()</code> is equivalent to returning a new wrapper object with the result of the applied function to the previously wrapped value. Internally it could all work using <code>arrays</code>, but it could just as well be done differently.</li>
-</ul>
-
-<p>For now, we've always worked with functions that return a number of results, but this whole concept can just as well be used with functions that are supposed to return a single result, like integer division <code>div</code>:</p>
-
-<pre><code class="php">function div(int $divident, int $divisor): WrappedValue
-{
-    if ($divisor === 0) {
-        return nothing();
-    }
-
-    return pure(intdiv($divident, $divisor));
-}
-</code></pre>
-
-<p>Now, we created an integer division function that doesn't throw <code>DivisionByZeroError</code> exceptions, but uses this system of <code>WrappedValue</code>s to wrap it's return value on success (using <code>pure</code>, equivalent to an array with a value) or on failure (using <code>nothing</code>, equivalent to an empty array). Now, if we want to square the result of this, we can just bind <code>square</code> to the result of the previous computation.</p>
-
-<pre><code class="php">function square(int $number): WrappedValue
-{
-    return pure($number * $number);
-}
-
-var_dump(div(10, 2)-&gt;bind(@square)); // [25]
-var_dump(div(10, 0)-&gt;bind(@square)); // []
-</code></pre>
-
-<p>As with the previous examples, we can now just focus on the order of computation, without the need to worry about failure in the in-between steps.</p>
-
-<p>There are also ways to make this whole thing even more interesting by providing more info like error messages in case of failure.</p>
-
-<h2 id="day-to-day-usage">Day-to-day usage</h2>
-
-<p>I'm not saying this is perfect for everything in OOP by any means, but we might want to think about how we handle failure in our (legacy) systems. I sometimes see trees of exception handling and boolean/null-checks on return values. This is a third option (PHP doesn't have option types by default); In lots of ways, the classic <a href="https://en.wikipedia.org/wiki/Null_object_pattern">Null Object</a> pattern resembles this whole thing in a more Object Oriented way. In many functional programming languages this is actually the most widely used means of error handing. If you want to know more about it, I suggest reading up on <code>Functors</code>, <code>Applicatives</code>, and <code>Monads</code>. Scary names for new concepts, don't let them hold you back.</p>
-
-<p>If you want to do the most simple and useful thing: think about how your functions behave. What goes in, what comes out? Writing the type annotations helps a lot. And of course, throwing exceptions is not a sin.</p>
-
-<p>Happy programming y'aλλ! 👋</p>
-
-<h2 id="what%27s-next%3F">What's next?</h2>
-
-<p>Upcoming <em>lambda to the rescue</em> posts will be linked here:</p>
-
-<ul>
-<li>Lists to wrap failure (this post)</li>
-<li><a href="/blog/2018/06/04/lambda-pure-functions">Pure Functions</a></li>
-<li><a href="/blog/2018/06/27/lambda-recursion">Recursion</a></li>
-<li><a href="/blog/2018/10/08/lambda-monoids">Monoids</a></li>
-<li><a href="/blog/2018/11/28/lambda-syntax">Syntax</a></li>
-<li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
-<li>...</li>
-</ul>
 ]]></content>
         </entry>
     </feed>
