@@ -3,7 +3,7 @@
     <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
     <link href="/blog/tags/Unit Tests.xml" rel="self"/>
     <link href="/"/>
-    <updated>2020-10-05T12:39:05+00:00</updated>
+    <updated>2020-10-05T12:57:25+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -11,7 +11,7 @@
             <link href="/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about"/>
             <updated>2020-10-05T14:30:00+00:00</updated>
             <id>/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about</id>
-            <content type="html"><![CDATA[<p>It's been a long time since the last post! In previous posts, we already discussed some strategies for making our code easier to reason about by looking at Functional Programming concepts and integrating them in our own workflow. In this post, we go at the problem from a more traditional perspective and look at a few small things that can make our lives a lot easier (as well as the lives of the other people that need to check out our code)!</p>
+            <content type="html"><![CDATA[<p>It's been a long time since the last post! In <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure/">previous posts</a>, we already discussed some strategies for making our code easier to reason about by looking at Functional Programming concepts and integrating them in our own workflow. In this post, we go at the problem from a more traditional perspective and look at a few small things that can make our lives a lot easier (as well as the lives of the other people that need to check out our code)!</p>
 
 <h2 id="%F0%9F%8D%8D-%F0%9F%99%85%E2%80%8D%E2%99%82%EF%B8%8F-%F0%9F%8D%95-make-invalid-state-impossible-to-represent">🍍 🙅‍♂️ 🍕 Make invalid state impossible to represent</h2>
 
