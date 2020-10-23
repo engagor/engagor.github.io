@@ -1,17 +1,131 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
-    <link href="/blog/tags/Mob Programming.xml" rel="self"/>
-    <link href="/"/>
-    <updated>2020-10-23T07:50:35+00:00</updated>
-    <id>/</id>
-        <generator uri="http://sculpin.io/">Sculpin</generator>
-            <entry>
-            <title type="html"><![CDATA[How to get the most out of a discussion?]]></title>
-            <link href="/blog/2020/10/23/how-to-get-the-most-out-of-a-discussion"/>
-            <updated>2020-10-23T10:00:00+00:00</updated>
-            <id>/blog/2020/10/23/how-to-get-the-most-out-of-a-discussion</id>
-            <content type="html"><![CDATA[<p>In our team, we have discussions all the time. It's a very useful way to get everyone on the same page, or to make decisions that will stick for some time. Here are some strategies that I use to get more out of a discussion.</p>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>How to get the most out of a discussion? &mdash; Clarabridge Engage Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="image" content="/images/share-img.png">
+        <meta property="og:image" content="/images/share-img.png"/>
+        <meta name="twitter:image" content="/images/share-img.png"/>
+            <meta name="robots" content="index, follow">
+        <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Clarabridge Engage Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd nav-developers-bkgd-post">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="https://developers.engagor.com/" class="primary">
+                            Clarabridge Development
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://developers.engagor.com/documentation" class="primary <!-- if 
+Notice: Array to string conversion in /data/jenkins/workspace/Dev Blog/vendor/twig/twig/lib/Twig/Environment.php(421) : eval()'d code on line 143
+Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title nav-developers-bkgd-post">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                             </h1>
+                </div>
+            </nav>
+        </header>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                    <li class="post-metadata post-metadata-author clearfix">
+        <div class="post-metadata-data">
+                            <div class="author-avatar left">
+                    <img src="https://www.gravatar.com/avatar/37d852cb5b9e8d571fa295feb0b4a3cc" alt="Toon Daelman avatar" />
+                </div>
+                        <div class="author-details">
+                                <div class="author-name">
+                    <strong>Toon Daelman</strong>
+                </div>
+                                <div class="post-publish-date">
+                    <time class="post-publish-date" datetime="2020-10-23T10:00:00+00:00" pubdate>
+                        <span class='month'>Oct</span> <span class='day'>23rd</span> <span class='year'>2020</span>
+                    </time>
+                </div>
+            </div>
+        </div>
+    </li>
+                    <li class="post-metadata clearfix">
+        <div class="post-metadata-data">
+                            <p class="tags">
+                                    <a href="/blog/tags/Mob%20Programming" class="tag">Mob Programming</a>                                    <a href="/blog/tags/People" class="tag">People</a>                                    <a href="/blog/tags/Team" class="tag">Team</a>                                </p>
+                    </div>
+    </li>
+            </ul>
+            <div class="right dev-content-block">
+                    <article>
+        <h1>How to get the most out of a discussion?</h1>
+        <div>
+            <p>In our team, we have discussions all the time. It's a very useful way to get everyone on the same page, or to make decisions that will stick for some time. Here are some strategies that I use to get more out of a discussion.</p>
 
 <h2 id="%E2%9A%BD%EF%B8%8F-%F0%9F%A5%85-state-your-goals">⚽️ 🥅 State your goals</h2>
 
@@ -144,121 +258,77 @@
 <h2 id="%F0%9F%96%96-%F0%9F%99%87%E2%80%8D%E2%99%82%EF%B8%8F-outro">🖖 🙇‍♂️ Outro</h2>
 
 <p>That's it for this post, thanks for reading all the way through to the end! I'm definitely not an expert in leading conversations and I have my flaws (some of them have remedies listed in this post). All of us have a lot to learn, and hopefully these strategies help you to get the most out of your discussions! See you in the next post! 👋</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Some Pairing and Mobbing takeaways]]></title>
-            <link href="/blog/2019/10/29/some-pairing-and-mobbing-take-aways"/>
-            <updated>2019-10-29T13:30:00+00:00</updated>
-            <id>/blog/2019/10/29/some-pairing-and-mobbing-take-aways</id>
-            <content type="html"><![CDATA[<p>As you could already read in <a href="/blog/2018/12/07/one-month-of-pairing">one of our previous posts</a>, we started working in pairs some time ago. Now there's also some Mob Programming being done from time to time, and we started automatically doing some things to make our own lives easier. Some examples:</p>
 
-<h2 id="%F0%9F%9B%8B-%F0%9F%93%BA-make-yourself-comfortable">🛋 📺 Make yourself comfortable</h2>
+        </div>
 
-<p><img src="/images/2019-11-29-some-pairing-and-mobbing-take-aways/mobbing-team.jpg" alt="Keyboard Switcher in macOS" /></p>
+                    <p class="categories">
+                <strong><span class="en-icon en-icon-folder-open"></span> Categories:</strong>
+                                <a href="/blog/categories/Team">Team</a>                            </p>
+        
+                    <nav class="article surrounding-articles clearfix">
+                                    <p class="left">Previous: <a class="previous" href="/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about" title="A few tips for making your code easier to reason about">&larr; <span class="title">A few tips for making your code easier to reason about</span> </a></p>
+                                            </nav>
+            </article>
 
-<p>Make sure everyone has a good chair and good visibility of the screen you're working on. If you're pairing, this means that you should work on an external screen of some kind, instead of on a laptop. Make sure there's enough light, not too much noise, and that everyone has drinks and food if they need it.</p>
+        <div class="disqus_container">
+        <div id="disqus_thread" class="clearfix"></div>
+    </div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'engagor-dev-blog'; // required: replace example with your forum shortname
 
-<p>You can work best if you're not focussing on something else. Taking away small distractions like restlessness or poor visibility of the screen can do wonders!</p>
 
-<h2 id="%E2%8C%A8%EF%B8%8F%F0%9F%92%BB-set-your-machine-up-for-everyone">⌨️💻 Set your machine up for everyone</h2>
+        
+        
+        
+        
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the
+        <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+    
+            </div>
+        </div>
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                <div class="left">
+                    &copy;2020 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
+            </div>
+        </footer>
 
-<p>Make sure the machine you're working on is set up so that you can switch drivers often and so that every driver is working comfortably on it. Of course, it's mostly impossible to all agree on the same set of shortcuts and keyboard setups, but we found a great compromise:</p>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-<p><img src="/images/2019-11-29-some-pairing-and-mobbing-take-aways/keyboard-switcher.png" alt="Keyboard Switcher in macOS" /></p>
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
 
-<ul>
-<li>On macOS you can make the keyboard settings available from the top bar so that you can really quickly switch keyboard layouts</li>
-<li>In PhpStorm or other editors, there are options to export your settings and import other ones. I just created a backup of my settings by exporting them and I ask everyone at the beginning of the session to send me their configs. When they start, they can select their own config from my desktop! After the session I can easily restore my own settings.</li>
-<li>On macOS it's also possible to connect multiple Bluetooth keyboards, mice, etc. We have an AZERTY and a QUERTY keyboard available, as well as a trackpad and a mouse. They are easily passed on and ready to use by the next driver!</li>
-</ul>
-
-<p>These three small changes come a long way to make you feel as if you're working on your own machine!</p>
-
-<h2 id="%E2%9B%94%EF%B8%8F%F0%9F%93%B1-only-allow-one-screen">⛔️📱 Only allow one screen</h2>
-
-<p>Being distracted already came up in the previous tip, but here we go again! Ask everyone in the room to put their phones on silent and put them in their pockets. Ask them to close their laptops, they're not going to need them. If you need to look something up, or if you're unsure about what a given piece of code does, ask the driver to put it on the big screen.</p>
-
-<p>This way, nobody dives off into their own cocoon and let their minds escape the group's focus.</p>
-
-<h2 id="%F0%9F%8E%A8%E2%97%BB%EF%B8%8F--to-the-drawing-board">🎨◻️  To the drawing board</h2>
-
-<p>Try to find a way to make things visible. If you have a whiteboard available, great! Do you have a wall? Use stickies or put up big pieces of paper. As a last resort, there's still just pieces of paper that you can draw on. Just make sure that you can make something visible so that you have something to talk about when a discussion is in order.</p>
-
-<h2 id="%F0%9F%98%B0-%E2%9E%A1-%F0%9F%98%81-keeping-everyone-engaged">😰 ➡ 😁 Keeping everyone engaged</h2>
-
-<p>Two rules:</p>
-
-<ul>
-<li>Switch drivers often</li>
-<li>Take breaks often</li>
-</ul>
-
-<p>We use <a href="http://mobster.cc/">this simple app</a> to notify us when to switch and when to take breaks. If the app doesn't tell you to take a break but you feel like it anyway, just do it. You'll be more productive after the break.</p>
-
-<h2 id="%F0%9F%92%BB%F0%9F%8F%A1-remote-work-and-mobbing">💻🏡 Remote work and mobbing</h2>
-
-<ul>
-<li>Make sure both parties have a perfect internet connection</li>
-<li>Make sure the setup for audio is working properly. We use a Jabra kit that picks up less ambient noise and makes everything clear to understand</li>
-<li>Use e.g. Slack screen sharing features to your advantage: you can draw on the screen and you can switch drivers easily!</li>
-</ul>
-
-<p>Hope these takeaways can help you as well! Happy Mobbing!</p>
-]]></content>
-        </entry>
-            <entry>
-            <title type="html"><![CDATA[Experiment: Pair Programming By Default]]></title>
-            <link href="/blog/2018/12/07/one-month-of-pairing"/>
-            <updated>2018-12-07T16:00:00+00:00</updated>
-            <id>/blog/2018/12/07/one-month-of-pairing</id>
-            <content type="html"><![CDATA[<p>As you could already read in some of our <a href="/blog/2017/05/22/implementing-little-big-details-on-offsite-bootcamp">previous</a> <a href="/blog/2017/03/01/batman-chatman">blogposts</a>, we are a relatively small team, with some loose rules for working together. Up until one month ago, everyone just picked a project from the roadmap and started implementing, and there was a rotation system within the team to always have two people available to help out our support team to assess bugs &amp; fix issues respectively.</p>
-
-<h2 id="%F0%9F%92%AD%F0%9F%98%B0-about-silos-%26-issue-fatigue">💭😰 About Silos &amp; Issue-Fatigue</h2>
-
-<p>As you can imagine, this works really well for projects that are small and well defined, and for teams where everyone is of the same skill level, and has the same development practices. People are not in each other's ways, and you can "horizontally scale" your team. The only trouble is, we're a small team, we have senior and junior developer profiles, and our projects are mostly not so small. The result of this, is that the person implementing a feature is most likely the only one that <strong>really</strong> knows the feature inside out. So the <a href="https://en.wikipedia.org/wiki/Bus_factor">bus factor</a> for every feature was basically 1. For some features we had insane knowledge silos.</p>
-
-<p>There's a similar story to the support rotation system within the team: the people talking to support and fixing bugs most likely didn't implement the features where the bugs appeared. If they did, the bugs were quickly fixed, and if not, people had to try and understand code written by someone else that they'd never seen <strong>over and over</strong> again. Not ideal. And the result was that for me personally, weeks when I was Batman (yes that's how we call the lucky engineer that's solving bugs that week) were the most draining periods of the year.</p>
-
-<h2 id="%E2%9A%97%EF%B8%8F%F0%9F%94%AC-the-experiment">⚗️🔬 The Experiment</h2>
-
-<p>We do weekly roundups, and after an exhausting week of being Batman, I, expressed my feelings towards the Silos and the Batman weeks. The whole team actually agreed that the situation was not perfect, and we decided it was time for an experiment:</p>
-
-<ul>
-<li>Split up the (already small) team in two groups of people (3 to 4 people per group) that will always try to work together on the same feature.</li>
-<li>Start every day together with your team (at the same computer or over <a href="https://get.slack.help/hc/en-us/articles/216771908-Make-calls-in-Slack">Slack Voice Calls</a>) trying to solve issues or create features using Pair Programming techniques. Split up the team for "monkey-jobs".</li>
-<li>Both teams provide one team member per week to be Batman or Robin. They form their own team and tackle bugs together.</li>
-</ul>
-
-<p>We limited the scope of the experiment to the winter release, so 3 months. So far we did a (very limited) retrospective every week.</p>
-
-<h2 id="%F0%9F%91%A9%E2%80%8D%F0%9F%92%BB%F0%9F%91%A8%E2%80%8D%F0%9F%92%BB-what-have-we-learned-so-far%3F">👩‍💻👨‍💻 What have we learned so far?</h2>
-
-<p>We've only been doing this for 4 weeks, so I might be jumping to conclusions here. So far the experience has been positive!</p>
-
-<ul>
-<li>It's great to be able to verify your ideas immediately, and to try and build a shared understanding of the problem you're working on.</li>
-<li>Pair Programming is exhausting, but it works! We feel the velocity gain and the concentration boost. We find that we're writing better code. We feel productive.</li>
-<li>We're aware that it's exhausting and we take a lot of breaks, stop early when we're tired.</li>
-<li>We're using Slack as team communication tool, and when someone is working at home, we can just keep Pair Programming because of the built-in voice calls and screen sharing. Slack even allows you to share your mouse and keyboard with the person at the other side of the call (that is, if you've installed Slack from their website instead of from the App Store).</li>
-<li>We found this great blogpost with some basics to <a href="https://madewithlove.be/how-to-keep-pair-programming-digestible/">keep Pair Programming digestible</a>, by my friend <a href="https://twitter.com/woutersioen">Wouter Sioen</a>.</li>
-<li>We've done some ad-hoc pair programming in the past, but starting the day at the same computer really helps you keep it up and encourages you to do it more often.</li>
-<li>Batman and Robin are <em>way faster</em> at finding and fixing bugs than when they were working alone. Having that extra developer by your side improves your bug finding experience massively. When working alone, overlooking a small mistake could take up hours, while your pair could spot that in seconds. Our CTO <a href="https://twitter.com/oemebamo">Jurriaan Persyn</a> pointed out that we've fixed a third more issues than last month, even some that were open for a long time already!</li>
-</ul>
-
-<h2 id="%F0%9F%93%9A%F0%9F%A7%90-some-resources">📚🧐 Some resources</h2>
-
-<ul>
-<li><a href="https://tuple.app/pair-programming-guide/">Tuple's Pair Programming Guide with lots of good tips!</a></li>
-<li><a href="http://www.davefarley.net/?p=267">Blog: Pair Programming For Introverts</a></li>
-<li><a href="https://madewithlove.be/how-to-keep-pair-programming-digestible/">Blog: How To Keep Pair Programming Digestible</a></li>
-<li><a href="https://www.martinfowler.com/bliki/PairProgrammingMisconceptions.html">Blog: Martin Fowler on Pair Programming Misconceptions</a></li>
-<li><a href="http://wiki.c2.com/?ExtremeProgramming">WikiWikiWeb on Extreme Programming</a></li>
-<li><a href="https://twitter.com/MrAlanCooper/status/1060558122916278272">Great twitter thread by @MrAlanCooper about Pair Programming</a></li>
-<li><a href="https://twitter.com/mathiasverraes/status/1063063502254936065">Mathias Verraes talking about Pair Programming for quality</a></li>
-</ul>
-
-<p>We hope we can keep it up! 🤞</p>
-]]></content>
-        </entry>
-    </feed>
+                    </body>
+</html>
