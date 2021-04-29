@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home &mdash; Clarabridge Engage Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="image" content="/images/share-img.png">
+        <meta property="og:image" content="/images/share-img.png"/>
+        <meta name="twitter:image" content="/images/share-img.png"/>
+                    <meta name="robots" content="noindex, follow">
+                <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Clarabridge Engage Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd ">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="https://developers.engagor.com/" class="primary">
+                            Clarabridge Development
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://developers.engagor.com/documentation" class="primary <!-- if Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title ">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                                    <h1>Build products that connect <span class="highlight">consumer</span> questions with <span class="highlight">brand</span> answers.</h1>
+                                            </h1>
+                </div>
+            </nav>
+        </header>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                                            </ul>
+            <div class="right dev-content-block">
+                    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2020/10/05/a-few-tips-for-making-your-code-easier-to-reason-about">A few tips for making your code easier to reason about</a></h1>
+        </header>
+        <div>
+            <p>It's been a long time since the last post! In <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure/">previous posts</a>, we already discussed some strategies for making our code easier to reason about by looking at Functional Programming concepts and integrating them in our own workflow. In this post, we go at the problem from a more traditional perspective and look at a few small things that can make our lives a lot easier (as well as the lives of the other people that need to check out our code)!</p>
+
+<h2 id="%F0%9F%8D%8D-%F0%9F%99%85%E2%80%8D%E2%99%82%EF%B8%8F-%F0%9F%8D%95-make-invalid-state-impossible-to-represent">🍍 🙅‍♂️ 🍕 Make invalid state impossible to represent</h2>
+
+<p>Let's say we are building an app that lets people order coffee from a local coffee shop. They pick the product they want to order from a list, and they have to put in the number of items they want to order (the quantity) per product that they picked.</p>
+
+<p>You could write something like</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 3);
+</code></pre>
+
+<p>If you wanted to buy three Espressos.</p>
+
+<p>The problem with this, is that we can easily pass a faulty value to that function:</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 0);
+</code></pre>
+
+<p>or</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), -2);
+</code></pre>
+
+<p>or even</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), 3.14);
+</code></pre>
+
+<p>This can become a problem later on, for instance when we are calculating the price of the order. This means that our method needs to guard against faulty input values here, but it's impossible to know from the outside of the method if it does it or not. This will throw an exception:</p>
+
+<pre><code class="php">$cart-&gt;add(new ProductId('001-esspresso'), -2);
+</code></pre>
+
+<p>But you don't know that. You need to go and look inside that method to know for sure. Also, you don't know <em>when</em> it will throw...</p>
+
+<p>PHP's type system could be of help in some cases (e.g. to prevent the float value, we could typehint for an integer), but in this case, we're missing a concept: <code>Quantity</code> which is a Value Object that represents the exact value that we need, a positive integer that's bigger than zero.</p>
+
+<p>The method now only accepts instances of that object, which means it doesn't need to do any additional checks.</p>
+
+<pre><code class="php">public function add(ProductId $id, Quantity $quantity): void
+{
+    // ...
+}
+</code></pre>
+
+<p>What's more, every time we pass a <code>Quantity</code> around, or when we are passed one, it's guaranteed to be a verified correct value:</p>
+
+<pre><code class="php">final class Quantity
+{
+    private $quantity;
+
+    public function __construct(int $quantity): Quantity
+    {
+        $this-&gt;assertBiggerThanZero($quantity);
+
+        $this-&gt;quantity = $quantity;
+    }
+
+    private function assertBiggerThanZero(int $quantity): void
+    {
+        if ($quantity &lt;= 0) {
+            throw new InvalidArgumentException('Quantity should be bigger than zero');
+        }
+    }
+}
+</code></pre>
+
+<h2 id="%F0%9F%A4%96-%E2%9E%A1%EF%B8%8F--%F0%9F%98%81--using-annotation-and-static-analysis-to-our-advantage">🤖 ➡️  😁  Using annotation and static analysis to our advantage</h2>
+
+<p>It's good to <em>know</em> that the <code>Quantity</code> object is a Value Object, because this makes it easy to reason about: it behaves like a value, it's immutable. Knowing this, you can forget about passing by reference and other headaches. It's even better if you can let other developers know:</p>
+
+<pre><code class="php">/**
+ * @immutable
+ */
+final class Quantity
+{
+    // ...
+}
+</code></pre>
+
+<p>You can get even more out of it, if you use <a href="https://psalm.dev/">psalm</a>. You can let psalm guard this property for you: if someone would add a method to the <code>Quantity</code> class that made it mutable, your tests would start failing:</p>
+
+<pre><code class="php">/**
+ * @psalm-immutable
+ */
+final class Quantity
+{
+    // ...
+}
+</code></pre>
+
+<p>At this point, you can be pretty sure that no mutation is going to happen. You can also annotate functions/methods like this to let others (and psalm) know that the function is "pure":</p>
+
+<pre><code class="php">/**
+ * @psalm-pure
+ */
+public function addOneFreeCoffee(Quantity $quantity): Quantity
+{
+    return new Quantity($quantity-&gt;toInt() + 1);
+}
+</code></pre>
+
+<p>This annotation makes it impossible to do anything in the body of this method that changes state, or even generates output. It becomes a lot easier to reason about this function: if you give it input <code>a</code>, it will always return output <code>b</code>. It won't magically pull out some random value, or a record from a database. It's <em>transparent</em>.</p>
+
+<h2 id="%E2%9C%85-%E2%9E%A1%EF%B8%8F--%F0%9F%93%96-your-tests-are-domain-expectations">✅ ➡️  📖 Your tests are domain expectations</h2>
+
+<p>Tests are often used as "a way to make sure our code works". While I don't disagree with that, I think good tests are way more valuable than that. If you're working in a Test-Driven manner, they provide confidence and flow during development. They help you to do safe refactors. But also, they document your code. Let's look at an example, would you rather find this:</p>
+
+<pre><code class="php">/**
+ * @test
+ */
+public function shippingIsFreeWhenYouOrderThreeOrMoreProductsAtLeastOneBigLatte()
+{
+    $cart = new Cart();
+
+    $cart-&gt;add(new ProductId('001-esspresso'), new Quantity(2));
+    $cart-&gt;add(new ProductId('002-lungo'), new Quantity(3));
+    $cart-&gt;add(new ProductId('003-latte-big'), new Quantity(1));
+
+    $cart-&gt;checkout();
+
+    $this-&gt;assertTrue($cart-&gt;freeShipping())
+}
+</code></pre>
+
+<p>or this:</p>
+
+<pre><code class="php">/**
+ * @test
+ */
+public function shippingIsFreeWhenYouOrderThreeOrMoreProductsAtLeastOneBigLatte()
+{
+    $cart = new Cart();
+
+    $cart = $this-&gt;givenTheCartContainsThreeOrMoreProducts($cart);
+    $cart = $this-&gt;andTheCartContainsOneOrMoreBigLattes($cart);
+
+    $cart = $this-&gt;whenTheCartIsCheckedOut($cart);
+
+    $this-&gt;thenShippingShouldBeFree($cart);
+}
+</code></pre>
+
+<p>When you look at the first example, the domain rule is expressed in the name of the test only, the test code itself doesn't help you in understanding the actual rule that we're testing. You can see how the <code>Cart</code> is used, but you'll have a harder time finding out or validating what the actual rule is that's being tested. In the second example, there's no chance of missing the domain rule. The domain language is used to express the problem as if you were talking about it. It's a bit harder to see how the <code>Cart</code> is used, but it's easy to click through to the implementation of those methods to see the actual implementations.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Using three simple concepts, we can give our brains a bit of rest when looking at the code because they don't need to keep as much information in "working memory" to understand it.
+I hope these tips will help you to make your code easier to grasp for yourself and your coworkers! Hope to see you for the next post!</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Development" class="tag">Development</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Unit%20Tests" class="tag">Unit Tests</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2019/10/29/some-pairing-and-mobbing-take-aways">Some Pairing and Mobbing takeaways</a></h1>
+        </header>
+        <div>
+            <p>As you could already read in <a href="/blog/2018/12/07/one-month-of-pairing">one of our previous posts</a>, we started working in pairs some time ago. Now there's also some Mob Programming being done from time to time, and we started automatically doing some things to make our own lives easier. Some examples:</p>
+
+<h2 id="%F0%9F%9B%8B-%F0%9F%93%BA-make-yourself-comfortable">🛋 📺 Make yourself comfortable</h2>
+
+<p><img src="/images/2019-11-29-some-pairing-and-mobbing-take-aways/mobbing-team.jpg" alt="Keyboard Switcher in macOS" /></p>
+
+<p>Make sure everyone has a good chair and good visibility of the screen you're working on. If you're pairing, this means that you should work on an external screen of some kind, instead of on a laptop. Make sure there's enough light, not too much noise, and that everyone has drinks and food if they need it.</p>
+
+<p>You can work best if you're not focussing on something else. Taking away small distractions like restlessness or poor visibility of the screen can do wonders!</p>
+
+<h2 id="%E2%8C%A8%EF%B8%8F%F0%9F%92%BB-set-your-machine-up-for-everyone">⌨️💻 Set your machine up for everyone</h2>
+
+<p>Make sure the machine you're working on is set up so that you can switch drivers often and so that every driver is working comfortably on it. Of course, it's mostly impossible to all agree on the same set of shortcuts and keyboard setups, but we found a great compromise:</p>
+
+<p><img src="/images/2019-11-29-some-pairing-and-mobbing-take-aways/keyboard-switcher.png" alt="Keyboard Switcher in macOS" /></p>
+
+<ul>
+<li>On macOS you can make the keyboard settings available from the top bar so that you can really quickly switch keyboard layouts</li>
+<li>In PhpStorm or other editors, there are options to export your settings and import other ones. I just created a backup of my settings by exporting them and I ask everyone at the beginning of the session to send me their configs. When they start, they can select their own config from my desktop! After the session I can easily restore my own settings.</li>
+<li>On macOS it's also possible to connect multiple Bluetooth keyboards, mice, etc. We have an AZERTY and a QUERTY keyboard available, as well as a trackpad and a mouse. They are easily passed on and ready to use by the next driver!</li>
+</ul>
+
+<p>These three small changes come a long way to make you feel as if you're working on your own machine!</p>
+
+<h2 id="%E2%9B%94%EF%B8%8F%F0%9F%93%B1-only-allow-one-screen">⛔️📱 Only allow one screen</h2>
+
+<p>Being distracted already came up in the previous tip, but here we go again! Ask everyone in the room to put their phones on silent and put them in their pockets. Ask them to close their laptops, they're not going to need them. If you need to look something up, or if you're unsure about what a given piece of code does, ask the driver to put it on the big screen.</p>
+
+<p>This way, nobody dives off into their own cocoon and let their minds escape the group's focus.</p>
+
+<h2 id="%F0%9F%8E%A8%E2%97%BB%EF%B8%8F--to-the-drawing-board">🎨◻️  To the drawing board</h2>
+
+<p>Try to find a way to make things visible. If you have a whiteboard available, great! Do you have a wall? Use stickies or put up big pieces of paper. As a last resort, there's still just pieces of paper that you can draw on. Just make sure that you can make something visible so that you have something to talk about when a discussion is in order.</p>
+
+<h2 id="%F0%9F%98%B0-%E2%9E%A1-%F0%9F%98%81-keeping-everyone-engaged">😰 ➡ 😁 Keeping everyone engaged</h2>
+
+<p>Two rules:</p>
+
+<ul>
+<li>Switch drivers often</li>
+<li>Take breaks often</li>
+</ul>
+
+<p>We use <a href="http://mobster.cc/">this simple app</a> to notify us when to switch and when to take breaks. If the app doesn't tell you to take a break but you feel like it anyway, just do it. You'll be more productive after the break.</p>
+
+<h2 id="%F0%9F%92%BB%F0%9F%8F%A1-remote-work-and-mobbing">💻🏡 Remote work and mobbing</h2>
+
+<ul>
+<li>Make sure both parties have a perfect internet connection</li>
+<li>Make sure the setup for audio is working properly. We use a Jabra kit that picks up less ambient noise and makes everything clear to understand</li>
+<li>Use e.g. Slack screen sharing features to your advantage: you can draw on the screen and you can switch drivers easily!</li>
+</ul>
+
+<p>Hope these takeaways can help you as well! Happy Mobbing!</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Pair%20Programming" class="tag">Pair Programming</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Mob%20Programming" class="tag">Mob Programming</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/People" class="tag">People</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Slack" class="tag">Slack</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Development" class="tag">Development</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2019/10/04/teaching-kids-to-build-and-program-a-drawing-robot">Teaching Kids to Build &amp; Program a Drawing Robot</a></h1>
+        </header>
+        <div>
+            <p>Starting tomorrow until October 20th, it's <a href="https://codeweek.eu/">EU Code Week 2019</a>; that time of year to get young adults excited about programming.<br />
+Just as last year, several members of our team are taking part in one of the initiatives for that European Code Week; we'll be giving a workshop to 11 year olds by building a little robot with them next Thursday.<br />
+This blog post puts a spotlight on these initiatives and explains how you can help.</p>
+
+<h2 id="%F0%9F%87%AA%F0%9F%87%BA-european-code-week">🇪🇺 European Code Week</h2>
+
+<p>During 15 days <a href="https://codeweek.eu/events">hundreds of activities</a> happen all over Europe that want to celebrate creativity, problem solving and collaboration through programming and other tech activities.</p>
+
+<p>You probably need little convincing that digital literacy is super important in today's world. Getting young adults interested in programming is one way of driving that.</p>
+
+<blockquote>
+  <p>"It's about Pia, who felt like she had to study law, even though she always enjoyed maths and playing with computers. It's about Alice, who dreams about making robots because her parents don't allow her to have a cat." - <a href="https://codeweek.eu/about">codeweek.eu/about</a></p>
+</blockquote>
+
+<p>The initiative started in 2013 and had grown to 44000 activities reaching 2.7 million people all over Europe by last year, all run by volunteers. The EU Code Week includes a.o. well-known initiatives like CoderDojo.</p>
+
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/code-week-participation.png" alt="Code Week Participants" /></p>
+
+<h2 id="%F0%9F%A4%96-wegostem">🤖 WeGoSTEM</h2>
+
+<p>One of the other organisations taking part in the EU Code Weeks since a few years, has its roots in the hometown of Clarabridge Engage: WeGoSTEM.<br />
+<em>(STEM is short for Science, Technology, Engineering &amp; Mathematics, an acronym often used in education to refer to these fields, as part of a curriculum that is interdisciplinary &amp; using an applied approach.)</em></p>
+
+<p>WeGoSTEM's mission is to organise a fun workshop in as many schools as possible (mainly in Brussels &amp; Flanders) to give as many 11 to 12 year olds as possible a first introduction to programming. Here's the robot we're building:</p>
+
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/drawing.png" alt="The Drawing Bot In Action" /></p>
+
+<p>WeGoSTEM is a project of the NGO's <a href="https://dwengo.org/">Dwengo</a> &amp; <a href="http://www.shegoesict.be/">SheGoesICT</a>. Dwengo is organising teaching activities for people who want to experiment with micro-controllers, all around the world, and more specifically in socially-disadvantaged countries. SheGoesICT has as clear goal to advocate gender diversity in IT companies in Belgium.</p>
+
+<p>The NGO's behind WeGoSTEM have diversity and inclusion in their DNA, so it's no wonder that also in the workshops they give, they focus first and foremost on reaching as many girls as boys, and focus on giving workshops in schools with many children from disadvantaged groups and rural schools. 
+<em>(In 2018, 29% of the children who participated in WeGoSTEM had a special socio-economic status (SES), while the average is only 20%.)</em></p>
+
+<p>I've joined a few workshops that teached programming concepts to kids on Wednesday afternoons or during weekends, but there's no denying these are too often an affair for boys, and for kids from economically advantaged parents. For me personally, WeGoSTEM’s focus on inclusion, is a very big motivation to volunteer for this project.</p>
+
+<p>By the end of the workshop the main goal is to have given every single kid a fun experience. (Not about building the most complex robot, or have the most advanced programming sequence ...) The only goal is to play around with a micro-controller and use the basics of a visual programming language.</p>
+
+<h2 id="%E2%9C%8B-how-it-is-to-volunteer">✋ How it is to volunteer</h2>
+
+<p>So if you sign-up to volunteer, what actually happens? First, you indicate one or more dates you're available to give the workshop in a school, and area of preference. (This year, Jared and me are heading to a school in Bruges.)<br />
+There's also several training sessions around Belgium where the core team of WeGoSTEM explain the project, structure of a typical workshop, you get the time to build &amp; play with the robot yourself, and meet the other volunteers.</p>
+
+<p>When you visit the schools, you're a team of 3 coaches (of which almost always 1 has given the workshop previously).</p>
+
+<ul>
+<li>🗣 The workshop starts with a little chat with the class to see what they know and like and find exciting about robots. <em>(Ideal place to test our dad-jokes about mowing robots ☺️.)</em></li>
+<li>🎨 In a next exercise it's about trying to show kids what it is to program: one volunteer kid instructs the rest of the class to make a certain drawing. At this point it often shows the importance of clear instructions.</li>
+<li>🔩 And then of course: building the robot (with Knex-like blocks) and a Dwenguino-board (a pre-assembled Arduino with several sensors).</li>
+<li>💻 Once the whole robot is build you help the kids to program the robot with Blockly. Blockly is Google technology that you can use &amp; embed in other projects. (You can play with an online simulator of the Dwenguino/Blockly software over here: <a href="https://dwengo.org/dwenguinoblockly/">dwengo.org/dwenguinoblockly</a>.)</li>
+<li>😄 By the end of the workshop the goal is to send every kid home with a smile and a drawing.</li>
+</ul>
+
+<p>Oh, and in the afternoon, you do it all over again, for another class.</p>
+
+<p>The whole experience - standing in front of a class room and having kids so eager to experiment with programming - is absolutely wonderful. And also quite exhausting (no need to convince me of the importance of good teachers, after only a single day in their shoes 😅.)</p>
+
+<p>Maybe you helped inspire a kid to choose an education path focusing on STEM? Maybe you gave the teacher of that class the empowerment &amp; tools to incorporate programming in some of their lessons? Maybe you helped show policy makers the importance of digital literacy and drive change?</p>
+
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/class.png" alt="A class with all their drawings ..." /></p>
+
+<p>WeGoSTEM is 100% supported by volunteers in all participating countries. Workshops for the code week start next week, but there's definitely some free spots for coaches still. If you want to participate, check out the dedicated websites: <a href="https://wegostem.be/">WeGoSTEM Belgium</a> and <a href="https://wegostem.gr/">WeGoSTEM Greece</a>.<br />
+After the Code Week, all volunteers can also always use the workshop materials needed to give an extra sessions in a school where you have a friend, kid or nephew or niece, so if you want to help us host a workshop, do let us know ...</p>
+
+<p>Although the costs to run this project are very low (probably among the lowest euro-per-kid for STEM projects in Belgium), they can always use some extra help. WeGoSTEM is working with several partners that donate money, laptops, or help source volunteers amongst their employees.</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/STEM" class="tag">STEM</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Teaching" class="tag">Teaching</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Diversity" class="tag">Diversity</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/EU%20Code%20Week" class="tag">EU Code Week</a>                    </li>
+                            </ul>
+            </article>
+    <nav class="pager">
+        <a href="/." class="left">Newer Posts</a>        <a href="/page/3" class="right">Older Posts</a>    </nav>
+            </div>
+        </div>
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                <div class="left">
+                    &copy;2021 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
+            </div>
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>

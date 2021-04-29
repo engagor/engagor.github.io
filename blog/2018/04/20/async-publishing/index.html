@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Async Publishing: Making Clients Feel Like They Don’t Have To Wait &mdash; Clarabridge Engage Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="image" content="/images/share-img.png">
+        <meta property="og:image" content="/images/share-img.png"/>
+        <meta name="twitter:image" content="/images/share-img.png"/>
+            <meta name="robots" content="index, follow">
+        <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Clarabridge Engage Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd nav-developers-bkgd-post">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="https://developers.engagor.com/" class="primary">
+                            Clarabridge Development
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://developers.engagor.com/documentation" class="primary <!-- if Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title nav-developers-bkgd-post">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                             </h1>
+                </div>
+            </nav>
+        </header>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                    <li class="post-metadata post-metadata-author clearfix">
+        <div class="post-metadata-data">
+                            <div class="author-avatar left">
+                    <img src="https://www.gravatar.com/avatar/7fad14ee8f69171f21e8e84ed7e4f632" alt="Jasper Poppe avatar" />
+                </div>
+                        <div class="author-details">
+                                <div class="author-name">
+                    <strong>Jasper Poppe</strong>
+                </div>
+                                <div class="post-publish-date">
+                    <time class="post-publish-date" datetime="2018-04-20T10:30:00+00:00" pubdate>
+                        <span class='month'>Apr</span> <span class='day'>20th</span> <span class='year'>2018</span>
+                    </time>
+                </div>
+            </div>
+        </div>
+    </li>
+                    <li class="post-metadata clearfix">
+        <div class="post-metadata-data">
+                            <p class="tags">
+                                    <a href="/blog/tags/Frontend" class="tag">Frontend</a>                                    <a href="/blog/tags/Asynchronous%20Processing" class="tag">Asynchronous Processing</a>                                    <a href="/blog/tags/UI" class="tag">UI</a>                                    <a href="/blog/tags/UX" class="tag">UX</a>                                </p>
+                    </div>
+    </li>
+            </ul>
+            <div class="right dev-content-block">
+                    <article>
+        <h1>Async Publishing: Making Clients Feel Like They Don’t Have To Wait</h1>
+        <div>
+            <p>A few months ago, we were asked whether it was possible to publish posts to hundreds of Facebook Pages at the same time. This use case is not something we had foreseen, the client just has <em>A LOT</em> of owned profiles; one social profile per physical location that they're in. They wanted to be able to share promotions to those locations (i.e. happy-hour promotions for participating bars).
+Of course we can make that happen. It's an important part of our product. Ammm, right?</p>
+
+<h2 id="shaking-the-walls">Shaking the walls</h2>
+
+<p>How can we facilitate this use case, and at the same time make sure this feature is used for genuine, valuable communication?</p>
+
+<p>Posting the exact same message a thousand times will likely trigger spam detection algorithms of certain social networks we support. And e.g. Twitter specifically changed their rules about posting, reposting and retweeting the exact messages on multiple profiles (read <a href="https://blog.twitter.com/developer/en_us/topics/tips/2018/automation-and-the-use-of-multiple-accounts.html">the blogpost</a>). Because Twitter allows you to reach out to others by @mentioning them, this behavior is certainly not desirable on their platform, and we don't allow to post the same content to several profiles at once.
+For Facebook however, the re-posting is limited to owned, authorized place pages, so the use case is genuine.</p>
+
+<h2 id="what-we-had-...">What we had ...</h2>
+
+<p>The first thing we were worried about was: "What breaks if we would do this with our current implementation?" After a quick experiment, the answer seemed to be <em>nothing</em>; we just needed patience, a lot of patience. And as a user, the only UI feedback you got while a post got published to your 100 pages was a loading icon, for several minutes.</p>
+
+<p>In fact, we're just looping the list of profiles.
+And in that loop, we're doing API calls for each profile.</p>
+
+<p>For 99% of our users, this was good enough and it works like a charm. But with this new use case, our UX had to improve.</p>
+
+<h2 id="life-is-more-than-a-loading-icon">Life is more than a loading icon</h2>
+
+<p>Asking our hamster to run a little faster was not possible. We had to think about another solution in the backend.</p>
+
+<p>We came up with an <code>In progress</code> section in our tool. When a user wants to publish to more than 10 profiles, the post goes into this section.
+What changed in the backend? We still loop all the profiles, but we create tasks for each profile and put them on a queue.
+That queue will be processed asynchronously, in the background.</p>
+
+<p>Our users can do other tasks in our tool while the post is publishing to all those profiles, and users can follow along in the section <code>In progress</code>.</p>
+
+<p>What I really like about that new section, is that you see the publishing status of every profile.
+You have 3 statuses:
+- In progress
+- Successful
+- Failed</p>
+
+<p><code>In progress</code> and <code>Successful</code> are quite obvious. If publishing on a single profile failed, we see the reason why it failed and there's an option to retry posting on that profile.
+The <code>Retry</code> button is also a timesaver because you don't have to create the same post with only the failed profiles.</p>
+
+<p>Every time we get a result from the API call, we update the status of the current profile. The user interface is updated in real time so from a user's standpoint, the progress is clearly visible.</p>
+
+<p>The user knows the status of every single profile. This makes the user feel in control of all of the profile actions.
+Before we did this change, the user only saw a loading icon. Now, they receive an estimation for when the publishing will be completed.</p>
+
+<p><img src="/images/2018-04-20-async-publishing/async-posting.png" alt="In progress section in publisher" /></p>
+
+<p>The impact that this small improvement has, really makes a big difference. It feels snappy, you can just go on with your work while your 100+ profiles are updated, you don't feel held back by the user interface.</p>
+
+<p>Have you done something like this? Feel free to comment below!</p>
+
+        </div>
+
+                    <p class="categories">
+                <strong><span class="en-icon en-icon-folder-open"></span> Categories:</strong>
+                                <a href="/blog/categories/UX">UX</a>                            </p>
+        
+                    <nav class="article surrounding-articles clearfix">
+                                    <p class="left">Previous: <a class="previous" href="/blog/2018/04/09/some-tips-for-distraction-free-programming" title="Tips For Distraction-Free Programming">&larr; <span class="title">Tips For Distraction-Free Programming</span> </a></p>
+                                                    <p class="right">Next: <a class="next" href="/blog/2018/06/04/lambda-pure-functions" title="Lambda To The Rescue: Pure Functions"><span class="title">Lambda To The Rescue: Pure Functions</span> &rarr; </a></p>
+                            </nav>
+            </article>
+
+        <div class="disqus_container">
+        <div id="disqus_thread" class="clearfix"></div>
+    </div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'engagor-dev-blog'; // required: replace example with your forum shortname
+
+
+        
+        
+        
+        
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the
+        <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+    
+            </div>
+        </div>
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                <div class="left">
+                    &copy;2021 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
+            </div>
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>

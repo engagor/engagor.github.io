@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Notifications.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Tips For Distraction-Free Programming]]></title>
+            <link href="/blog/2018/04/09/some-tips-for-distraction-free-programming"/>
+            <updated>2018-04-09T17:00:00+00:00</updated>
+            <id>/blog/2018/04/09/some-tips-for-distraction-free-programming</id>
+            <content type="html"><![CDATA[<p>I'm very easily distracted. The slightest movement or conversation in the room takes my focus right away, not to mention the endless stream of information and notifications that e.g. services like Slack (team chat) and e-mail generate. I might be working on something with a colleague or on my own, when a simple notification pops in. My brain glitches for a moment while I process the notification and get back to where I was, but it's enough to completely lose focus. When pair programming with someone that isn't easily distracted, it's mostly fixed in an instant by getting back to the conversation or repeating the last question, but it's a lot more difficult when working on a feature alone. Over time I tried to change a few things to make this kind of interruptions less frequent or pervasive. Let's check some out:</p>
+
+<h2 id="%F0%9F%8F%9D-environment">🏝 Environment</h2>
+
+<p>The room I'm working in has a huge impact on my concentration levels. People talking or walking around are direct hits, as is any movement in my surroundings, even behind me. This is mostly fixed in our case since we don't have an open floor plan, so we don't share rooms with other teams, and when it's noisy in the room next to ours, we can just close the door. To prevent people talking from disrupting my concentration and the other way around, I'll put on headphones when working alone (mostly to prevent myself from listening in on the conversation), and I'll move to another room when pair programming. I know it sounds antisocial and makes me less approachable for questions or consultation, but I try to only do this when there's noise.</p>
+
+<h2 id="%F0%9F%93%B1-phone-%26-social-media">📱 Phone &amp; Social Media</h2>
+
+<p>My phone is out of sight. When I get a message I will read it when I find the time. When someone calls me I mostly take the call. It might sound strange because we're a social media company, but I'm not logged in to any of my personal social media accounts during the day. This really helps me concentrate, because my Twitter timeline is a real timesink for me. If I'm looking at that, I'm certainly not concentrating 😏. For testing stuff, I'll aways use test accounts.</p>
+
+<h2 id="%F0%9F%96%A5-full-screen-applications">🖥 Full Screen Applications</h2>
+
+<p>Although I don't like Full Screen Applications, I started using them more and more. They hide anything that might be happening in other windows, covering unwanted distractions up until you switch to the other application. I still don't like the oversight that is taken away by using an app in Full Screen mode though. The cool thing for me specifically is that iTerm behaves a bit like a tiling window manager for me, since I do most of my development in Vim &amp; the terminal, using iTerm splits. A great tip there is that you can use <code>Cmd + Shift + Enter</code> in an iTerm split to make it appear Full Screen temporarily.</p>
+
+<h2 id="%F0%9F%9B%8E-osx-notification-center">🛎 OSX Notification center</h2>
+
+<p><img src="/images/2018-04-09-some-tips-for-distraction-free-programming/1.png" alt="do not disturb" /></p>
+
+<p>I already hinted at it earlier on, but notifications of any kind really disturb me. They pop over any fullscreen application that might be open, and I really can't help looking at them. This is why I set the <code>DO NOT DISTURB</code> mode on during workdays. You can configure Mac OSX to enable it by default during work hours, or you can do it manually when you notice being distracted. Notifications I get are mostly from Slack, Calendar and Mail. You can also configure this on a per-application basis in your System Preferences.</p>
+
+<h2 id="%F0%9F%8E%88-osx-application-badges">🎈 OSX Application Badges</h2>
+
+<p><img src="/images/2018-04-09-some-tips-for-distraction-free-programming/2.png" alt="dock icons with badges" /></p>
+
+<p>What's really annoying me is that Mac OS displays so-called "badges" -the red circle icons with a number in them- on applications that received notifications, and these badges are visible in the Dock and the Application Switcher (<code>Cmd + Tab</code>). When I'm switching to my browser, I don't want to see how many Slack messages I missed. I'll check those later. I just went to Notification Center in System Preferences and disabled these badges for Slack, Calendar and Mail. I believe that I can be more productive when I read these things periodically instead of during other tasks. In the screenshot above, I enabled them temporarily for Calendar to show you what I mean, but what you can't see is that I have 25+ unread messages in Slack. Don't worry, I'll read them after I get this blogpost out! 😉</p>
+
+<h2 id="%F0%9F%93%A2-slack">📢 Slack</h2>
+
+<p>Some great things to do in Slack are to Leave channels you don't use, and to use the Mute 🔇 functionality on channels that are not urgent but you can't really leave. Of course, I disabled Slack's notification sounds by default.</p>
+
+<p>I hope these tips were helpful, they certainly help me concentrate a bit better. If you think of anything else, comment below, I want to hear it! Happy pair programming!</p>
+]]></content>
+        </entry>
+    </feed>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Why Vim Doesn&#039;t Need Multiple Cursors &mdash; Clarabridge Engage Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="image" content="/images/share-img.png">
+        <meta property="og:image" content="/images/share-img.png"/>
+        <meta name="twitter:image" content="/images/share-img.png"/>
+            <meta name="robots" content="index, follow">
+        <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Clarabridge Engage Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd nav-developers-bkgd-post">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="https://developers.engagor.com/" class="primary">
+                            Clarabridge Development
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://developers.engagor.com/documentation" class="primary <!-- if Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title nav-developers-bkgd-post">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                             </h1>
+                </div>
+            </nav>
+        </header>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                    <li class="post-metadata post-metadata-author clearfix">
+        <div class="post-metadata-data">
+                            <div class="author-avatar left">
+                    <img src="https://www.gravatar.com/avatar/37d852cb5b9e8d571fa295feb0b4a3cc" alt="Toon Daelman avatar" />
+                </div>
+                        <div class="author-details">
+                                <div class="author-name">
+                    <strong>Toon Daelman</strong>
+                </div>
+                                <div class="post-publish-date">
+                    <time class="post-publish-date" datetime="2018-02-21T10:00:00+00:00" pubdate>
+                        <span class='month'>Feb</span> <span class='day'>21st</span> <span class='year'>2018</span>
+                    </time>
+                </div>
+            </div>
+        </div>
+    </li>
+                    <li class="post-metadata clearfix">
+        <div class="post-metadata-data">
+                            <p class="tags">
+                                    <a href="/blog/tags/Vim" class="tag">Vim</a>                                    <a href="/blog/tags/Development" class="tag">Development</a>                                    <a href="/blog/tags/IDE" class="tag">IDE</a>                                </p>
+                    </div>
+    </li>
+            </ul>
+            <div class="right dev-content-block">
+                    <article>
+        <h1>Why Vim Doesn&#039;t Need Multiple Cursors</h1>
+        <div>
+            <p>We're back with a Vim Special! A lot of people that get to the point where they want to learn Vim often start looking for a plugin to do something like the Multiple Cursors feature that they're used to from other text editors. This post will try to show you why you don't need this feature in Vim.</p>
+
+<p>Let's jump right in with the first basic feature that Vim provides us to make life simple.</p>
+
+<h2 id="%60%3B.%60-repeat-movement%2C-repeat-command"><code>;.</code> Repeat movement, Repeat command</h2>
+
+<p>As you know, almost all <em>movements</em> in Vim can be done efficiently and fast, using e.g. <code>h j k l w b e f t F T ( ) { }</code>. The cool thing is, Vim remembers the last movement you made and makes it available to repeat immediately using the <code>;</code> key. If you just jumped to the last word beginning with <code>I</code> by typing <code>FI</code>, you can jump back even more by using <code>;</code>.</p>
+
+<p>Next up is the <em>command</em>. For instance, we want to lowercase the letter we jumped to: <code>gul</code>. Vim also remembers this command and makes it available using the dot operator: <code>.</code>.</p>
+
+<p>You can now combine those to repeat movement and action over multiple occurences.</p>
+
+<h2 id="%60%2F%60-search%2C-%60gn%60-text-object%2C-dot-operator"><code>/</code> Search, <code>gn</code> Text object, Dot operator</h2>
+
+<p>If you want to combine the power of Vim's search with the dot operator, that's perfectly possible. Let's say you searched for <code>/ruby\|php\|python\|javascript\|java</code> and want to replace some of the matches with <code>Haskell</code>. Just jump to the first one using <code>n</code> and replace it using the <code>gn</code> text object, like this: <code>cgn</code> type <code>Haskell</code> and then hit <code>&lt;Esc&gt;</code>. Since <code>cgn</code> is a command, we can now use <code>.</code> the dot operator to repeat that. If you want to skip an occurrence or undo what you did you can use <code>n</code> and <code>u</code> respectively.</p>
+
+<h2 id="search-%26-replace-with-confirm">Search &amp; Replace with confirm</h2>
+
+<ul>
+<li><p>You most probably know you can search &amp; replace in your whole file by using</p>
+
+<pre><code>:%s/search goes here/replace goes here/g
+</code></pre></li>
+<li><p>or in a visual selection by making a visual selection using <code>v</code> or <code>V</code> and then typing</p>
+
+<pre><code>:s/search goes here/replace goes here/g
+</code></pre>
+
+<p>you should see something like <code>:'&lt;, '&gt;s/search/replace/</code> which is again some Vim magic. <code>'&lt;</code> points to the beginning of the last visual select, and <code>'&gt;</code> to the end of it. The <code>,</code> that separates them is making a range of it. It's like saying <code>:1,5</code> if you want to do something with the first 5 lines of your file.</p></li>
+</ul>
+
+<p>Now, this is really nice, but you might want to skip some matches, or you want to be sure that you don't replace matches that you didn't want to replace. You can use the <code>c</code> modifier to your search, and Vim will ask you to confirm every match using <code>y</code> or <code>n</code>. E.g.:</p>
+
+<pre><code>:'&lt;, '&gt;s/search/replace/gc
+</code></pre>
+
+<h2 id="visual-block-mode">Visual Block mode</h2>
+
+<p>If the things you want to change are neatly aligned with each other, you can make a Visual Block change:</p>
+
+<pre><code>point 1
+point 2
+point 3
+point 4
+</code></pre>
+
+<p>I want to uppercase those first <code>p</code>'s of the words, and I want to make this an enumeration using <code>-</code>. Let's make a Visual Block selection in the beginning of those lines using <code>0&lt;C-v&gt;3j</code> and then use <code>U</code> to uppercase the first letters. Then <code>gv</code> to go back to the visual select and <code>I- &lt;Esc&gt;</code> to make the enumeration happen.</p>
+
+<pre><code>- Point 1
+- Point 2
+- Point 3
+- Point 4
+</code></pre>
+
+<h2 id="macro%27s">Macro's</h2>
+
+<p>If you need to do more than just a few inserts or updates on multiple lines or more complicated edits in json, for instance, Vim's macro's can really come in handy. They allow you to "record" a sequence of edits and movements, and replay that sequence as many times as you want. Let's see how we can use this to convert some copied JSON to a PHP array:</p>
+
+<pre><code class="json">{
+    "foo": "bar",
+    "baz": "qux",
+    "vim": "sexy",
+    "rest": "lazy"
+}
+</code></pre>
+
+<ul>
+<li>We'll start with the cursor on the first <code>:</code> of the file. We'll start recording to register <code>i</code> by pressing <code>qi</code>.</li>
+<li>As a standard practice, and to increase our chances to reproduce this on the following lines, the first thing I do is move the cursor to the first character of the row: <code>^</code>.</li>
+<li>Then, we'll replace the double quotes we're on with single quotes using <code>r'</code> and look for the next one using <code>f"</code>. This can now be repeated using the dot operator <code>.</code> and the repeat movement operator <code>;</code>.</li>
+<li>We return to the <code>:</code> by using <code>F:</code> and replace it with <code>=&gt;</code> by issuing this command: <code>cw =&gt;</code></li>
+<li>We did all changes to the first line, so we can end our recording by going to the next line using <code>j</code> (again, to increase our chances of repeating this easily), and ending the recording with <code>q</code>.</li>
+<li>repeating this is as easy as executing the register <code>i</code> to which we recorded this using <code>@i</code>. You can also use a multiplyer if you need to do this 100 times: <code>100@i</code>.</li>
+</ul>
+
+<p>We now have</p>
+
+<pre><code>{
+    'foo' =&gt; 'bar',
+    'baz' =&gt; 'qux',
+    'vim' =&gt; 'sexy',
+    'rest' =&gt; 'lazy'
+}
+</code></pre>
+
+<p>Changing the brackets to PHP's <code>array()</code> should be easy.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hear you: you now need to learn 5 different ways of doing replaces which could all be solved by using multiple cursors. But all of these have some great benefits. They are deliberately executed on a piece of text, you can undo them easily (and one by one), and they are faster and less error-prone than multiple cursors (when you know them by heart). Also, Vim's autocompletion keeps working when using them, as opposed to all multiple cursor plugins that I've tried.</p>
+
+<p>That said, I still have <a href="https://github.com/terryma/vim-multiple-cursors">a multiple cursors plugin</a> installed, for when I'm doing pair programming.</p>
+
+<p>Have fun Vimming! 🎹⌨️</p>
+
+        </div>
+
+                    <p class="categories">
+                <strong><span class="en-icon en-icon-folder-open"></span> Categories:</strong>
+                                <a href="/blog/categories/IDE">IDE</a>                            </p>
+        
+                    <nav class="article surrounding-articles clearfix">
+                                    <p class="left">Previous: <a class="previous" href="/blog/2018/02/05/wishful-development" title="Wishful Development">&larr; <span class="title">Wishful Development</span> </a></p>
+                                                    <p class="right">Next: <a class="next" href="/blog/2018/03/02/lambda-lists-to-wrap-failure" title="Lambda To The Rescue: Lists to wrap failure"><span class="title">Lambda To The Rescue: Lists to wrap failure</span> &rarr; </a></p>
+                            </nav>
+            </article>
+
+        <div class="disqus_container">
+        <div id="disqus_thread" class="clearfix"></div>
+    </div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'engagor-dev-blog'; // required: replace example with your forum shortname
+
+
+        
+        
+        
+        
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the
+        <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+    
+            </div>
+        </div>
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                <div class="left">
+                    &copy;2021 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
+            </div>
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>

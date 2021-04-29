@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/AST.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Parse Your Way Through Errors]]></title>
+            <link href="/blog/2017/12/01/parse-your-way-through-errors"/>
+            <updated>2017-12-01T10:00:00+00:00</updated>
+            <id>/blog/2017/12/01/parse-your-way-through-errors</id>
+            <content type="html"><![CDATA[<p>In our code base there's a static function to log an error:</p>
+
+<pre><code class="php">final class Debug
+{
+    public static function error(
+        $msg,
+        $obj = false,
+        $category = 'user',
+        $type = 'user'
+    ) {
+        // ...
+    }
+}
+</code></pre>
+
+<pre><code class="php">Debug::error('API call failed', $response, 'facebook', 'api-call-failed');
+</code></pre>
+
+<p>The first argument is a message, the second argument can be a value of any type, the third and fourth argument are used for grouping errors by category and type. This is very useful for analytics.</p>
+
+<p>Ignore for a second that we should use the <a href="http://www.php-fig.org/psr/psr-3/">PSR-3: Logger Interface</a>. We could easily move this <code>Debug</code> class behind an implementation of that interface if we ever wanted to.</p>
+
+<h2 id="the-problem">The problem</h2>
+
+<p>Did you notice that the category and type have a default value <code>"user"</code>? I don't know when or why this was introduced in our code base but it's bad. When the category and type is not set the errors will get lost in the category <code>"user"</code> and the type <code>"user"</code>.</p>
+
+<p>How can we find these <code>Debug::error</code> statements without a category and a type? We don't want to ignore these errors.</p>
+
+<h2 id="use-a-regex%3F">Use a regex?</h2>
+
+<p>Maybe... If the arguments are simple:</p>
+
+<p><img src="/images/2017-12-01-parse-your-way-through-errors/regex.png" alt="RegExr experiment to find Debug::error's" /></p>
+
+<p>(<a href="http://regexr.com/3h8th">RegExr</a>)</p>
+
+<p>Note that this is the first regex that came to my mind. We could improve that regex but let's not waste our time. We need a better way. We need something that truly understands our code.</p>
+
+<h2 id="nikita%27s-php-parser-to-the-rescue">Nikita's PHP Parser to the rescue</h2>
+
+<blockquote>
+  <p>A parser is useful for <a href="http://en.wikipedia.org/wiki/Static_program_analysis">static analysis</a>, manipulation of code and basically any other application dealing with code programmatically. A parser constructs an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax Tree</a> (AST) of the code and thus allows dealing with it in an abstract and robust way.</p>
+  
+  <p><a href="https://github.com/nikic/PHP-Parser/blob/master/doc/0_Introduction.markdown">https://github.com/nikic/PHP-Parser</a></p>
+</blockquote>
+
+<p>Parsing a programming language is hard. This package makes it easy!</p>
+
+<p>Let's see how we can use the package to find <code>Debug::error</code>'s without a category and type.</p>
+
+<ul>
+<li><code>$ mkdir parser-demo</code></li>
+<li><code>$ cd parser-demo</code></li>
+<li><code>$ composer require nikic/php-parser</code></li>
+</ul>
+
+<p>This package is bundled with a binary (<code>php-parse</code>) to play with the parser:</p>
+
+<pre><code class="sh">$ vendor/bin/php-parse '&lt;?php Debug::error("message", $var);'
+====&gt; Code &lt;?php Debug::error("message", $var);
+==&gt; Node dump:
+array(
+    0: Expr_StaticCall(
+        class: Name(
+            parts: array(
+                0: Debug
+            )
+        )
+        name: error
+        args: array(
+            0: Arg(
+                value: Scalar_String(
+                    value: message
+                )
+                byRef: false
+                unpack: false
+            )
+            1: Arg(
+                value: Expr_Variable(
+                    name: var
+                )
+                byRef: false
+                unpack: false
+            )
+        )
+    )
+)
+</code></pre>
+
+<p>The abstract syntax tree is a list of statements. The first statement is an <a href="https://github.com/nikic/PHP-Parser/blob/master/lib/PhpParser/Node/Expr/StaticCall.php"><code>Expr_StaticCall</code></a>. A static call has a <code>class</code>, <code>name</code> and <code>args</code>. If the count of <code>args</code> is not equal to 4 we know that the category and/or type is missing. Let's translate that in some code:</p>
+
+<p><code>$ touch find.php</code></p>
+
+<p>First, we'll need a way to find all PHP files in our code base:</p>
+
+<pre><code class="php">&lt;?php
+
+$directory = $argv[1];
+$directoryIterator = new RecursiveDirectoryIterator($directory);
+$directoryIterator = new RecursiveIteratorIterator($directoryIterator);
+$files = new RegexIterator($directoryIterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+</code></pre>
+
+<p>We can now pass a path to our code base as a command line argument:</p>
+
+<p><code>$ php find.php ~/path/to/code</code></p>
+
+<p>Secondly, we'll need a way to traverse all nodes of an AST. Meet the <a href="https://github.com/nikic/PHP-Parser/blob/master/doc/2_Usage_of_basic_components.markdown#node-traversation"><code>NodeTraverser</code></a>.</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// ... directory iterator
+
+$parser = (new ParserFactory)-&gt;create(ParserFactory::PREFER_PHP7);
+
+foreach ($files as $file) {
+    try {
+        $code = file_get_contents($file[0]);
+        $statements = $parser-&gt;parse($code);
+        $traverser = new NodeTraverser;
+        $traverser-&gt;addVisitor(new NameResolver);
+        $traverser-&gt;addVisitor(new DebugErrorVisitor($file[0]));
+        $traverser-&gt;traverse($statements);
+    } catch (Error $e) {
+        echo 'Parse Error: ', $e-&gt;getMessage(), PHP_EOL;
+    }
+}
+</code></pre>
+
+<p>The <code>NodeTraverser</code> will call a method (<code>enterNode</code>) on each visitor for each node in the AST. Let's implement <code>DebugErrorVisitor</code>:</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Node;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\Node\Expr\StaticCall;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final class DebugErrorVisitor extends NodeVisitorAbstract
+{
+    private $file;
+
+    public function __construct($file)
+    {
+        $this-&gt;file = $file;
+    }
+
+    public function enterNode(Node $node)
+    {
+        if (!$node instanceof StaticCall) {
+            return;
+        }
+
+        if ($node-&gt;class instanceof Name &amp;&amp; $node-&gt;class-&gt;toString !== 'Debug') {
+            return;
+        } elseif ($node-&gt;class !== 'Debug') {
+            return;
+        }
+
+        if ($node-&gt;name !== 'error') {
+            return;
+        }
+
+        if (count($node-&gt;args) !== 4) {
+            echo "Found {$node-&gt;class}::{$node-&gt;name} in {$this-&gt;file} on line {$node-&gt;getLine()}", PHP_EOL;
+        }
+    }
+}
+
+// ... directory iterator
+</code></pre>
+
+<ol>
+<li>If <code>$node</code> is not a <code>StaticCall</code> we'll return.</li>
+<li>If the class name is not <code>Debug</code> we'll return (The class will be a <code>Name</code> instance if it's in a namespace).</li>
+<li>If the name of the method we're calling is not <code>error</code> we'll return.</li>
+<li>If the count of arguments is not 4, we found an <code>Debug::error</code> we're interested in.</li>
+</ol>
+
+<p>Let's put it all together:</p>
+
+<pre><code class="php">&lt;?php
+
+use PhpParser\Node;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final class DebugErrorVisitor extends NodeVisitorAbstract
+{
+    private $file;
+
+    public function __construct($file)
+    {
+        $this-&gt;file = $file;
+    }
+
+    public function enterNode(Node $node)
+    {
+        if (!$node instanceof StaticCall) {
+            return;
+        }
+
+        if ($node-&gt;class instanceof Name &amp;&amp; $node-&gt;class-&gt;toString !== 'Debug') {
+            return;
+        } elseif ($node-&gt;class !== 'Debug') {
+            return;
+        }
+
+        if ($node-&gt;name !== 'error') {
+            return;
+        }
+
+        if (count($node-&gt;args) !== 4) {
+            echo "Found {$node-&gt;class}::{$node-&gt;name} in {$this-&gt;file} on line {$node-&gt;getLine()}", PHP_EOL;
+        }
+    }
+}
+
+$directory = $argv[1];
+$directoryIterator = new RecursiveDirectoryIterator($directory);
+$directoryIterator = new RecursiveIteratorIterator($directoryIterator);
+$files = new RegexIterator($directoryIterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+
+$parser = (new ParserFactory)-&gt;create(ParserFactory::PREFER_PHP7);
+
+foreach ($files as $file) {
+    try {
+        $code = file_get_contents($file[0]);
+        $statements = $parser-&gt;parse($code);
+        $traverser = new NodeTraverser;
+        $traverser-&gt;addVisitor(new NameResolver);
+        $traverser-&gt;addVisitor(new DebugErrorVisitor($file[0]));
+        $traverser-&gt;traverse($statements);
+    } catch (Error $e) {
+        echo 'Parse Error: ', $e-&gt;getMessage(), PHP_EOL;
+    }
+}
+</code></pre>
+
+<p>We can now call the script with a path to our code base and it will find <code>Debug::error</code>'s without a category and a type accurately. Perhaps we can use this script in our Jenkins setup to let a build fail if there's a <code>Debug::error</code> without a category and type.</p>
+
+<p>We could take this one step further and ask for a category and type on the command line (using <code>readline</code>) and replace it automatically but I'll leave that as an exercise for the reader. 😏</p>
+
+<p>Happy programming!</p>
+]]></content>
+        </entry>
+    </feed>

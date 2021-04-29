@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/categories/Operations.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[On-the-fly API&#039;s using Xinetd]]></title>
+            <link href="/blog/2018/01/08/xinetd-APIs"/>
+            <updated>2018-01-08T10:00:00+00:00</updated>
+            <id>/blog/2018/01/08/xinetd-APIs</id>
+            <content type="html"><![CDATA[<p>As developers, we often rely on exposing services in our software as an HTTP
+API. Traditionally, our code would be executed from within a webserver
+container. For example, PHP apps might run in
+<a href="https://httpd.apache.org/">Apache</a>, or Java apps might run in
+<a href="https://tomcat.apache.org/">Tomcat</a>.</p>
+
+<p>In modern apps that strive to be self-contained, you might add a webserver
+library and handle requests directly in your code instead.
+<a href="http://www.tornadoweb.org">Tornado</a> for Python,
+<a href="https://golang.org/pkg/net/http/">net/http</a> for Golang,
+<a href="http://puma.io/">Puma</a> for Ruby or <a href="https://www.eclipse.org/jetty/">Jetty</a> for
+JVM languages are examples of libraries for this.</p>
+
+<p>Any of these options are typically fine, but sometimes you just want something
+much, much simpler. Fortunately, it turns out Linux already comes with
+everything you need. First, we need a problem to solve though.</p>
+
+<p>At Clarabrige Engage we deal with a lot of data. We need to do some maintenance work in
+order to keep this data relevant and efficient. What we don't want is to
+interfere with the processing we do for our users. We'd rather err on the side
+of caution and only run these maintenance jobs when we are sure that servers
+aren't currently experiencing high loads. One way to know is by looking at load
+averages.</p>
+
+<p>Let's build a simple HTTP API that tells us whether a server is currently busy
+or not.</p>
+
+<p>The tools we'll use here are <code>xinetd</code> and plain old <code>bash</code>. Xinetd is a
+replacement for the original <code>inetd</code>. This is old software. The <a href="https://github.com/xinetd-org/xinetd">GitHub
+mirror</a> of Xinetd has a history going 15
+years back. It is simple: it lets you write a server program where you only
+need to care about the output. All the other details, like networking, logging,
+access control, are taken care of.</p>
+
+<p>First, we'll have to install Xinetd which nowadays isn't installed by default:</p>
+
+<pre><code class="bash">$ apt-get install xinetd  # on debian
+$ pacman -S xinetd        # on arch
+$ yum -y install xinetd   # on those other distros
+</code></pre>
+
+<p>Next, we'll need to do some configuration. I added following line to my
+<code>/etc/services</code>:</p>
+
+<pre><code>load_avg   9876/tcp
+</code></pre>
+
+<p>Then I added a file <code>/etc/xinet.d/load_avg</code> with the following contents:</p>
+
+<pre><code>service load_avg
+{
+  flags = REUSE
+  socket_type = stream
+  protocol = tcp
+  port = 9876
+  wait = no
+  user = nobody
+  server = /data/load_avg
+  log_on_failure += USERID
+  disable = no
+}
+</code></pre>
+
+<p>Some comments here. The <code>service load_avg</code> maps to what I added in
+<code>/etc/services</code>, the <code>server = ...</code> will be the script that will be called when
+a connection is made.</p>
+
+<p>So, let's write the script itself. We'll be using plain bash. If the load
+average is fine we'll return a <code>200 OK response</code>. If not, we'll return a <code>503
+Service Unavailable</code> instead.</p>
+
+<pre><code class="bash">#!/bin/bash
+
+http_response() {
+  local http_code="$1"
+  local message="$2"
+
+  local length=${#message}
+
+  echo -en "${http_code}\r\n"
+  echo -en "Content-Type: text/plain\r\n"
+  echo -en "Content-Length: ${length}\r\n"
+  echo -en "\r\n"
+  echo -en "${message}"
+  echo -en "\r\n"
+}
+
+http_200() {
+  http_response "HTTP/1.1 200 OK" "200; $1"
+}
+
+http_503() {
+  http_response "HTTP/1.1 503 Service Unavailable" "503; $1"
+}
+
+load_average=$(uptime | awk '{print $8 * 100}')
+acceptable_load=$(nproc | awk '{print $1 * 100}')
+
+if [ ${load_average} -gt ${acceptable_load} ]; then
+  http_503 ${load_average}
+else
+  http_200 ${load_average}
+fi
+</code></pre>
+
+<p>Let's break it up piece by piece. We start with a couple of functions that help
+us construct a valid HTTP response. We can get the length of a value in bash
+with <code>${#variable}</code> which is how we set the <code>length</code> variable. For the
+rest, nothing particularly interesting is going on.</p>
+
+<p>Next, we get the load average from the <code>uptime</code> command. Bash doesn't have good
+support for float values so we get around that by multiplying with <code>100</code> which
+lets us compare with <code>-gt</code> later on.</p>
+
+<p>To calculate the acceptable load we cut some corners and simplify things a
+little bit: <code>nproc</code> gives us the number of cores in the system so we use that
+again multiplying by <code>100</code> so we can compare. So a <code>4</code> core machine would
+accept a load of <code>4</code>. I don't love that solution but as an example it's good
+enough. In a real setup you would add a little bit of extra margin.</p>
+
+<p>After reloading Xinetd you can use any web client to access
+<a href="http://hostname:9876">http://hostname:9876</a>.</p>
+
+<h2 id="improvements">Improvements</h2>
+
+<p>There are a couple of things we can do to improve upon this. We can extract the
+<code>http_*</code> functions so we can easily source them as a library in other scripts.
+We could render the response as JSON to make parsing the result neater on the
+client side.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Often we really do require the capabilities of a full-blown development
+environment to implement the features we need. In other situations we can get
+away with a simple approach. Xinetd has been around for a very long time and
+hides exactly the complexities we'd rather avoid having to deal with.</p>
+
+<p>This technique can be used in interesting combinations. For example, you could
+use it with <a href="http://www.haproxy.org/">HAProxy</a> health checks by using a
+<code>httpchk</code> rather than a regular <code>tcp-check</code>. Say you have HAProxy in front of
+an <a href="https://www.elastic.co/">Elasticsearch</a> cluster to automatically spread
+searches. You could use our <code>load_avg</code> script above to exclude busy nodes
+automatically.  Or say you have a MySQL setup with a handful of replicas for
+reading and you use HAProxy to load balance these. You can write a simple
+script that checks the <code>seconds_behind_master</code> value and excludes replicas that
+are lagging.</p>
+
+<p>Give it a try, see what you can come up with, and share your experiences in the
+comment section below!</p>
+]]></content>
+        </entry>
+    </feed>

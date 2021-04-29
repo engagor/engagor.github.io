@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Exceptions.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Exceptional Exceptions]]></title>
+            <link href="/blog/2019/05/22/exceptional-exceptions"/>
+            <updated>2019-05-22T15:00:00+00:00</updated>
+            <id>/blog/2019/05/22/exceptional-exceptions</id>
+            <content type="html"><![CDATA[<p>You've made it to this post thinking "Why do we still need to talk about Exceptions?". Well, they're used everywhere in OOP codebases, but sometimes they're used in a way that make debugging a bit difficult. Let's look at some ways to make debugging exceptions a bit more fun!</p>
+
+<p>You know that feeling when you're trying to investigate an Exception that was thrown, but you can't seem to find the origin of it? You dig a bit deeper and you find that it's an exception that was caught and not rethrown, e.g.:</p>
+
+<pre><code class="php">try {
+    $this-&gt;doSomeImportantStuffWith($foo);
+} catch (VeryDescriptiveException $e) {
+    // do some stuff here
+
+    throw new SomethingWentWrongException('oh no!');
+}
+</code></pre>
+
+<p>Now, when you encounter this <code>SomethingWentWrongException</code>, you'll see that the trace takes you back to the 6th line of this code example. All information that was inside the <code>VeryDescriptiveException</code>, including its message, stack trace and other useful information is gone. Of course, debugging that error in <code>doSomeImportantStuffWith()</code> would be much easier if you had all that info.</p>
+
+<pre><code class="php">Fatal error: Uncaught SomethingWentWrongException: oh no! in test.php:6
+Stack trace:
+#0 /Users/toon/Projects/devblog/test.php(34): Test-&gt;withoutPrevious()
+#1 {main}
+  thrown in /Users/toon/Projects/devblog/test.php on line 6
+</code></pre>
+
+<h2 id="prevent-information-loss-by-using-%60%24previous%60">Prevent information loss by using <code>$previous</code></h2>
+
+<p>The obvious answer to this simplified example would be to just rethrow the <code>VeryDescriptiveException</code> instead of throwing a more general <code>SomethingWentWrongException</code>... And that would be valid, but let's say we're implementing an Interface that prescribes that we only throw <code>SomethingWentWrongException</code>s. We can't let the <code>VeryDescriptiveException</code> through or we'll break the <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov Substitution Principle</a>. We want to throw that specific <code>SomethingWentWrongException</code>, while still somehow preserving the information of that previous exception that we caught. Let's check <a href="https://www.php.net/manual/en/exception.construct.php">the docs</a>:</p>
+
+<p><img src="/images/2019-05-24-exceptional-exceptions/php-docs-exception-construct.png" alt="PHP Docs for the Exception Constructor" /></p>
+
+<p>That <code>Throwable $previous = null</code> is what we're looking for! I've almost never seen this being used in the wild, but it's great for our usecase:</p>
+
+<pre><code class="php">try {
+    $this-&gt;doSomeImportantStuffWith($foo);
+} catch (VeryDescriptiveException $e) {
+    // do some stuff here
+
+    throw new SomethingWentWrongException('oh no!', 0, $e);
+}
+</code></pre>
+
+<p>this results in this error:</p>
+
+<pre><code class="php">Fatal error: Uncaught VeryDescriptiveException: hello there! in test.php:15
+Stack trace:
+#0 /Users/toon/Projects/devblog/test.php(23): Test-&gt;doSomeImportantStuffWith('test')
+#1 /Users/toon/Projects/devblog/test.php(34): Test-&gt;withPrevious()
+#2 {main}
+
+Next SomethingWentWrongException: oh no! in test.php:6
+Stack trace:
+#0 /Users/toon/Projects/devblog/test.php(34): Test-&gt;withPrevious()
+#1 {main}
+  thrown in /Users/toon/Projects/devblog/test.php on line 6
+</code></pre>
+
+<p>As you can see, the stack trace of the original exception along with the one we wrapped it in are presented to us on error! We can see the message as well, and we can even add our own properties to the exception and be presented with them here if we just implement the <code>__toString()</code> method of the exception.</p>
+
+<h2 id="custom-properties-in-exceptions">Custom properties in exceptions</h2>
+
+<p>Let's say we've been building an API client that does some HTTP requests to an endpoint. Something can go wrong during the HTTP request, and we want to thrown an <code>ApiConnectionFailed</code> exception whenever the HTTP response code is not <code>2xx</code> or something else fails, so that the rest of our application has one single Exception it needs to prepare for. It would be very handy to debug if that exception contained our HTTP Request &amp; Response objects, e.g.:</p>
+
+<pre><code class="php">final class ApiConnectionFailed extends Exception
+{
+    private $request;
+    private $response;
+
+    public static function withHttpRequestAndResponse(
+        $message,
+        Request $request = null,
+        Response $response = null,
+        Throwable $previous = null
+    ) {
+        $exception = new static($message, 0, $previous);
+        $exception-&gt;request = $request;
+        $exception-&gt;response = $response;
+
+        return $exception;
+    }
+
+    public function __toString()
+    {
+        $string = parent::__toString();
+        $string .= "\n{$this-&gt;request}";
+        $string .= "\n{$this-&gt;response}";
+
+        return $string;
+    }
+}
+</code></pre>
+
+<p>As you can see, we used a <a href="http://verraes.net/2014/06/named-constructors-in-php/">named constructor</a> <code>withHttpRequestAndResponse</code> to be able to keep the default constructor for Exceptions, but to also be able to construct it using a lot of extra relevant debugging information. This means that this Exception behaves like other exceptions and is very transparent to other developers.</p>
+
+<p>If something fails, we'll construct the exception like this:</p>
+
+<pre><code class="php">try {
+    $response = $httpClient-&gt;execute($request);
+} catch (HttpClientException $e) {
+    throw ApiConnectionFailed::withHttpRequestAndResponse(
+        'Http connection could not be established',
+        $request,
+        null,
+        $e
+    );
+}
+
+if ($response-&gt;getResponseCode() === 500) {
+    throw ApiConnectionFailed::withHttpRequestAndResponse(
+        'We got a 500 error from the host',
+        $request,
+        $response
+    );
+}
+</code></pre>
+
+<p>The exception will always contain all relevant information to be able to debug.</p>
+
+<h2 id="recap">Recap</h2>
+
+<p>To quickly recap, you can make your life a lot easier by</p>
+
+<ul>
+<li>providing exceptions with descriptive names</li>
+<li>providing the <code>$previous</code> exception when rethrowing</li>
+<li>providing all relevant data to an exception</li>
+<li>providing named constructors for your exceptions to be able to add debugging info but keep the original constructor</li>
+</ul>
+
+<p>Hope that helps! Until next time, have fun coding! 🖖</p>
+]]></content>
+        </entry>
+    </feed>

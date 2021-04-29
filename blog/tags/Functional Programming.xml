@@ -1,0 +1,1552 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Functional Programming.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Implementation Details]]></title>
+            <link href="/blog/2019/01/28/lambda-implementation-details"/>
+            <updated>2019-01-28T14:30:00+00:00</updated>
+            <id>/blog/2019/01/28/lambda-implementation-details</id>
+            <content type="html"><![CDATA[<p><strong>This is the sixth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%F0%9F%A4%94-how-do-you-hide-your-internals%3F">🤔 How do you hide your internals?</h2>
+
+<p>In OOP, we're used to hiding the implementation details of our classes by using interfaces. We can just define a contract that the rest of the application needs to adhere to, and keep the knowledge of the internals completely separate from the rest of the system. Let's look at a simple interface:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace Dns;
+
+interface Client
+{
+    public function resolve(Request $request): Response;
+}
+</code></pre>
+
+<p>As a consumer of this interface, we actually know everything we need to know to start programming. We'll inject the class we're making with a <code>DNS\Client</code> instance later, the actual implementation of it doesn't concern us right now. We have enough information to create our application knowing that we can send the client a <code>Request</code> and get a <code>Response</code> back. The internals of the <code>Dns\Client</code> can be changed at will, without altering our program.</p>
+
+<p>For me, this was the biggest breakthrough of learning an Object Oriented language, the moment when using interfaces as contracts clicked. That's why, when I started to dive into Functional Programming languages, I wasn't really happy with what I saw. Where were the interfaces at?</p>
+
+<h2 id="%F0%9F%98%85-exporting-from-modules-as-interface">😅 Exporting from modules as interface</h2>
+
+<p>The first Functional Programming language I learnt was <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">Scheme</a>. It was great! When you start learning it, you start to see the recursion patterns, see that syntax is only so important as the language makes it, and countless other nice things (programming with continuations, anyone?). What bothered me was that lists are used as the main data structure everywhere! You'll sometimes find libraries that do something like this:</p>
+
+<pre><code class="scheme">(define address
+  (list "Toon Daelman" "FooBarStreet 42" "9000 Ghent" "Belgium"))
+</code></pre>
+
+<p>Yes, that's a workable data structure, but it's not ideal... To get a person's country from their address, you need to do something like this:</p>
+
+<pre><code class="scheme">(list-ref address 3)
+</code></pre>
+
+<p>Which means, from the <code>address</code> list, take the <code>3rd</code> (zero-based) index. That's not very readable at all, and it doesn't hide any of the details of our data structure. If we want to change it, every function interacting with this data structure will need to change as well.</p>
+
+<p>Luckily, the problem was me. I didn't look far enough, and most people working with lisps have other ways of hiding their internals, for instance:</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (list name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (list-ref address 3)))
+)
+</code></pre>
+
+<p>This is a scheme module, that exports two functions <code>address</code> and <code>country</code>. It uses the base library <code>scheme</code>. It defines a function <code>address</code>, that acts like a constructor and returns a black box object, that you can deconstruct using separate functions. In this case we only have a <code>country</code> function that takes an <code>address</code> and returns its <code>country</code>. Consuming modules of this <code>address</code> module need only now the constructor and the other functions, not that the underlying object is still a list!</p>
+
+<p>And this lets us change the implementation as well!</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (vector name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (vector-ref address 3)))
+)
+</code></pre>
+
+<p>We're now using <code>vector</code>s as the datatype for <code>address</code> instead of <code>list</code>s, but the <code>address</code> constructor and the <code>country</code> getter function are still called the same and behave exactly the same. We could use the records features as well, still keeping the same public interface...</p>
+
+<h2 id="%F0%9F%8E%A9-types">🎩 Types</h2>
+
+<p>The second Functional Programming language I started to look into was <a href="https://en.wikipedia.org/wiki/Haskell_(programming_language)">Haskell</a>. It immediately blew my mind with its type system. Let's check out this piece of code:</p>
+
+<pre><code class="haskell">type AddressLine = String
+type Country = String
+
+data Address = Address
+  { name :: String
+  , line1 :: AddressLine
+  , line2 :: AddressLine
+  , country :: Country
+  } deriving (Show)
+
+countryFrom :: Address -&gt; Country
+countryFrom = country
+</code></pre>
+
+<p>We define two type aliasses <code>AddressLine</code> and <code>Country</code>. Then we say that an <code>Address</code> consists of a <code>name</code>, a <code>line1</code> which is an <code>AddressLine</code>, a <code>line2</code> (also an <code>AddressLine</code>) and a <code>country</code> of the type <code>Country</code>. Then we define a function called <code>countryFrom</code> that takes an <code>Address</code> and returns a <code>Country</code>, which is implemented by just saying it's equal to <code>country</code>, the function that is automatically created to unwrap <code>Record</code>s.</p>
+
+<p>In fact, creating the <code>countryFrom</code> function was just done as an example to show off the type annotations in a situation analogous to the previous example in scheme. The type system in Haskell allows us to not only write the contract of a function, but it allows us to write abstractions as well! Check this out:</p>
+
+<pre><code class="haskell">head :: [a] -&gt; a
+</code></pre>
+
+<p>This is the type of the <code>head</code> function, which operates on lists. It takes a list of <code>a</code>s and returns an <code>a</code>. The <code>a</code> is a <em>type variable</em>, it substitutes for every type you can think of. This way, you can strictly type a function that can work with all sorts of types! Take for instance a list of <code>Address</code>es! Call <code>head</code> on that list, and you'll get the first <code>Address</code> of the list.</p>
+
+<p>🎩➡️🐰</p>
+
+<p>😍 I love this, it's like magic! And it goes even further. Let's say you want to be able to declare the function <code>==</code> which takes two arguments and checks if they're equal to each other. You would think that that would be easy using <em>type variables</em>, doing something like this:</p>
+
+<pre><code class="haskell">(==) :: a -&gt; a -&gt; Bool
+</code></pre>
+
+<p>Which means, a function <code>==</code> which takes two arguments of the same type (we use <code>a</code> for both arguments, which means we don't care which type it is, but it should be the same for both arguments) and returns a <code>Bool</code>. The problem is that there's no certainty that the type <code>a</code> has a concept of equality to it. It could be that we want to be able to define our own rules for equality on a type-by-type basis as well... That's why that signature <code>a -&gt; a -&gt; Bool</code> isn't enough.</p>
+
+<p>Haskell actually has another abstraction over their types to allow us to put the <code>a -&gt; a -&gt; Bool</code> in a context:</p>
+
+<pre><code class="haskell">class Eq a where
+  (==) :: a -&gt; a -&gt; Bool
+  x == y = not (x /= y)
+
+  (/=) :: a -&gt; a -&gt; Bool
+  x /= y = not (x == y)
+</code></pre>
+
+<p>This is a typeclass named <code>Eq</code> that defines equality for every type <code>a</code> that we say is part of the typeclass. It defines two functions, <code>==</code> and <code>/=</code>, which both take two arguments of the type <code>a</code> and return a <code>Bool</code>. What's also nice, is that they're both defined in terms of each other. <code>==</code> says that it's <code>not (/=)</code> and vice versa.</p>
+
+<p>Now, if we want to make our <code>Address</code> type part of the typeclass <code>Eq</code>, we can just implement the <code>==</code> function, and we get the other one for free because it's defined in terms of <code>==</code>. Let's look at an example:</p>
+
+<pre><code class="haskell">instance Eq Address where
+  x == y = sameAddressLines &amp;&amp; sameCountry
+    where sameAddressLines = (line1 x == line1 y) &amp;&amp; (line2 x == line2 y)
+          sameCountry = country x == country y
+</code></pre>
+
+<p>In this case, we say <code>Address</code>es are the same if their <code>AddressLine</code>s and <code>Country</code> are the same. We don't take <code>name</code> into consideration. Now we can <code>==</code> on <code>Address</code>es everywhere. If you don't need special rules for deriving equality for a given type, the Haskell compiler can derive it for your type using the <code>deriving (Eq)</code> statement.</p>
+
+<h2 id="%F0%9F%A4%93-what-can-we-learn-from-this%3F">🤓 What can we learn from this?</h2>
+
+<p>We've seen two ways of how implementation details can be hidden in a functional programming environment. When we're in Object Oriented environments we do almost the same things, but we use interfaces for them. And we use interfaces to describe contracts for many other things we want to do. That's why I'm sometimes confused when I stumble upon an interface: what's the primary reason for it to be here? Is it there to define a contract for external systems? Is it meant to hide implementation details or is it just part of a design pattern used in this package? Is it a marking interface used to indicate the type of the implementing class? Not every class needs to be implementing an interface... It already has one! All public methods of a concrete class can be seen as its public interface. And I think in most cases like the first example in scheme where we want to hide the internals of a datatype, a concrete class can be enough (think <code>ValueObject</code>s).</p>
+
+<p>I find that in Object Oriented Programming, thinking about types as you do when writing e.g. Haskell, tends to help when defining your interfaces effectively. One of the biggest differences is the manifestation of side-effects: In Haskell, there's a type for functions with side effects, while interfaces in Object Oriented languages mostly don't give you any insights into that (I've often thought about annotating side-effects in the docblocks of my interfaces).</p>
+
+<p>While PHP doesn't allow you to implement your own Equality rules for your classes, some Object Oriented languages do. Compare these examples:</p>
+
+<pre><code class="php">$foo == $bar;
+</code></pre>
+
+<pre><code class="php">$foo-&gt;equals($bar);
+</code></pre>
+
+<p>In the first example, we can't influence how PHP compares two instances of our class, while in the second one, we have complete control (even over the name of the method). It depends on taste what's best, certainly when your language allows you to overload <code>==</code> for your classes. Always try to make it as readable as possible!</p>
+
+<p>Wow, we made it through! Hope to see you in the next episode! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Syntax]]></title>
+            <link href="/blog/2018/11/28/lambda-syntax"/>
+            <updated>2018-11-28T11:30:00+00:00</updated>
+            <id>/blog/2018/11/28/lambda-syntax</id>
+            <content type="html"><![CDATA[<p><strong>This is the fifth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%9C%A8-syntactic-sugar">✨ Syntactic Sugar</h2>
+
+<p>When I was first reading <a href="http://learnyouahaskell.com/">Learn You A Haskell For Great Good</a>, I came across the term <em>Syntactic Sugar</em> and I was confused... My background in OOP languages made me cringe a little when I read about how you can create your own syntax in Haskell using infix operators and DSLs. It even goes so far that some functional languages have almost no syntax at all! Let's look at an example of "sugar":</p>
+
+<pre><code class="haskell">map reverse
+    (filter (\x -&gt; length x &lt; 5)
+            ["foo", "bar", "baz", "qux", "ramsam"])
+</code></pre>
+
+<p>We're taking the list <code>["foo", "bar", "baz", "qux", "ramsam"]</code>, filtering out items that are 5 characters or longer, and reversing them all, one by one. The result is <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<p>We can make this a little bit more readable by using Haskell's <code>$</code> infix operator, which allows us to remove some of the parentheses by evaluating the expression on its righthand side first:</p>
+
+<pre><code class="haskell">map reverse $ filter (\x -&gt; length x &lt; 5) $ ["foo", "bar", "baz", "qux", "ramsam"]
+</code></pre>
+
+<p>Although the parentheses are gone, we still have to read from right to left if we want to know what exactly the result of this will be. We basically pipe the result of the expression on the right of the <code>$</code> to the expression on the left side of it. Some languages like F# have the <code>|&gt;</code> operator which allows you to pipe from left to right, so the exact opposite of the <code>$</code> operator. It's not idiomatic Haskell, but in some cases we might want to use it to create some clarity.</p>
+
+<p>Since we know <code>|&gt;</code> is the exact opposite of <code>$</code>, let's just try to write it ourselves. In Haskell, infix operators are just normal functions with two parameters. Here's an example:</p>
+
+<pre><code class="haskell">*repl &gt; 2 + 3
+5
+
+*repl &gt; (+) 2 3
+5
+</code></pre>
+
+<p>The function <code>(+)</code> can be used as a normal Haskell function, writing the function first and its arguments after it, or as an infix operator, without the parentheses. So we know <code>($)</code> is a function taking two parameters, and we have <code>flip</code> which takes a function with two parameters, and flips the order of them!</p>
+
+<pre><code class="haskell">(|&gt;) = flip ($)
+</code></pre>
+
+<p>Easy! Let's now write the original example using <code>(|&gt;)</code>:</p>
+
+<pre><code class="haskell">["foo", "bar", "baz", "qux", "ramsam"]
+  |&gt; filter (\x -&gt; length x &lt; 5)
+  |&gt; map reverse
+</code></pre>
+
+<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as the last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
+
+<p>As you saw in the last example, we can create our own infix functions in Haskell. This can be very useful to create more readable code, using the language of the domain. Let's see a typical example of a function that doesn't do that:</p>
+
+<pre><code class="haskell">changeAddress :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>Now when we use this function in the classical way, it looks like this:</p>
+
+<pre><code class="haskell">let abbeyRoad3 = "3 Abbey Road, London NW8 9AY, UK"
+let updatedClient = changeAddress client abbeyRoad3
+</code></pre>
+
+<p>which doesn't read very well... What if we could use an infix here?</p>
+
+<pre><code class="haskell">let updatedClient = client `changedAddressTo` abbeyRoad3
+</code></pre>
+
+<p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
+
+<p><code>client changedAddressTo abbeyRoad3</code></p>
+
+<p>This is now the function type:</p>
+
+<pre><code class="haskell">changedAddressTo :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>So a simple changed lead to a better understanding of the code.</p>
+
+<h2 id="%F0%9F%93%89-the-absolute-minimum">📉 The Absolute Minimum</h2>
+
+<p>In the previous examples, you could see how we can mold the existing syntax to our likings, and use that to create very understandable code. Now let's see what happens when you take a language that has almost no syntax at all, like <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">scheme</a>. Literally, the only syntax in scheme is <code>(</code> and <code>)</code>. The rest are functions. Let's check out some code:</p>
+
+<pre><code class="scheme">(define sum
+  (lambda (list)
+    (cond
+      ((null? list) 0)
+      (else (+ (car list) (sum (cdr list)))))))
+</code></pre>
+
+<p>As you can see, there are lots of <code>(</code>s and <code>)</code>s. Basically, every <code>()</code> combo is a function call.</p>
+
+<ul>
+<li><code>(define name body)</code> defines a variable. In this case, it's called <code>sum</code>.</li>
+<li><code>(lambda (arguments) body)</code> defines a function. In this case, it has an argument called <code>list</code>.</li>
+<li><code>(cond (condition result1) (else result2))</code> creates a conditional. If the <code>condition</code> is <code>#t</code> (true), we return <code>result1</code>, else <code>result2</code>.</li>
+<li><code>(null? list)</code> checks if a list is empty.</li>
+<li><code>(+ a b)</code> returns the sum of two numbers.</li>
+<li><code>(car list)</code> returns the first item of a list (the <code>head</code> of the list).</li>
+<li><code>(sum list)</code> is the recursive call to our own defined function.</li>
+<li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
+</ul>
+
+<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parsers or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macros which will let you manipulate your own code!</p>
+
+<h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
+
+<p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
+
+<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do to make your code more meaningful. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
+
+<p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
+
+<p>That concludes this post. See you in the <a href="/blog/2019/01/28/lambda-implementation-details">next Lambda To The Rescue post</a>! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Monoids]]></title>
+            <link href="/blog/2018/10/08/lambda-monoids"/>
+            <updated>2018-10-08T10:30:00+00:00</updated>
+            <id>/blog/2018/10/08/lambda-monoids</id>
+            <content type="html"><![CDATA[<p><strong>This is the fourth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%98%95%EF%B8%8F-ordering-some-coffees">☕️ Ordering some coffees</h2>
+
+<p>In the previous posts, you already came across a few functional programming concepts. Let's explore one more. Let's say we went to a coffee bar and we want to calculate the total price of an order of coffees:</p>
+
+<pre><code class="haskell">- Lungo           € 2.50
+- Lungo           € 2.50
+- Cappuccino      € 2.90
+- Double Espresso € 2.10
+- Iced Coffee     € 4.50
+</code></pre>
+
+<p>If you want to quickly do this from the top of your head, it makes sense to calculate it like this:</p>
+
+<pre><code class="haskell">2.50 + 2.50 + 2.90 + 2.10 + 4.50
+= (2.50 + 2.50) + (2.90 + 2.10) + 4.50
+= 5             + 5             + 4.50
+= 10                            + 4.50
+= 14.50
+</code></pre>
+
+<p>instead of</p>
+
+<pre><code class="haskell">2.50 + 2.50 + 2.90 + 2.10 + 4.50
+= 2.50 + (2.50 + 2.90) + (2.10 + 4.50)
+= 2.50 + 5.40          + 6.60
+= 7.90                 + 6.60
+= 14.50
+</code></pre>
+
+<p>As you already knew, these two approaches yield the same results. We say the location of the <code>(</code> and <code>)</code> when doing <code>+</code> isn't important, or <code>+</code> is <em>associative</em>.</p>
+
+<p>Usually the receipt has a line "service" with some service costs of the order as well. In this case, since we ordered more than 4 coffees, we get service for free. The actual receipt looked like this:</p>
+
+<pre><code class="haskell">- Lungo           € 2.50
+- Lungo           € 2.50
+- Cappuccino      € 2.90
+- Double Espresso € 2.10
+- Iced Coffee     € 4.50
+
+- service         € 0
+</code></pre>
+
+<p>Does this change our calculation?</p>
+
+<pre><code class="haskell">(2.50 + 2.50) + (2.90 + 2.10) + 4.50 + 0
+= 5           + 5             + 4.50 + 0
+= 10                          + 4.50 + 0
+= 14.50                              + 0
+= 14.50
+</code></pre>
+
+<p>Not at all! We conclude that 0 is "neutral" in that it doesn't change our calculations when using <code>+</code>. We call this <code>0</code> value <em>identity</em>.</p>
+
+<h2 id="%F0%9F%A7%90-monoids">🧐 Monoids</h2>
+
+<p>Now, when we find these two properties (associativity and neutral element) for a function and its data, we found a <em>Monoid</em>. Cool! Let's see if we can find some other Monoids!</p>
+
+<p>Let's see if a list of integers, and the operation <code>++</code> (append) form a Monoid:</p>
+
+<pre><code class="haskell">$ ([1, 2] ++ [3, 4]) ++ [5, 6]
+[1, 2, 3, 4, 5, 6]
+
+$ [1, 2] ++ ([3, 4] ++ [5, 6])
+[1, 2, 3, 4, 5, 6]
+</code></pre>
+
+<p>Ok, we have associativity, let's check if we can find a neutral element. How about the empty list?</p>
+
+<pre><code class="haskell">$ [1, 2] ++ []
+[1, 2]
+</code></pre>
+
+<p>Nice! We found another Monoid!</p>
+
+<p>How about this:</p>
+
+<pre><code class="haskell">data DiskUsage = DiskUsage { server :: String
+                           , consumed :: Int
+                           } deriving (Eq, Show)
+
+data ServerStats = ServerStats { totalInGB :: Int
+                               , perServer :: [DiskUsage]
+                               } deriving (Eq, Show)
+
+mergeServerStats :: ServerStats -&gt; ServerStats -&gt; ServerStats
+mergeServerStats a b = ServerStats { totalInGB = totalInGB a + totalInGB b
+                                   , perServer = perServer a ++ perServer b
+                                   }
+</code></pre>
+
+<p>A program we could use to measure disk usage in our fictional data center's server racks returns <code>ServerStats</code> per rack. For every server in the rack, there's a <code>DiskUsage</code> entry in the <code>perServer</code> list. To easily calculate the total disk usage in our fictional data center, we just use <code>mergeServerStats</code> to sum it all, <em>et voilà</em> we get one <code>ServerStats</code> with a total amount of GB used, and a list of all servers with their <code>DiskUsage</code>. (Note that the <code>totalInGB</code> can be totally wrong in this example. In a real world application you would just calculate that from the <code>perServer</code> value at all times. It's there because of convenience: you can immedately see how much disk usage is for a given rack.)</p>
+
+<p>The question is, is this a <strong>Monoid</strong>? 🤔</p>
+
+<p>To talk about a Monoid, we know we need a datatype. In this case we have <code>ServerStats</code>. Good. We also need a binary operation. We have <code>mergeServerStats</code>. Nice! We're halfway there. Let's see if we have the other stuff we need:</p>
+
+<ul>
+<li><p>associativity:</p>
+
+<pre><code class="haskell">$ foo = DiskUsage { server = "foo", consumed = 42 }
+$ bar = DiskUsage { server = "bar", consumed = 99 }
+$ baz = DiskUsage { server = "baz", consumed = 1 }
+$ qux = DiskUsage { server = "qux", consumed = 0 }
+$
+$ rack1 = ServerStats { totalInGB = 42, perServer = [foo] }
+$ rack2 = ServerStats { totalInGB = 100, perServer = [bar, baz] }
+$ rack3 = ServerStats { totalInGB = 0, perServer = [qux] }
+$
+$ result1 = mergeServerStats (mergeServerStats rack1 rack2) rack3
+$ result2 = mergeServerStats rack1 (mergeServerStats rack2 rack3)
+$
+$ result1 == result2
+True
+</code></pre>
+
+<p>Applying <code>mergeServerStats</code> first to <code>rack1</code> and <code>rack2</code>, and then applying the same function to the result of the first calculation and <code>rack3</code> had the same result as first applying <code>mergeServerStats</code> to <code>rack1</code> and the result of applying that same function to <code>rack2</code> and <code>rack3</code>. We have associativity!</p></li>
+<li><p>neutral element:</p>
+
+<pre><code class="haskell">$ foo = DiskUsage { server = "foo", consumed = 42 }
+$
+$ rack1 = ServerStats { totalInGB = 42, perServer = [foo] }
+$ neutral = ServerStats { totalInGB = 0, perServer = [] }
+$
+$ result = mergeServerStats rack1 neutral
+$
+$ result == rack1
+True
+</code></pre>
+
+<p>We were able to find a <code>ServerStats</code> value <code>neutral</code> that, when appended to another value <code>rack1</code> using <code>mergeServerStats</code> resulted in the same value as <code>rack1</code> again! This means we have a neutral element!</p></li>
+</ul>
+
+<p>We can conclude that <code>ServerStats</code> forms a Monoid with its operation <code>mergeServerStats</code>.</p>
+
+<h2 id="%F0%9F%92%B0-usefulness">💰 Usefulness</h2>
+
+<p>Now why is this such a big deal? Why do we keep rambling on about this? Let's evaluate this next question from our fictional operations engineers:</p>
+
+<blockquote>
+  <p>Our datacenter grew quickly and we now have 10 racks with 10 servers each. We have a script that produces a <code>ServerStats</code> entry per rack. We want to know the total disk usage across all racks. Can we do this?</p>
+</blockquote>
+
+<p>We quickly head back to <a href="/blog/2018/06/27/lambda-recursion/#recognizing-a-pattern">last "Lambda To The Rescue" episode</a> and check out the paragraph about <code>fold</code>. Let's see if folds can help us!</p>
+
+<pre><code class="haskell">$ foldr mergeServerStats neutral [ rack1, rack2, rack3, ... ]
+ServerStats { totalInGB = 142
+            , perServer = [ DiskUsage {server = "foo", consumed = 42}
+                          , DiskUsage {server = "bar", consumed = 99}
+                          , DiskUsage {server = "baz", consumed = 1}
+                          , DiskUsage {server = "qux", consumed = 0}
+                          , ...
+                          ]
+            }
+</code></pre>
+
+<p>As you can see, we used all aspects of the Monoid in this example. We used the <em>neutral element</em> to have a starting value for our <code>foldl</code> invocation. We gave <code>foldl</code> the <code>mergeServerStats</code> binary operation over our datatype, and didn't worry about order of evaluation, which is where the <code>associativity</code> was helpful (we don't have to worry about implementation of <code>foldl</code>).</p>
+
+<p>So, when we find out we're working with a Monoid, we immediately know we can <code>fold</code> easily over lists of that datatype!</p>
+
+<p>In fact, if you're acquainted with <em>MapReduce</em>, a strategy for processing lots of data, you'll see that having a list of data allows you to <code>map</code> over it, and finding a Monoid between the datatype inside that list and the operation you want to do will allow you to <code>reduce</code> (or <code>fold</code>) easily over the list. Now you know what to look for!</p>
+
+<p>Aside from "knowing what we can do with it", there's another benefit to understanding <code>Monoid</code>s, and that is <em>familiarity</em>. If you're checking out a codebase, and you find a Monoid instance, you'll feel right at home, and you'll understand the operations done on that particular datatype much easier than before. Which leads me to "formalizing".</p>
+
+<h2 id="%F0%9F%A4%AF-formalizing">🤯 Formalizing</h2>
+
+<p>You can even go further with this: in Haskell, there's a datatype <code>Monoid</code> which formalizes these properties in a typeclass:</p>
+
+<pre><code class="haskell">class Monoid m where
+  mempty :: m
+  mappend :: m -&gt; m -&gt; m
+  mconcat :: [m] -&gt; m
+  mconcat = foldr mappend mempty
+</code></pre>
+
+<p>This means that you can formalize that your datatype &amp; operation combo is a <code>Monoid</code> instance, because it has a neutral element <code>mempty</code> and a binary operation <code>mappend</code>. You then get <code>mconcat</code> for free, which is the same as doing the <code>foldr</code> of the last example. Let's do this for our <code>ServerStats</code> type:</p>
+
+<pre><code class="haskell">instance Monoid ServerStats where
+  mempty = ServerStats { totalInGB = 0, perServer = [] }
+  mappend = mergeServerStats
+</code></pre>
+
+<p>We can now do this:</p>
+
+<pre><code class="haskell">$ mconcat [rack1, rack2, rack3]
+ServerStats { totalInGB = 142
+            , perServer = [ DiskUsage {server = "foo", consumed = 42}
+                          , DiskUsage {server = "bar", consumed = 99}
+                          , DiskUsage {server = "baz", consumed = 1}
+                          , DiskUsage {server = "qux", consumed = 0}
+                          ]
+            }
+</code></pre>
+
+<p>This <code>mconcat</code> function thus comes for free and will work on any <code>Monoid</code>! You can mostly guess the behaviour of this function whenever you see it!</p>
+
+<h2 id="%F0%9F%98%85-back-to-oop">😅 Back to OOP</h2>
+
+<p>What to do with this knowledge in the Object Oriented world? We use lists to work with objects of the same type constantly, and do operations on objects in those lists to gather new information. Most of the time I see this, it's done using <code>foreach</code> or something like it. However, as far as I'm concerned there's no difference to the Functional Programming world here. If you already embrace <code>map</code>, <code>filter</code> and <code>reduce</code>, you should also be thinking about the datastructure inside the list: is it a <em>Monoid</em>? You'll then understand better how it will behave when doing operations on it and you'll immediately know which the best reducer functions are!</p>
+
+<p>That concludes this post. Hope to see you for <a href="/blog/2018/11/28/lambda-syntax">the next one</a>! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Recursion]]></title>
+            <link href="/blog/2018/06/27/lambda-recursion"/>
+            <updated>2018-06-27T14:00:00+00:00</updated>
+            <id>/blog/2018/06/27/lambda-recursion</id>
+            <content type="html"><![CDATA[<p><strong>This is the third post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h3 id="procedural-and-declarative-styles">Procedural and Declarative styles</h3>
+
+<p>Most programming languages have language structures to loop through lists and do interesting stuff with those lists. When you're used to programming using one of those languages, it can be pretty terrifying to have your basics taken away from you when you jump into a functional programming language like Scheme or Haskell. Let's see what the problem is that functional languages have with loops and how they solved it.</p>
+
+<p>Let's look at a pretty standard loop in PHP that counts how many words are in a list:</p>
+
+<pre><code class="php">function countWordsInList(array $listOfWords)
+{
+    $count = 0;
+
+    foreach ($listOfWords as $word) {
+        $count++;
+    }
+
+    return $count;
+}
+</code></pre>
+
+<p>Of course, this is an overly simple example (and you should probably use <code>count()</code>), but you get the point. Now, things get difficult, because there are no loops like this <code>foreach</code> in a lot of functional programming languages. Why, you ask? Because most of them either don't allow you to reassign variables (which makes the loop pretty useless), and, in fact, some of them disallow side-effects altogether. Let's see how we do this in Haskell instead:</p>
+
+<pre><code class="haskell">countWordsInList :: [String] -&gt; Int
+countWordsInList [] = 0
+countWordsInList (x:xs) = 1 + countWordsInList xs
+</code></pre>
+
+<p>OK, stop. 🤔 What the hack is happening here?</p>
+
+<ul>
+<li>On the first line, we have the type definition of our function: It takes a list of strings <code>[String]</code> and it returns an <code>Int</code>. It's a good practice to write it (it helps you think), but Haskell's compiler can infer it most of the time.</li>
+<li>Then we define a "base" case: <code>countWordsInList</code> returns <code>0</code> for an empty list <code>[]</code>.</li>
+<li>Then we say that for a list with at least one word <code>x</code> and possibly other words <code>xs</code>, we'll return <code>1</code> and add the result of the recursive call to the same function, with the rest of the list of words (the whole list without the first word).</li>
+</ul>
+
+<p>As you can see, in the PHP example we told the machine what to do with the list to get to a result. In the Haskell example, we declared what the result was, and some variables just had to be filled in. You could say that no computation needed to happen, just substitution.</p>
+
+<pre><code class="haskell">countWordsInList ["foo", "bar", "baz"] = 1 + countWordsInList ["bar", "baz"]
+countWordsInList ["foo", "bar", "baz"] = 1 + 1 + countWordsInList ["baz"]
+countWordsInList ["foo", "bar", "baz"] = 1 + 1 + 1 + countWordsInList []
+countWordsInList ["foo", "bar", "baz"] = 1 + 1 + 1 + 0
+countWordsInList ["foo", "bar", "baz"] = 3
+</code></pre>
+
+<h3 id="recognizing-a-pattern">Recognizing a Pattern</h3>
+
+<p>Let's try and write a function to sum all numbers in a list of integers:</p>
+
+<pre><code class="haskell">sum' :: [Int] -&gt; Int
+sum' [] = 0
+sum' (x:xs) = x + sum' xs
+</code></pre>
+
+<p>OK, so:</p>
+
+<ul>
+<li>We'll call our function <code>sum'</code> because <code>sum</code> already exists.</li>
+<li>We want <code>sum'</code> to take a list of integers <code>[Int]</code> and we'll return the sum of all those as an <code>Int</code>.</li>
+<li>We'll start with the simplest case: an empty list will have the sum <code>0</code>.</li>
+<li>In all other cases, we'll take the first <code>Int</code> in the list, and add it to the sum of all other items in the list.</li>
+</ul>
+
+<p>💡 Does that make you think of something?</p>
+
+<p>You're right, this looks <strong>a lot</strong> like the previous example <code>countWordsInList</code>. And that's what other functional programmers thought when they were doing stuff like this. What if we could make an abstraction over this?</p>
+
+<pre><code class="haskell">xxxxx [] = __value__
+-- either return something for an empty list
+
+xxxxx (x:xs) = __function__ x (xxxxx xs)
+-- or take the first item of the list and combine
+-- it with the recursive call with the rest of the list
+</code></pre>
+
+<p>Let's try. With the above blueprint, we can see that we need to create a function that</p>
+
+<ol>
+<li>takes a <code>__function__</code> that combines a value with the next</li>
+<li>takes a <code>__value__</code> that is the default for empty lists</li>
+<li>abstracts away the recursive call and returns the endresult;</li>
+</ol>
+
+<p>Let's define its type:</p>
+
+<pre><code class="haskell">fold' :: (a -&gt; b -&gt; a) -&gt; a -&gt; [b] -&gt; a
+</code></pre>
+
+<ul>
+<li>we'll call our function <code>fold'</code></li>
+<li><code>(a -&gt; b -&gt; a)</code> first parameter is a function that takes a value of type <code>a</code> and type <code>b</code> and returns a value of type <code>a</code></li>
+<li><code>-&gt; a</code> second parameter is the default value of type <code>a</code></li>
+<li><code>-&gt; [b]</code> third parameter is a list of values to loop over, they all have type <code>b</code></li>
+<li><code>-&gt; a</code> the return value will be of type <code>a</code></li>
+</ul>
+
+<p>Now we can start writing. We know that if the list we got is empty, we can just return the default value:</p>
+
+<pre><code class="haskell">fold' _ def [] = def
+</code></pre>
+
+<p>The <code>_</code> means "we don't care about that value". It doesn't matter what the function is; if the list is empty, we don't need it. What if the list is not empty, but contains one or more elements? Let's use the combining <code>func</code> to combine the first item of the list with the result of the recursive call to the <code>fold'</code> function with exactly the same parameters (except for the "list", we just pass everything but the first element that we already used):</p>
+
+<pre><code class="haskell">fold' func def (x:xs) = func x (fold' func def xs)
+</code></pre>
+
+<p>We apply the <code>func</code> to the first element and the result of the recursive call to our <code>fold'</code> function with all the same parameters, except for the list. There we just pass on the rest of the list (so without the first element that we already used).</p>
+
+<p>Combined, that is:</p>
+
+<pre><code class="haskell">fold' :: (b -&gt; a -&gt; a) -&gt; a -&gt; [b] -&gt; a
+fold' _ def [] = def
+fold' func def (x:xs) = func x (fold' func def xs)
+</code></pre>
+
+<p>Let's see if it works! Remember <code>countWordsInList</code>?</p>
+
+<pre><code class="haskell">countWordsInList :: [String] -&gt; Int
+countWordsInList [] = 0
+countWordsInList (x:xs) = 1 + countWordsInList xs
+</code></pre>
+
+<p>We'll rewrite it using the <code>fold'</code> function:</p>
+
+<pre><code class="haskell">countWordsInList :: [String] -&gt; Int
+countWordsInList list = fold' (\word count -&gt; count + 1) 0 list
+</code></pre>
+
+<p>We'll fold over the <code>list</code> with a function that takes the next <code>word</code> and the current <code>count</code>, and returns <code>count + 1</code>. The stuff that's written between parens is a lambda (anonymous function) and looks like this <code>(\params -&gt; body)</code>. The default value for our <code>fold'</code> is <code>0</code>. When we use it, it gives expected results:</p>
+
+<pre><code class="haskell">countWordsInList ["foo", "bar", "baz", "qux"]
+-- 4
+
+countWordsInList []
+-- 0
+
+countWordsInList ["foo"]
+-- 1
+</code></pre>
+
+<p>How about the <code>sum</code> function that we made earlier?</p>
+
+<pre><code class="haskell">sum' :: [Int] -&gt; Int
+sum' = fold' (+) 0
+</code></pre>
+
+<p>Let's try it out:</p>
+
+<pre><code class="haskell">sum' [1, 2, 3, 4]
+-- 10
+
+sum' []
+-- 0
+
+sum' [5]
+-- 5
+</code></pre>
+
+<p>That seems to work... But wait... We wrote the definition <code>sum' = fold' (+) 0</code> without a list? Isn't this function definition incomplete? Yes. In Haskell, like in math, you can omit things that happen on both sides of the equals sign. Compare it to <code>3 + 4 = 1 + 2 + 4</code>. You could just as well write <code>3 = 1 + 2</code>. It's the same thing in Haskell. <code>sum' list = fold' (+) 0 list</code> is the same as <code>sum' = fold' (+) 0</code>.</p>
+
+<p>As an exercise, let's do one more. We'll try to write a function that finds the maximum value of a list of positive integers, and returns <code>0</code> otherwise:</p>
+
+<pre><code class="haskell">maximum' :: [Int] -&gt; Int
+maximum' = fold' (\next current -&gt; if next &gt; current then next else current) 0
+</code></pre>
+
+<pre><code class="haskell">maximum' []
+-- 0
+
+maximum' [1, 2, 3, 5, 3, 2, 10, 0, 1]
+-- 10
+
+maximum' [42]
+-- 42
+</code></pre>
+
+<p>If you want to use folds in Haskell, you certainly shouldn't write them yourself 😅 - they already exist. Check out <a href="https://wiki.haskell.org/Foldr_Foldl_Foldl'">the documentation</a> for <code>foldl</code>, <code>foldr</code> and <code>foldl'</code>.</p>
+
+<h3 id="transforming-a-list-to-another-list">Transforming a list to another list</h3>
+
+<p>Let's say we have a list of Users, and we wanted to only have a list of their ages. The above methods could help us do that, but it would be quite tedious. Let's try writing a function for it ourselves.</p>
+
+<pre><code class="haskell">data User = User { name :: String
+                 , age :: Int
+                 } deriving (Show)
+
+ages :: [User] -&gt; [Int]
+ages [] = []
+ages (u:us) = age u : ages us
+</code></pre>
+
+<p>Again, we make sure we got the base case of an "empty list of users" covered: we'll just return an empty list of ages. Then we really need to start thinking. We'll just get what we need for the first value of the input list, and prepend that to the result of the recursive call with the rest of the list (just like what we did with the folds). Let's see what that gives us:</p>
+
+<pre><code class="haskell">ages []
+-- []
+
+ages [ User {name="toon", age=29}, User {name="jenne", age=30} ]
+-- [29,30]
+
+ages [ User {name="toon", age=29} ]
+-- [29]
+</code></pre>
+
+<p>It seems to work!</p>
+
+<p>What if we had a list of ages, and we wanted to know how many years these people still had left to live. Let's oversimplify again, and subtract their age from <code>100</code>.</p>
+
+<pre><code class="haskell">yearsLeft :: [Int] -&gt; [Int]
+yearsLeft [] = []
+yearsLeft (x:xs) = 100 - x : yearsLeft xs
+</code></pre>
+
+<p>Again, we take the first element of the list, do something with it, and recurse on the rest of the list. That looks a lot like the "age" example, doesn't it?</p>
+
+<p>Well... there's an abstraction that can be made again. The "generic" function for doing things like this should look like so:</p>
+
+<pre><code class="haskell">xxxxx [] = []
+-- an empty input list results in an empty output list
+
+xxxxx (x:xs) = __function__ x : (xxxxx xs)
+-- take the first item of the list and do something with it
+-- recurse on the rest of the list and append results.
+</code></pre>
+
+<p>Let's define its type:</p>
+
+<pre><code class="haskell">map' :: (a -&gt; b) -&gt; [a] -&gt; [b]
+</code></pre>
+
+<p>Let's name our function <code>map'</code>, it takes a function from type <code>a</code> to type <code>b</code> and a list with <code>a</code>s. It then returns a list of <code>b</code>s. In the base case, it should return an empty list:</p>
+
+<pre><code class="haskell">map' _ [] = []
+</code></pre>
+
+<p>In other cases, it should take the first item of the list, apply the function to it, and append the result of the recursive call:</p>
+
+<pre><code class="haskell">map' func (x:xs) = func x : map' func xs
+</code></pre>
+
+<p>So, we get this:</p>
+
+<pre><code class="haskell">map' :: (a -&gt; b) -&gt; [a] -&gt; [b]
+map' _ [] = []
+map' func (x:xs) = func x : map' func xs
+</code></pre>
+
+<p>Let's try it out: we want to write a function that takes a list of <code>Int</code>s and returns the same list but with <code>1</code> added to each element.</p>
+
+<pre><code class="haskell">plusOne :: [Int] -&gt; [Int]
+plusOne = map' (+ 1)
+</code></pre>
+
+<pre><code class="haskell">plusOne []
+-- []
+
+plusOne [1, 2, 3]
+-- [2,3,4]
+
+plusOne [3]
+-- [4]
+</code></pre>
+
+<p>Cool! So now we have generalizations over some of these recursive functions! There are others to be found. I'll leave that to the reader to find out about.</p>
+
+<h3 id="back-to-oop">Back to OOP</h3>
+
+<p>You can probably see that these abstractions have their value. E.g.: <code>map</code> lets you use a function that applies to one thing on a whole list of those things. Even better, it lets you do it in a totally declarative style. You don't need to worry about state or changing variables. You don't need to keep counter values. Nothing. It's totally transparent. For me, this results in a huge reduction of mental overhead. I know, I talk a lot about that, but it's important to me. The same thing is true for the <code>fold</code>s. It's another way of thinking about loops that works really well for me.</p>
+
+<p>When we get back to e.g. PHP now, I see many cases where a <code>map</code> or <code>fold</code> would be great. Implementing them ourselves isn't necessary (luckily), because they already exist in practically every programming language.</p>
+
+<p>One more thing. The above implementations -which actually work really great in functional programming languages- wouldn't work in languages like PHP. The reason is simple: we would get stack overflows pretty quickly; In functional programming languages, there are things called tail call optimizations that can be made. They make sure that you don't blow the stack, even if you recurse a thousand times. This is not really possible in PHP functions right now. Try it out! But after it, just use <code>array_map()</code> and <code>array_reduce()</code> if you want to do stuff like this 😉!</p>
+
+<p>Hope you liked that, see you in <a href="/blog/2018/10/08/lambda-monoids">the next post</a>! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Pure Functions]]></title>
+            <link href="/blog/2018/06/04/lambda-pure-functions"/>
+            <updated>2018-06-04T10:00:00+00:00</updated>
+            <id>/blog/2018/06/04/lambda-pure-functions</id>
+            <content type="html"><![CDATA[<p><strong>This is the second post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<p>Whenever you read up on functional programming on the internet, it's common to come across words like "pure" and "transparent", and for good reason. Let's explore their meaning in the functional programming world. 🕵️‍♂️</p>
+
+<h2 id="%F0%9F%92%8E-purity">💎 Purity</h2>
+
+<p>Let's pretend we need to represent the number of cylinders in an engine <code>2</code> in our code. In a normal scenario, we would assign it to a variable and be done with it. We'll use <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>In the example, we start with a type annotation. You can read the first line as "cylinders <strong>is an</strong> Int". Then we write our statement.</p>
+
+<p>Now, whenever we need the number of cylinders for computation, we could just get it from the variable right? Sure! Let's try something else, since we're talking about "pure" functions. Let's try to use a function that doesn't take any input and always returns the number of cylinders, instead of a variable:</p>
+
+<pre><code class="haskell">cylinders :: Int
+cylinders = 2
+</code></pre>
+
+<p>Wait? WAT? That is exactly the same?</p>
+
+<p>Yes, in Haskell, a function without parameters is the same as a value. And that's logical right? No computation needs to happen when there's no input... right?</p>
+
+<p>Well... Let me disappoint you:</p>
+
+<pre><code class="php">function cylinders()
+{
+    echo rand();
+
+    return 2;
+}
+</code></pre>
+
+<p>In PHP, and in practically any other language, you can do things in functions that have side effects. In this case</p>
+
+<ul>
+<li>we created output on the <code>stdout</code></li>
+<li>we called <code>rand()</code> which in turn tried to create a random number by reading from a randomness source</li>
+</ul>
+
+<p>Of course this can result in A LOT of unexpected behaviour. By just looking at the function, you can't always immediately see what's going to happen. And this is what the word <code>pure</code> refers to. This function has "side effects", so it's not "pure".</p>
+
+<p>In Haskell though, if you want to do side effects within a function it will be marked with an <code>IO</code> tag. In fact, this is a type that behaves a bit like an environment. Getting a random number and echo'ing it requires <code>IO</code>, so the type can't just be <code>Int</code>, it's <code>IO Int</code>.</p>
+
+<pre><code class="haskell">cylinders :: IO Int
+</code></pre>
+
+<p>This way, you can always clearly see, just by looking at the types, that the function has side effects, and thus is not "pure".</p>
+
+<h2 id="%F0%9F%91%93-transparency">👓 Transparency</h2>
+
+<p>While these terms are used interchangibly, in my book the word "transparency" makes this very clear: you can "look straight through" a function.</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double x = 2 * x
+</code></pre>
+
+<p>For every numeric value, we can calculate its <code>double</code>. You could really write this as a complete mapping from every number to its double:</p>
+
+<pre><code class="haskell">double :: (Num a) =&gt; a -&gt; a
+double 0 = 0
+double 1 = 2
+double 2 = 4
+double 3 = 6
+double 4 = 8
+-- ... etcetera
+</code></pre>
+
+<p>As you can see, we reduced the function to (essentially) "values" again, as in the first example of this post. Calls to transparent functions could in theory be replaced by their values. In functional programming jargon this is called "referential transparancy".</p>
+
+<p>A lot of functions can be made in an entirely transparent way, even quite complex things like parsing structured text or doing extensive computation.</p>
+
+<h2 id="%F0%9F%A4%A9-consequences">🤩 Consequences</h2>
+
+<h4 id="reduced-mental-overhead">Reduced mental overhead</h4>
+
+<p>As you can imagine, being able to reason about functions as "values" makes things <em>much</em> easier. Otherwise you have to deal with side effects that can change the world while you just expected an Integer representing the number of cylinders in a motorcycle. The same goes for the other case, where an <code>IO Int</code> lets you know instantly that there will be stuff happening behind the curtains, and you're not getting your <code>Int</code> for free.</p>
+
+<h4 id="in-fp-as-well-as-oop-environments">In FP as well as OOP environments</h4>
+
+<p>Even in OOP environments I always try to see which parts of the code that I'm writing can be written as pure functions, so that they can be extracted to functions that represent values. E.g. processing incoming social media posts to a unified format of a post that our system understands is essentially a "transparent" operation. It's just a transformation of data to a certain format. The fact that this function is pure makes it very easy to reason about: we can essentially just think about the post in it's basic form (inline the function as value).</p>
+
+<p>Now that I'm thinking about it: it would be GREAT if static analysis could detect side effects in functions... What do you think? 🤯</p>
+
+<p>See you in <a href="/blog/2018/06/27/lambda-recursion">the next post</a>!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Lists to wrap failure]]></title>
+            <link href="/blog/2018/03/02/lambda-lists-to-wrap-failure"/>
+            <updated>2018-03-02T11:00:00+00:00</updated>
+            <id>/blog/2018/03/02/lambda-lists-to-wrap-failure</id>
+            <content type="html"><![CDATA[<p><strong>This is the first post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Hang tight for more.</strong></p>
+
+<h2 id="readability">Readability</h2>
+
+<p>When we're reading code, one of the most important blocking factors is cognitive overhead. Minimize it, and your code instantly becomes easier to read and understand. Or is it the other way 'round? After some years of playing with functional programming languages in my spare time, I saw some things that functional programming does great in this field. One of them involves lists.</p>
+
+<p>As you might know, lists are among the most important datastructures in functional programming, if not the most important. There's even a whole family of programming languages that took their name from them. Looking at you <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> 😘!</p>
+
+<p>Let's dive in with a typical legacy PHP method discovered in the wild:</p>
+
+<pre><code class="php">&lt;?php
+
+function words($string)
+{
+    if (empty($string)) {
+        return false;
+    }
+
+    return explode(' ', $string);
+}
+
+var_dump(words('')); // returns false
+var_dump(words('foo bar baz')); // returns ['foo', 'bar', 'baz'];
+</code></pre>
+
+<p>The reason the <code>empty</code> check is there, apparently, is that <code>explode(' ', $s)</code> with an empty string will return <code>['']</code> a list with an empty string in it, which is really strange and non-desirable. Arguably, if the <code>$string</code> variable can't be empty, we should throw an exception. But let's say we want to explore our options here. Before I look into the body of a function, I always try to understand it as a black blox.</p>
+
+<blockquote>
+  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string. Except that for empty strings, it will return <code>false</code>.</p>
+</blockquote>
+
+<p>Now, the "black box" already has some mystery to it. Why does it return <code>false</code>? Let's defer the answer to it, and check out if we can write the PHP7 type annotations for it.</p>
+
+<pre><code class="php">function words(string $string): array
+{
+    // ...
+}
+</code></pre>
+
+<p>Now, this is not correct. The exception that is made for empty strings can't be written as a type. In old-skool PHP they would've written a DocBlock like this:</p>
+
+<pre><code class="php">/**
+ * @param string $string
+ * @return array|false depending on failure
+ */
+function words($string)
+{
+    // ...
+}
+</code></pre>
+
+<p>But that is a type signature that is unrepresentable usinig PHP7 types. What if we would represent failure using an empty array?</p>
+
+<pre><code class="php">function words(string $string): array
+{
+    if (empty($string)) {
+        return array();
+    }
+
+    return explode(' ', $string);
+}
+</code></pre>
+
+<p>Now the type signature just works. We turned "failure" into a valid result that we can work with. For instance, all code that works with the return value of this method can now just work with arrays. The type signature now tells a story about the function too:</p>
+
+<blockquote>
+  <p>If I pass <code>words</code> a string, it returns an <code>array</code> of words in the string.</p>
+</blockquote>
+
+<p>The base case where the string is empty is now logical: an empty string has no words, so a list of 0 words is returned.</p>
+
+<h2 id="chaining-calls">Chaining calls</h2>
+
+<p>Now, let's say we have a function <code>chars</code> that returns a list of chars in a string:</p>
+
+<pre><code class="php">function chars(string $string): array
+{
+    if (empty($string)) {
+        return array();
+    }
+
+    return str_split($string);
+}
+</code></pre>
+
+<p>We're thinking we should be able to use this to list all the characters that appear within words. Would this work?</p>
+
+<pre><code class="php">chars(words('foo bar baz'));
+</code></pre>
+
+<p>No... We get a fatal error <code>Fatal error: Uncaught TypeError: Argument 1 passed to chars() must be of the type string, array given</code>. Of course, the result of <code>words</code> is an array, which cannot be used as input to our <code>chars</code> function. Let's use <code>array_map</code>:</p>
+
+<pre><code class="php">array_map(@chars, words('foo bar baz'));
+</code></pre>
+
+<p><em>don't worry about the <code>@</code>, it's a trick that I learned while working on <a href="https://github.com/mathiasverraes/lambdalicious/">lambdalicious</a>. <code>@</code> is PHP's error suppressing operator. In this case it allows us to write a function's name as a string, without using string notation, so that it's visually different from a string, BUT is interpreted by PHP as a string...</em></p>
+
+<p>We get this:</p>
+
+<pre><code class="php">[["f","o","o"],["b","a","r"],["b","a","z"]]
+</code></pre>
+
+<p>Of course, after mapping <code>chars</code> over the words, this is what we get... But actually, we wanted this:</p>
+
+<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
+</code></pre>
+
+<p>So how do we get there? We "flatten" the arrays by using <code>concat</code>, which does not exist in php. Let's write it ourselves:</p>
+
+<pre><code class="php">function array_concat(array $arrays): array
+{
+    return call_user_func_array(
+        @array_merge,
+        array_merge(array(array()), $arrays)
+    );
+}
+</code></pre>
+
+<p>Now we can use it to flatten the array:</p>
+
+<pre><code class="php">array_concat(array_map(@chars, words('foo bar baz')));
+</code></pre>
+
+<p>TADAAAA 😆 We get what we wanted!</p>
+
+<pre><code class="php">["f","o","o","b","a","r","b","a","z"]
+</code></pre>
+
+<p>Let's call this combination of <code>array_map</code> and <code>array_concat</code> <code>array_bind</code> for now:</p>
+
+<pre><code class="php">function array_bind(array $array, $f)
+{
+    return array_concat(array_map($f, $array));
+}
+</code></pre>
+
+<p><code>array_bind</code> takes an array of values, and a function that operates of one of those values and returns an array. It returns a new array of values.</p>
+
+<pre><code class="php">array_bind(array_bind(array('foo bar baz'), @words), @chars);
+// returns ["f","o","o","b","a","r","b","a","z"]
+</code></pre>
+
+<p>Now that we have the <code>array_bind</code> function, we can apply functions to something in an array, and the result will always be an array! What happens if we first bind <code>words</code> and then bind <code>chars</code> to an empty string?</p>
+
+<pre><code class="php">array_bind(array_bind(array(''), @words), @chars); // returns []
+</code></pre>
+
+<p>We get an empty array back, which is great!</p>
+
+<p>You saw me wrap the empty string in an array, to be able to use <code>array_bind</code>. This is an act of "providing context". The array serves as a context wrapper for results of the chained functions <code>words</code> and <code>chars</code>. We'll always get our result as an array. If anywhere in the process something fails, we get an empty array, otherwise we get an array with value(s) in it.</p>
+
+<p>I must admit, this doesn't look really great. Let's take a look at how this works in <a href="https://www.haskell.org/">Haskell</a>, a pure functional language.</p>
+
+<p>Now, this is the equivalent of what we wrote earlier on in PHP:</p>
+
+<pre><code class="haskell">pure "" &gt;&gt;= words &gt;&gt;= chars
+</code></pre>
+
+<pre><code class="haskell">pure "foo bar baz" &gt;&gt;= words &gt;&gt;= chars
+</code></pre>
+
+<p>These return <code>[]</code> and <code>["f","o","o","b","a","r","b","a","z"]</code>, as expected, but how?</p>
+
+<ul>
+<li><code>pure</code> wraps the string in our "wrapper" list.</li>
+<li><code>&gt;&gt;=</code> is the <code>bind</code> infix function; it takes the "wrapped" value on the left, and applies the function on the right to the wrapped value. It then returns a new wrapped value.</li>
+<li><code>words</code> takes a <code>String</code> and returns a list of strings <code>[String]</code>, split by spaces. It's in Haskell's default module <code>Prelude</code>.</li>
+<li><p><code>chars</code> is a function we made up, it takes a <code>String</code> and returns a list of strings <code>[String]</code>. By default, <code>String</code>s in Haskell are lists of <code>Char</code>s. To break up a given string in a list of strings that represent chars we need to map over the input string. The mapping function <code>(\x -&gt; [x])</code> gets a <code>Char</code> as input and returns a <code>String</code> by wrapping the given <code>Char</code> in a list; check it out:</p>
+
+<pre><code class="haskell">chars :: String -&gt; [String]
+chars s = map (\x -&gt; [x]) s
+</code></pre></li>
+</ul>
+
+<p>As you can see, Haskell was made for this kind of stuff... It also reads a lot better than our PHP implementation.</p>
+
+<h2 id="expanding-on-this-concept">Expanding on this concept</h2>
+
+<p>The reason this doesn't really work in PHP is that we don't have infix operators at our disposal. I've seen <a href="https://github.com/phunkie/phunkie">libraries</a> that do something with method calls along these lines:</p>
+
+<pre><code class="php">pure('foo bar baz')-&gt;bind(@words)-&gt;bind(@chars);
+</code></pre>
+
+<p>which already looks a lot better than what we came up with. Failure can be encapsulated. There's a lot less boilerplate code to read. There's no checking for empty arrays or failure, while it still behaves as we wanted.</p>
+
+<ul>
+<li><code>pure()</code> wraps the value in an object.</li>
+<li><code>bind()</code> is equivalent to returning a new wrapper object with the result of the applied function to the previously wrapped value. Internally it could all work using <code>arrays</code>, but it could just as well be done differently.</li>
+</ul>
+
+<p>For now, we've always worked with functions that return a number of results, but this whole concept can just as well be used with functions that are supposed to return a single result, like integer division <code>div</code>:</p>
+
+<pre><code class="php">function div(int $divident, int $divisor): WrappedValue
+{
+    if ($divisor === 0) {
+        return nothing();
+    }
+
+    return pure(intdiv($divident, $divisor));
+}
+</code></pre>
+
+<p>Now, we created an integer division function that doesn't throw <code>DivisionByZeroError</code> exceptions, but uses this system of <code>WrappedValue</code>s to wrap it's return value on success (using <code>pure</code>, equivalent to an array with a value) or on failure (using <code>nothing</code>, equivalent to an empty array). Now, if we want to square the result of this, we can just bind <code>square</code> to the result of the previous computation.</p>
+
+<pre><code class="php">function square(int $number): WrappedValue
+{
+    return pure($number * $number);
+}
+
+var_dump(div(10, 2)-&gt;bind(@square)); // [25]
+var_dump(div(10, 0)-&gt;bind(@square)); // []
+</code></pre>
+
+<p>As with the previous examples, we can now just focus on the order of computation, without the need to worry about failure in the in-between steps.</p>
+
+<p>There are also ways to make this whole thing even more interesting by providing more info like error messages in case of failure.</p>
+
+<h2 id="day-to-day-usage">Day-to-day usage</h2>
+
+<p>I'm not saying this is perfect for everything in OOP by any means, but we might want to think about how we handle failure in our (legacy) systems. I sometimes see trees of exception handling and boolean/null-checks on return values. This is a third option (PHP doesn't have option types by default); In lots of ways, the classic <a href="https://en.wikipedia.org/wiki/Null_object_pattern">Null Object</a> pattern resembles this whole thing in a more Object Oriented way. In many functional programming languages this is actually the most widely used means of error handing. If you want to know more about it, I suggest reading up on <code>Functors</code>, <code>Applicatives</code>, and <code>Monads</code>. Scary names for new concepts, don't let them hold you back.</p>
+
+<p>If you want to do the most simple and useful thing: think about how your functions behave. What goes in, what comes out? Writing the type annotations helps a lot. And of course, throwing exceptions is not a sin.</p>
+
+<p>Happy programming y'aλλ! 👋</p>
+
+<h2 id="what%27s-next%3F">What's next?</h2>
+
+<p>Upcoming <em>lambda to the rescue</em> posts will be linked here:</p>
+
+<ul>
+<li>Lists to wrap failure (this post)</li>
+<li><a href="/blog/2018/06/04/lambda-pure-functions">Pure Functions</a></li>
+<li><a href="/blog/2018/06/27/lambda-recursion">Recursion</a></li>
+<li><a href="/blog/2018/10/08/lambda-monoids">Monoids</a></li>
+<li><a href="/blog/2018/11/28/lambda-syntax">Syntax</a></li>
+<li><a href="/blog/2019/01/28/lambda-implementation-details">Implementation Details</a></li>
+<li>...</li>
+</ul>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Refactoring to Collections]]></title>
+            <link href="/blog/2017/11/15/refactoring-to-collections"/>
+            <updated>2017-11-15T10:00:00+00:00</updated>
+            <id>/blog/2017/11/15/refactoring-to-collections</id>
+            <content type="html"><![CDATA[<p>How many times have you seen code like this?</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Our office is very close to a <a href="http://simon-says.be/">great coffee bar</a>, and people are going there from time to time to get coffee for everyone in the office. Keeping track of who's going for coffee and who wants which coffee can be daunting, which is why I'm making this app. Let's take a closer look at that piece of code.</p>
+
+<p>We're manually traversing an array of <code>CoffeeRun</code> objects that we got out of the Repository to filter out those who are open for orders. If we find one, we add it to a new array. This way we build a list of <code>CoffeeRuns</code> that are still accepting orders.</p>
+
+<h2 id="to-iterator-or-not%2C-that%27s-the-question">To Iterator or not, that's the question</h2>
+
+<p>Now, there's nothing very wrong with this, but it could be made a whole lot better, I think. Let's say that the Repository contains 1000 <code>CoffeeRun</code>s. We're now forcing the Repository to return an array of 1000 <code>CoffeeRun</code> objects when we call <code>getAll()</code>. That's not great. But let's think about it... The Repository already represents a list of all <code>CoffeeRun</code> objects. Why can't we just iterate over it? Something like this:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository;
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Having a repository we can iterate over like that would already be a first step. We could implement the <code>Iterator</code> interface within the Repository, and have this functionality immediately. But that would leave the foreach out there, and that would also present a problem for our dependency injection: the class where this <code>displayCoffeeRunsOpenForOrders</code> is a controller, and it has the Repository injected in its constructor, like this:</p>
+
+<pre><code class="php">public function __construct(CoffeeRunsRepository $repository)
+{
+    $this-&gt;coffeeRunsRepository = $repository;
+}
+</code></pre>
+
+<p>If we'd count on the fact that the Repository is now an <code>Iterator</code>, we should either typehint on it, but then we lose our typehint for <code>CoffeeRunsRepository</code>, which we don't want. Or we could make the <code>CoffeeRunsRepository</code> interface extend the <code>Iterator</code> interface, but then we get a really big interface we need to implement for every implementation of the Repository. Both of which are annoying to say the least.</p>
+
+<h2 id="think-solidly-different">Think SOLIDly Different</h2>
+
+<p>Let's try something completely different. In fact, the <code>foreach</code> in that method, is blocking progress for us right now; Let's extract that whole block to a method. This is what was in the controller before the extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>In the Repository we added a new method <code>openForOrders()</code>, and we kept the same implementation as before, which now resides in the implementation of that method:</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    // ...
+
+    /**
+     * @return CoffeeRun[] A list of CoffeeRuns open for orders
+     */
+    public function openForOrders();
+
+    // ...
+}
+</code></pre>
+
+<pre><code class="php">final class CoffeeRunsRepositoryInMemory implements CoffeeRunsRepository
+{
+    // ...
+
+    public function openForOrders()
+    {
+        $coffeeRuns = $this-&gt;getAll();
+        $openForOrders = array();
+
+        foreach ($coffeeRuns as $coffeeRun) {
+            if ($coffeeRun-&gt;ordersCanBeMade()) {
+                $openForOrders[] = $coffeeRun;
+            }
+        }
+
+        return $openForOrders;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>This is what's left in the controller after extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeRunsRepository-&gt;openForOrders();
+}
+</code></pre>
+
+<p>I don't like the <code>Repository</code> word in there, while we're thinking about the Repository as just being a Collection. Let's rename the variable in our controller. Notice how well this reads:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeruns-&gt;openForOrders();
+}
+</code></pre>
+
+<p>"Return CoffeeRuns that are Open For Orders". I like it. What's even better, is that the filtering of the Collection is now happening in the object that worries about the Collection, namely the Repository. This means that the specific implementations can optimize for their own benifits. E.g. the database implementation of the Repository can use a specific <code>WHERE</code> query so that it doesn't need to filter <code>CoffeeRun</code>s in PHP, and as a result of that it doesn't need to load a whole list of <code>CoffeeRun</code> objects into memory.</p>
+
+<h2 id="bump-your-head-twice">Bump your head twice</h2>
+
+<p>What if we want a second method in our controller that displays all CoffeeRuns that are open for orders, and will happen before noon? The <code>openForOrders()</code> method won't be enough. We could use it, and then use a <code>foreach</code> as in the first example of the blog post, but then we're back to square one. We could also make it a Repository method, and that would be okay, but only if we don't have to do it too many times. Let's look for a different solution.</p>
+
+<p>It looks like we now have two problems:</p>
+
+<ol>
+<li>We want to encapsulate the "looping over a list and picking out specific items"</li>
+<li>We want to combine several of these actions on a list, or at least do them in succession</li>
+</ol>
+
+<p>The problems always come up when we're talking to the Repository. We made two changes to it, that were both half solutions. The Repository has too many responsibilities (Storage and Collection). What would happen if we'd return an object representing a list of CoffeeRun objects from the Repository, and use that to iterate over? The Repository only takes care of the storage, and the Collection object takes care of the Collection stuff.</p>
+
+<p>What we want to do is "filter" CoffeeRuns so that we get CoffeeRuns that are open for orders, and then filter those again so that we get those open for orders that are happening before noon. In pseudo code:</p>
+
+<pre><code class="php">coffeeRuns = repository.getAll
+coffeeRuns
+    .thatAre(openForOrders)
+    .thatAre(happeningBeforeNoon)
+</code></pre>
+
+<p>If we can express <code>openForOrders</code> and <code>happeningBeforeNoon</code> as functions that take a <code>CoffeeRun</code> object and return a boolean (we'll call them predicates), then the <code>thatAre()</code> implementation could be very generic! Let's check it out:</p>
+
+<pre><code class="php">$openForOrders = function (CoffeeRun $coffeeRun)
+{
+    return $coffeeRun-&gt;ordersCanBeMade();
+};
+
+$noon = new DateTime('today noon');
+$happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+{
+    return $coffeeRun-&gt;getDate() &lt; $noon;
+};
+</code></pre>
+
+<p>Now we'll create the <code>CoffeeRuns</code> Collection object, with a <code>thatAre</code> method:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param callable function that takes a CoffeeRun and returns a boolean
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(callable $matchingPredicate);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>Let's create a naïve <code>array</code> based implementation of it:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                $matchingPredicate
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>Right now, we can have our <code>CoffeeRunsRepository</code> return a <code>CoffeeRuns</code> Collection object for the <code>getAll()</code> method instead of <code>CoffeeRun[]</code> (an array of CoffeeRun) objects, and remove the specific methods we created, like <code>openForOrders()</code>.</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    /**
+     * @return CoffeeRuns A collection of CoffeeRuns
+     */
+    public function getAll();
+}
+</code></pre>
+
+<p>In the controller, we now get this:</p>
+
+<pre><code class="php">final class CoffeeController
+{
+    private $coffeeRuns;
+    private $openForOrders;
+    private $happeningBeforeNoon;
+
+    public function __construct(CoffeeRunsRepository $repository)
+    {
+        $this-&gt;coffeeRuns = $repository;
+
+        $this-&gt;openForOrders = function (CoffeeRun $coffeeRun)
+        {
+            return $coffeeRun-&gt;ordersCanBeMade();
+        };
+
+        $noon = new DateTime('today noon');
+        $this-&gt;happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+        {
+            return $coffeeRun-&gt;getDate() &lt; $noon;
+        };
+    }
+
+    public function displayCoffeeRunsOpenForOrders()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+
+    public function displayCoffeeRunsOpenForOrdersAndBeforeNoon()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders)
+            -&gt;thatAre($this-&gt;happeningBeforeNoon);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+}
+</code></pre>
+
+<p>As you can see, the individual methods got very readable. The operations on the Collections are encapsulated. I extracted the <code>$openForOrders</code> and <code>$happeningBeforeNoon</code> predicates to class variables, because I didn't like the duplication in both controller methods, however, I'm not satisfied with their presence in the constructor. We could create a <code>Predicate</code> interface and make the <code>thatAre()</code> method accept <code>Predicate</code> instances. As a result our controller would just do something like <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>. But let's leave it like this for now. I've got some critical questions coming in:</p>
+
+<h2 id="wait-a-minute%21-you-didn%27t-solve-the-memory-problem%21">Wait a minute! You didn't solve the memory problem!</h2>
+
+<p>Exactly. Let's do that right now.</p>
+
+<pre><code class="php">final class CoffeeRunsWithIterator implements CoffeeRuns
+{
+    private $coffeeRuns;
+    private $predicates;
+
+    public function __construct(Iterator $coffeeRuns, array $predicates = array())
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+        $this-&gt;predicates = $predicates;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        $predicates = $this-&gt;predicates;
+        $predicates[] = $matchingPredicate;
+
+        return new static(
+            $this-&gt;coffeeRuns,
+            $predicates
+        );
+    }
+
+    public function asArray()
+    {
+        $collectionAsArray = array();
+
+        foreach ($this-&gt;coffeeRuns as $coffeeRun) {
+            foreach ($this-&gt;predicates as $predicate) {
+                if (call_user_func($predicate, $coffeeRun) !== true) {
+                    continue 2;
+                }
+            }
+
+            $collectionAsArray[] = $coffeeRun;
+        }
+
+        return $collectionAsArray;
+    }
+}
+</code></pre>
+
+<p>This is an implementation of the <code>CoffeeRuns</code> Collection interface that takes an <code>Iterator</code>. Whenever the <code>thatAre()</code> method gets called with a predicate, we don't do anything, except for creating a new instance of the Collection class with the same <code>Iterator</code> in it, but with the predicate added to the list of predicates that must be matched for each element in the Collection. It's only at the last step, when we try to extract the contents of the collection, that we run the <code>Iterator</code> and check every value against the given predicates. We still need to run the predicates against the whole collection, but because they are within an <code>Iterator</code>, the <code>Iterator</code> can e.g. get them from the database one by one. That's an implementation detail of the Repository.</p>
+
+<h2 id="what-if-we-want-to-be-able-to-use-mysql-%60where%60-statements-in-our-repositories%3F">What if we want to be able to use MySQL <code>WHERE</code> statements in our Repositories?</h2>
+
+<p>Let's say that we want to create a MySQL implementation of the Repository. We don't really want to write a query that will get the whole list of CoffeeRuns, even though we worked with an <code>Iterator</code> before (and thus preserving memory issues), so just passing closures to the <code>thatAre()</code> method will not help us a whole lot to write efficient queries. To improve on that, we could start passing our predicates as objects instead of closures, like this:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>A predicate could look something like this:</p>
+
+<pre><code class="php">interface Predicate
+{
+    /**
+     * @param CoffeeRun the CoffeeRun we want to check
+     *
+     * @return bool if the Predicate is satisfied by given CoffeeRun
+     */
+    public function isSatisfiedBy(CoffeeRun $coffeeRun);
+}
+</code></pre>
+
+<p>And to get the same functionality as before we can implement it like this:</p>
+
+<pre><code class="php">final class OpenForOrders implements Predicate
+{
+    public function isSatisfiedBy(CoffeeRun $coffeeRun)
+    {
+        return $coffeeRun-&gt;ordersCanBeMade();
+    }
+}
+</code></pre>
+
+<p>When we have this in place, implementing a repository that can translate these predicates to the correct <code>WHERE</code> statements is pretty much trivial: without doing an actual query, the Repository returns a <code>CoffeeRuns</code> collection object that can be filtered using <code>Predicate</code>s and when that is done, the query can be built by translating the Predicates to the appropriate <code>WHERE</code> statements. Now the <code>Predicate</code> object can still be used to check if a given <code>CoffeeRun</code> satisfies the rule encapsulated within it, but within the Repository, a more efficient way is used against the whole database table full of CoffeeRuns. Eric Evans calls this concept <code>Specification</code>, and you can read all about it in his great book <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>.</p>
+
+<h2 id="doing-something-with-all-objects-in-our-collection">Doing something with all objects in our collection</h2>
+
+<p>Let's say we want people to <code>stopOrdering()</code> for all <code>CoffeeRun</code>s that are happening before noon.</p>
+
+<pre><code class="php">$stopOrdering = function (CoffeeRun $coffeeRun)
+{
+    $coffeeRun-&gt;stopOrdering();
+
+    return $coffeeRun;
+};
+
+$coffeeRuns = $repository-&gt;getAll();
+$stoppedOrderingForTheseRuns = $coffeeRuns
+    -&gt;thatAre($happeningBeforeNoon)
+    -&gt;updateEach($stopOrdering);
+</code></pre>
+
+<p>Let's add it to the Collection interface:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @param callable function that takes a CoffeeRun and returns an updated one
+     *
+     * @return CoffeeRuns that got updated
+     */
+    public function updateEach(callable $update);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>The implementation for the <code>CoffeeRunsArray</code> could be something like this:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(Predicate $predicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                function (CoffeeRun $run) use ($predicate) {
+                    return $predicate-&gt;isSatisfiedBy($run);
+                }
+            )
+        );
+    }
+
+    public function updateEach(callable $update)
+    {
+        return new static(
+            array_map(
+                $update,
+                $this-&gt;coffeeRuns
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>As you can see, the implementation is trivial in this case, but again it provides us with a powerful abstraction. The code that operates on the Collection doesn't have to know anything about how the Collection is implemented, it just knows about the methods we provided for interacting with it. For those that are into functional programming, we just implemented <code>filter</code> and <code>map</code> here.</p>
+
+<p>I hope you see the value in this. For pieces of code where a lot of actions need to happen on Collections of objects, this might be the way to go. Since the code doesn't have to know anything about the implementation of the Collection, you can change it at any time. For instance, when you start out, you can just use a simple <code>Array</code> implementation, and swap it out for an <code>Iterator</code> later on when you notice memory consumption going up. It can also make things pretty readable, as demonstrated above with the <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>.</p>
+
+<p>You can also choose to go A LOT further, or less far into this, as you desire. Good luck on your explorations!</p>
+
+<p>PS: I gave a talk on this subject at the <a href="http://php.gent/">PHP.GENT meetup</a>, you can find the slides <a href="https://speakerdeck.com/turanct/the-language-of-collections">here</a>.</p>
+]]></content>
+        </entry>
+    </feed>

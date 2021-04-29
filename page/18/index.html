@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home &mdash; Clarabridge Engage Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="image" content="/images/share-img.png">
+        <meta property="og:image" content="/images/share-img.png"/>
+        <meta name="twitter:image" content="/images/share-img.png"/>
+                    <meta name="robots" content="noindex, follow">
+                <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Clarabridge Engage Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd ">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="https://developers.engagor.com/" class="primary">
+                            Clarabridge Development
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://developers.engagor.com/documentation" class="primary <!-- if Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title ">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                                    <h1>Build products that connect <span class="highlight">consumer</span> questions with <span class="highlight">brand</span> answers.</h1>
+                                            </h1>
+                </div>
+            </nav>
+        </header>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                                            </ul>
+            <div class="right dev-content-block">
+                    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2017/03/01/batman-chatman">Bug Fixing: Creating Synergy Between Dev and Support</a></h1>
+        </header>
+        <div>
+            <p>This blog post is about bugs. About bug-tracking software. About prioritising what issues to fix first. About client-developer communication. About Service Level Agreements. And about hotfixes.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/oh-f.gif" alt="Oh, f*ck" /></center></p>
+
+<p>If that didn't scare you away, well hello there!</p>
+
+<h2 id="first-line-support">First Line Support</h2>
+
+<p>Clarabrige Engage is software that allows companies to respond to their incoming social data (Twitter mentions, Facebook wall posts, etc.) as fast and as efficiently as possible. The customer care agents of companies like Telenet, De Lijn, NMBS (in Belgium), and Lufthansa, Turkish Airlines, T-Mobile (worldwide) use Clarabrige Engage day-in day-out. They've set-up highly customized workflows within our tool, including automated actions, advanced filtering and real-time communication.<br />
+This makes Clarabrige Engage a business-critical tool for our clients to serve their customers. To help with set-up, or if clients have discovered a bug in our system, there is direct in-app access to a live chat that puts them in contact with one of our support agents.<br />
+These support agents handle several chats and incoming emails per hour. We use Olark for in-app live chat, and use Salesforce Desk as the tool to handle incoming emails.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/olark-chat.png" alt="Clarabrige Engage in-app Live Chat via Olark" /></center></p>
+
+<h2 id="an-empowered-support-agent-means-less-bugs">An Empowered Support Agent Means Less Bugs</h2>
+
+<p>The support agents are the people in our company that know our tool best. In several cases even better than us developers who wrote the code for it. We involve our support agents in testing new features we build. By making support part of the Q&amp;A-process, we assure they have used new features before clients put their hands on it, but also that the product team keeps solving <em>real</em> problems that our clients are having every day.<br />
+Apart from that, we actively maintain FAQ documents that help support agents identify problems, and collect the correct information to reproduce issues. We - try to - regularly organise trainings that go deep into certain aspects of our application. The customer support agents for Clarabrige Engage know the basics of html, can interpret some - if not most - of our monitoring dashboards and know about <code>oAuth</code> or <code>API's</code> and find their way around the Chrome Developer Tools.<br />
+All with one goal: to be able to solve our clients' problems as fast as possible. (Read: With as little help from a developer as possible 😏 )</p>
+
+<h2 id="a-direct-line-to-development">A Direct Line To Development</h2>
+
+<p>For those cases where the help of a developer is wanted, our support team has a direct line open to development, and that's the internal Slack channel <code>#supdev</code> that all support agents have joined. The main goal of this channel is to discuss whether a certain <em>symptom</em> is in fact an issue. We've seen it work best if all these discussions happen through a single and public channel so that multiple people can jump in to help. This encourages learning from each other's questions and answers, and also helps to hand-over problems to teams in other timezones.
+On the other hand, on active days, the constant flow of messages in the <code>#supdev</code> channel often get in the way of focus. That's why the people in our development team are taking turns in answering support questions in this channel, and by doing that allowing others to preserve their focus. The whole development team (all full stack developers) takes part in this schedule we nicknamed the 'chatman', in periods of one week.</p>
+
+<p>The result of this direct line is;</p>
+
+<ol>
+<li>Less bugs:
+
+<ul>
+<li>Because some configuration errors might be spotted earlier;</li>
+<li>Because multiple reports by clients get bundled into a single bug report;</li>
+</ul></li>
+<li>Better bug reports:
+
+<ul>
+<li>More detailed steps to reproduce;</li>
+</ul></li>
+</ol>
+
+<h2 id="github-as-bug-repository">GitHub as Bug Repository</h2>
+
+<p>We use GitHub Issues as our main bug tracker. Not that it matters that much, but here's some of the reasons we appreciate GitHub:</p>
+
+<ul>
+<li>Integration with the git repository;
+
+<ul>
+<li>Closing issues from your commit message via <code>closes #issueno</code>;</li>
+<li>The automatic referencing between issues, pull requests and commits;</li>
+</ul></li>
+<li>It's simple and easy to use interface; and at the same time flexible enough due to its labeling system.</li>
+<li>Its simple and extensive REST API.</li>
+</ul>
+
+<p>We have set-up an <a href="https://help.github.com/articles/creating-an-issue-template-for-your-repository/">issue template</a> to guide our support agents to provide as much of the relevant context as possible. This issue template makes sure we always know the User ID and Account ID of the person having/reporting the problem.</p>
+
+<p>We have several types of issues; "critical", "minor" and "major", which we indicate with <a href="https://help.github.com/articles/creating-and-editing-labels-for-issues-and-pull-requests/">issue labels</a>. Most issues are classified as "minor", and the "major"/"critical" labels are reserved for those "drop everything and fix this"-type of problems.</p>
+
+<p>Whenever a Desk case (= client report) results in a GitHub issue (= actual bugreport), we make sure to save the connection between the Desk case and GitHub issue in our own database. <em>(The why is explained later.)</em></p>
+
+<p>In a typical week at Clarabrige Engage around 10 bugs are reported, and while most of them take about 2 to 3 hours to fix, some take days.</p>
+
+<h2 id="batman-will-fix-it">Batman Will Fix It</h2>
+
+<p>Similar to how we have a dedicated person answering questions from our support team, the person(s) responsible for fixing bugs is also a rotated role. Each week different people are assigned the Batman role, and spend their week digging into the reported and confirmed issues, trying to find a solution for them.</p>
+
+<p>This separation of bug fixing work from standard product development <em>(i.e. new features, or reworked features)</em> has the following advantages for us:</p>
+
+<ul>
+<li><p>Everyone in the team will at some point be involved in fixing bugs, including bugs in parts of the code he/she doesn't know yet. Of course, everyone's free to go ask other people's advice, but it's definitely an efficient way of preventing knowledge silos. This contributes to everyone's knowledge of the code base, and also to how much care is given to writing clean &amp; well documented code.</p></li>
+<li><p>In weeks a developer isn't assigned the Batman role, he/she can fully focus on the product development project; making it easier to stay focused and work towards target dates. Before we used a system like this, it was often much harder to make progress on product development, because there's always a certain bug that got more priority.</p></li>
+<li><p>By separating these duties it also becomes more measurable how much effort is spent - team-wide - on each type of job, and how we should distribute our resources.</p></li>
+</ul>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/scars.jpg" alt="Do you want to know how I got these scars?" /></center></p>
+
+<p>At the same time, a system like this creates a few problems as well:</p>
+
+<ul>
+<li><p>Probably the person trying to find the cause of a bug is not the person who originally wrote the code, and thus it might take more time than somebody who knows the ins and outs of what he/she wrote.</p></li>
+<li><p>Bugs that aren't fixed by the end of the week, will of course not go away by itself, and a handover to the next batman is needed.</p></li>
+</ul>
+
+<p>The solution for this is simple: allow to deviate from the guidelines. In emergency situations, more people are working on bugs than just the Batman. And if you are close to a fix on Friday evening and fixing it will only take another half a day; of course that's what we do. And have regular in-person <code>#supdev</code>-meetings with the support team, and this and next week's Batman and Chatman.<br />
+The agenda for these meetings is:</p>
+
+<ul>
+<li>What are the most important issues still needing a fix, from a support point of view?</li>
+<li>What are blocking problems, from a dev point of view?</li>
+<li>Passing on information to the next batman, both from support and from batman.</li>
+</ul>
+
+<p>We use this system in a tech team of 11 people, of which 7 people are involved in this Batman/Chatman schedule. The rest of the team is either designer, data scientist or ops people. While it works for us now, we realise it might become hard if the team grows.</p>
+
+<p>On top of the GitHub API we built several dashboards that plot the trend in amount of open bugs and that show our average resolution time. These are the prime indicators we take into account when planning extra resources for this role. Our Slack bot will also notify us when issues stay open for too long, or are unassigned, or miss labels, etc.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/issue-stats.png" alt="Amount of open issues over time" /></center></p>
+
+<p>When an issue is closed but without a resolution (it's a duplicate, we were unable to reproduce it, it's a limitation of the external services we use, etc.) we indicate this with a resolution label. And similarly we tag all bugs with a label indicating which Clarabrige Engage feature group it's related to. These two types of labels help us assess the quality of both our bug reports as identify problem areas with the application.</p>
+
+<h2 id="prioritising-issues">Prioritising Issues</h2>
+
+<p>The nature of a bug typically entails its priority; if something is a problem with a core feature of Clarabrige Engage, for multiple accounts at once, it's labeled as "major", and thus has higher priority over bugs classified as "minor". Luckily, the amount of "major" bugs is limited. So, most of the time we spent fixing "minor" bugs. Typically we have between 10 and 30 of these bugs open, and from this to-do list for the Batman it's important we focus on those issues that have the most impact, for whatever reason. It's our support team that decides which of these to work on, since they know a bug's impact on customers best.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/github-screenshot.png" alt="Some open issues" /></center></p>
+
+<h2 id="what-didn%27t-work">What Didn't Work</h2>
+
+<p>We didn't always work this way. Over the course of the last 5 years, we've had a whole bunch of different approaches.</p>
+
+<p>In our first iterations Batman also did the duties of who we now refer to as Chatman. But complex bugs often require a lot of focus (and we found out: more so than for standard product development work), so this combined role, resulted in a lower bug closing efficiency. And that's of course the main target for a system like this.</p>
+
+<p>Not having a Chatman at all, is even worse. The fact that a developer can add his/her perspective to a bug report, greatly enriches the quality of a bug report. The fact that this communication with the Chatman happens over chat, avoids a slow ping-pong of "needs more information" comments on GitHub issues.</p>
+
+<p>While it's sometimes tempting to skip a weekly <code>#supdev</code>-meetings, we've found that not having a regular in-person meeting between development and support creates an invisible "hostility" where it feels like one party is fighting against the other: fixing bugs versus reporting bugs. While what really happens is two teams working together to fix customer issues. Talking in person can cause breakthroughs because ideas get validated or ping-ponged.</p>
+
+<h2 id="deploying-fixes-%26-reaching-out-to-the-customer">Deploying Fixes &amp; Reaching Out to the Customer</h2>
+
+<p>When a developer has fixed a bug, it's pushed to a separate branch which is then opened up for peer review via <a href="https://help.github.com/articles/about-pull-requests/">GitHub's Pull Requests</a> and the Support Agents involved in the bug report are notified. At this moment it's also possible to fire up a staging environment with the bug fix to verify by support.</p>
+
+<p>Approved bug fixes are typically pushed out to production the same day. And by requiring issues to be closed via GitHub's <code>closes #issueno</code> commits, our continuous integration agent Jenkins also knows what fixes he is deploying to production. We have configured Jenkins so that it leaves a comment on the actual GitHub issue with the build number and exact time of when a fix for that issue went live. Jenkins will also make sure to post any bug fixes that are deployed to a few of the relevant Slack channels.</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/fixed-comment.png" alt="It's fixed" /></center></p>
+
+<p>This Jenkins-comment on the GitHub issue will also trigger the reopening of any Desk cases associated with the GitHub issue, so that our support team immediately has the relevant cases reopened. By closing the loop back to the customer we make sure that customer immediately knows about a fix, and that we have confirmation of the fix as soon as possible.</p>
+
+<p>What strategies have worked for you to speed up the bug fixing process and ensure positive communication between those encountering the bugs, reporting the bugs and fixing the bugs?</p>
+
+<p><center><img src="/images/2017-03-01-batman-chatman/fixed-slack.png" alt="It's fixed" /></center></p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/GitHub" class="tag">GitHub</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Issues" class="tag">Issues</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Bug%20Tracking" class="tag">Bug Tracking</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Jenkins" class="tag">Jenkins</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Bug%20Fixing" class="tag">Bug Fixing</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/By%20Design" class="tag">By Design</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2017/02/15/vim-ide-exploring-code">Vim As A PHP IDE - Exploring Code</a></h1>
+        </header>
+        <div>
+            <p><strong>This blogpost is part of the "Vim As A PHP IDE" series, which starts <a href="/blog/2017/01/01/vim-ide-setting-up">here</a>.</strong></p>
+
+<p>As it turns out, finding things in a huge project is one of the main reasons people use an IDE. The most frequently used functionality seems to be</p>
+
+<ul>
+<li>searching for a file by its name;</li>
+<li>searching within the current file;</li>
+<li>searching for something arbitrary in the current project;</li>
+<li>searching for methods or classes;</li>
+<li>"jumping" to implementations of interfaces, child classes, definitions of methods;</li>
+<li>finding usages of a method;</li>
+</ul>
+
+<h2 id="finding-files-by-their-names">Finding files by their names</h2>
+
+<p>Finding files is something I'm very bad at. I mostly remember only part of the name, or nothing at all. That's why I want to search for files in a "fuzzy" way, if at all. For fuzzy file search, a feature found in most text editors and IDEs these days, I use <a href="https://github.com/kien/ctrlp.vim">CtrlP</a>, which does that just fine. It also has some nice extra commands that let you fuzzily find files in your open buffers, tags (more on that later), and bookmarks.</p>
+
+<p>Some people like to use <a href="https://github.com/scrooloose/nerdtree">NerdTree</a> to have a nice directory listing to the left of the screen, like in Sublime Text or similar editors. You can use it, and I sometimes do for its <code>:NERDTreeFind</code> command, but for most of your needs, the default file browser in Vim is great. You can open it like you open any file, just open a directory instead e.g. <code>:e src/</code>.</p>
+
+<h2 id="searching-within-the-current-file">Searching within the current file</h2>
+
+<p>To find something in the current file, Vim provides a huge number of options. There's the default forward search command, <code>/</code>, which can be pimped a bit to behave in a more "natural" way. In <code>.vimrc</code>:</p>
+
+<pre><code class="vim">set incsearch           " search as characters are entered
+set hlsearch            " highlight matches
+</code></pre>
+
+<p>And you can search backwards in exactly the same way by using <code>?</code>. Jump to next and previous hits with <code>n</code> and <code>N</code>. And of course you can use regex.</p>
+
+<p>Then there are some more "special" ways of searching in the current file:</p>
+
+<ul>
+<li>Hop to the next occurence of the word under cursor <code>*</code></li>
+<li>Hop to the previous occurence of the word under cursor <code>#</code></li>
+<li>Hop to the next method <code>]]</code></li>
+<li>Hop to the previous method <code>[[</code></li>
+<li>Hop to the definition of a variable under cursor <code>gd</code> (goto definition)</li>
+</ul>
+
+<h2 id="searching-for-arbitrary-text-in-the-current-project">Searching for arbitrary text in the current project</h2>
+
+<p>I use <code>ag</code> as my main code search engine. It's a great command line tool to search codebases really fast. I use it on the command line, as well as in Vim, to replace <code>:vimgrep</code> with something faster. It's also the basis for some more interesting stuff, which I'll talk about later.</p>
+
+<p>You'll need to have the <code>ag</code> binary for your operating system installed, using e.g. <code>brew install ag</code>. Check if it works by searching your codebase for a class, e.g. <code>ag HttpKernelInterface</code>.</p>
+
+<p>Install the <code>Ack.vim</code> plugin, that you can find <a href="https://github.com/mileszs/ack.vim">here</a>. Then set the default search engine for the plugin to <code>ag</code> in your <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Ack -&gt; Ag
+if executable('ag')
+    let g:ackprg = 'ag --vimgrep'
+endif
+</code></pre>
+
+<p>Open Vim in your codebase's working directory and try it there, e.g. <code>:Ack HttpKernelInterface</code>. This should jump straight to the first match found.</p>
+
+<p>The problem with this is that you don't have a visual representation of what else was found. Luckily, and much like <code>:vimgrep</code>, <code>:Ack</code> fills the quickfix list with matches, so you can use <code>:cwindow</code> to show matches (and see also <code>:cnext</code>, <code>:cprev</code>, <code>:cclose</code>). If you want your quicklist to open automatically if anything was found you can add this to your <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" Automatically open &amp; close quickfix window
+autocmd QuickFixCmdPost [^l]* nested cwindow
+</code></pre>
+
+<h2 id="searching-for-methods-or-classes">Searching for methods or classes</h2>
+
+<p>Now this is where it gets interesting, and where people somewhat underestimate Vim. Using an external application to generate an index of your project's "tags" (classes, interfaces, methods, variables, etc), which Vim can interpret, it provides jumping to all these things and back! This is great. How to set it up?</p>
+
+<p>You'll need to have the <code>ctags</code> binary for your operating system installed, using e.g. <code>brew install ctags</code>. Check if it works by issueing this command <code>ctags --version</code>. I created a config file for it in my <code>$HOME</code> directory, called <code>.ctags</code> with this in it:</p>
+
+<pre><code class="ctags">--recurse=yes
+--tag-relative=yes
+--exclude=.git
+--exclude=composer.phar
+--exclude=*.js
+--exclude=*.vim
+--langmap=php:.engine.inc.module.theme.install.php
+--PHP-kinds=+cfi-vj
+</code></pre>
+
+<p>The line with <code>--PHP-kinds</code> tells <code>ctags</code> to index classes, functions, interfaces, but not variables or JavaScript functions. You can tune this to your likings.</p>
+
+<p>If you now use <code>ctags</code> from the command line to generate the tags file for your project, using <code>ctags -R .</code>, a file that Vim can interpret, called <code>tags</code> will be created.</p>
+
+<ul>
+<li>You can now open Vim on a tag like so <code>vim -t HttpKernelInterface</code></li>
+<li>Or search for that tag from within Vim <code>:tag HttpKernelInterface</code></li>
+<li>Or jump to the tag under the cursor: <code>&lt;C-]&gt;</code> or <code>&lt;C-$&gt;</code> depending on keyboard layout</li>
+<li>if you jumped to some tags and you want to jump back, use <code>&lt;C-t&gt;</code></li>
+</ul>
+
+<p>Of course there are <a href="https://github.com/ludovicchabant/vim-gutentags">plugins</a> to manage your <code>tags</code> files for you.</p>
+
+<h2 id="finding-implementations-of-interfaces%2C-child-classes">Finding implementations of interfaces, child classes</h2>
+
+<p>So this is where the aforementioned <code>Ack</code> magic comes in handy, as it's not default Vim functionality, and I didn't find a plugin to do these things either. I basically just created some functions that find PHP implementations of an interface, and PHP subclassses of a class. I just put them in my <code>.vimrc</code>, but I'm planning on creating a very simple plugin for them.</p>
+
+<pre><code class="vim">" PHP Find Implementations
+function! PhpImplementations(word)
+    exe 'Ack "implements.*' . a:word . ' *($|{)"'
+endfunction
+
+" PHP Find Subclasses
+function! PhpSubclasses(word)
+    exe 'Ack "extends.*' . a:word . ' *($|{)"'
+endfunction
+
+noremap &lt;Leader&gt;fi :call PhpImplementations('&lt;cword&gt;')&lt;CR&gt;
+noremap &lt;Leader&gt;fe :call PhpSubclasses('&lt;cword&gt;')&lt;CR&gt;
+</code></pre>
+
+<p>As you can see, I added mappings to execute them for the word under cursor (<code>&lt;cword&gt;</code>). These key mappings should probably be done inside the PHP <code>augroup</code> we created in the previous post.</p>
+
+<h2 id="finding-usages-of-a-method">Finding usages of a method</h2>
+
+<p>Pretty much in the same spirit of the Vim functions I wrote to find implementations of an interface, I also wrote such a function to find usages of a method, which I also just added to my <code>.vimrc</code>:</p>
+
+<pre><code class="vim">" PHP Find Usage
+function! PhpUsage(word)
+    exe 'Ack "::' . a:word . '\(|&gt;' . a:word . '\("'
+endfunction
+
+noremap &lt;Leader&gt;fu :call PhpUsage('&lt;cword&gt;')&lt;CR&gt;
+</code></pre>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p>So that is basically how I move around in our codebase, from within Vim. It's not all perfect, but it works perfectly fine for me and I find what I need, when I need it. Up to <a href="/blog/2017/03/15/vim-ide-quality-control">the next episode</a>!</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Vim" class="tag">Vim</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/IDE" class="tag">IDE</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2017/01/24/some-tips-for-a-better-git-history">Some tips for a better Git history</a></h1>
+        </header>
+        <div>
+            <p>We're all heavy Git users in the Clarabrige Engage development team. Honestly, we couldn't survive without it, as some of us are located across the planet, and we also use GitHub as our primary source of information, even when talking to other teams like the "Customer Support" team. Here's some small tips we learned along the way, when it comes to keeping your Git history clean.</p>
+
+<h2 id="%60git-log%60-like-a-boss"><code>git log</code> like a boss</h2>
+
+<p>I personally like to see everything there is to see about my git history. That's why I have an alias for <code>git log</code> that upgrades it with two default flags:</p>
+
+<pre><code class="sh">git log --decorate --name-status
+</code></pre>
+
+<p>The <code>--decorate</code> flag shows ref names next to commits, meaning that you can see where <code>HEAD</code> points, and where your current (and remote) branches are pointing.</p>
+
+<p>The <code>--name-status</code> flag activates the functionality to display which files were changed in that commit, below your commit message. This is great to see what changed in a commit, at first glance.</p>
+
+<h2 id="writing-proper-commit-messages">Writing proper commit messages</h2>
+
+<p>Another great tip, and maybe the best thing you'll take away from this blog post, actually comes from <a href="http://chris.beams.io/posts/git-commit/">another blogpost</a> which talks about writing great <code>git commit</code> messages. If you haven't read that post, go read it now, it's awesome. The main things I took away from it are these:</p>
+
+<ul>
+<li>use a proper text editor (like Vim) for writing your commit messages</li>
+<li>write a commit subject as the first line, which complete this sentence:
+<code>if applied, this commit will...</code></li>
+<li>keep a blank line between the subject and what follows</li>
+<li><strong>always</strong> write a commit body with <strong>what</strong> changed, and <strong>why</strong> you changed it.</li>
+</ul>
+
+<p>If you're too stubborn to write your commit messages using a decent text editor, here's a trick for you: you can use the <code>-m</code> flag on your command line more than once, to create paragraphs, e.g.:</p>
+
+<pre><code class="sh">git commit \
+-m "Add a second Hyperdrive as a backup" \
+-m "When being followed by an imperial fighter, we want to be able to jump to hyperspace even though our first drive fails." \
+-m "We're afraid this might cause some more radiation than expected."
+</code></pre>
+
+<p>But still, really consider using a text editor.</p>
+
+<h2 id="distributed-versioning">Distributed versioning</h2>
+
+<p>Git is a distributed versioning system, which means that it's designed to work offline, without a connection to the remote. We might as well exploit that to have great git history.</p>
+
+<ul>
+<li><code>git checkout</code> your own feature branch to work on something</li>
+<li>don't <code>push</code> or <code>pull</code> while working on your feature. This gives you the advantage that you can <code>amend</code> your commit messages if you made a mistake, or that you can even <code>rebase</code> or <code>squash</code> your commits for clarity.</li>
+<li>when you're done, push your branch. If you're working alone on your feature branch, this will work fine and you're done. If there are other people working on the same branch, don't panic and proceed to the next step</li>
+<li><code>git pull --rebase origin {branch-name}</code> and then push</li>
+</ul>
+
+<p>As I mentioned before, <strong>not</strong> pushing or pulling, and still being able to work is a great feature of git. It means that you can work offline and do everything as if you were the only developer working on a project. You can undo mistakes you made in git, say, you forgot to include a file in a commit. Just <code>git commit --amend</code> it to your liking. Just don't go around and change parts of history that were already pushed.</p>
+
+<p>Now the <code>--rebase</code> part in the <code>git pull</code> step is where it gets interesting. What this does, is undo everything you did since the last time you pulled the branch. Then it pulls from the remote, so that it's a fast-forward without conflicts with 100% certainty. And then it will apply your commits to that. This means that if you changed something, and someone else changed the same thing, you will have a rebase conflict. Which is great! You can now just fix your own conflict, and the history will still be linear! This also means that you will have to fix your own conflicts from now, instead of fixing other people's conflicts. Go on and push your branch when your done.</p>
+
+<h2 id="merging-master-in-your-feature-branch">Merging master in your feature branch</h2>
+
+<p>In analogy with what I said before, you can look at your feature branch as an "isolated" place where you can work on your feature in separation of everything that happens in other branches. Just do what you wanted to do, and never merge any branch into it, or at least minimize the amount of times you merge in case you really really have to.</p>
+
+<p>The advantage this gives you, is great linear history in your feature branch, which <strong>only</strong> applies to that feature, which makes it easy to review or merge into other branches. This is even more true if you use the <code>git pull --rebase</code> feature from the previous tip.</p>
+
+<p>Now, when your feature is ready and there are merge conflicts between your feature branch, and the branch you want to merge it into, e.g. <code>master</code>, you can solve that easily. Merge master in your branch once, and fix your own conflicts. Then merge your branch into master. There are some rebase tricks you can do here to keep linear history too, but I prefer to still merge branches when a feature is done.</p>
+
+<h2 id="further-reading">Further Reading</h2>
+
+<ul>
+<li><a href="http://chris.beams.io/posts/git-commit/">How to Write a Git Commit Message</a></li>
+<li><a href="https://git-scm.com/book/en/v2/Distributed-Git-Distributed-Workflows">GitBook chapter on Distributed Workflows</a></li>
+<li><a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful Git branching model</a></li>
+</ul>
+
+<p>That's it! Enjoy your clean git logs!</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Git" class="tag">Git</a>                    </li>
+                            </ul>
+            </article>
+    <nav class="pager">
+        <a href="/page/17" class="left">Newer Posts</a>        <a href="/page/19" class="right">Older Posts</a>    </nav>
+            </div>
+        </div>
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                <div class="left">
+                    &copy;2021 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
+            </div>
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>

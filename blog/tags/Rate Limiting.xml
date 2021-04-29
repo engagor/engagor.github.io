@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Rate Limiting.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[A tale of a small JavaScript bug]]></title>
+            <link href="/blog/2019/10/02/a-tale-of-a-small-javascript-bug"/>
+            <updated>2019-10-02T14:30:00+00:00</updated>
+            <id>/blog/2019/10/02/a-tale-of-a-small-javascript-bug</id>
+            <content type="html"><![CDATA[<p>Sometimes it's assumed that the frontend is a relatively harmless place to be programming. We've been proven wrong once again.</p>
+
+<h2 id="%F0%9F%94%A5%F0%9F%90%B6%E2%98%95%EF%B8%8F%F0%9F%94%A5-this-is-fine">🔥🐶☕️🔥 This is fine</h2>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/this-is-fine.png" alt="This is fine" /></p>
+
+<p>For a few months now, we have been seeing relatively high loads on our web servers. The loads varied from around 90% of the total CPU power available, to a bit over 100% in peak hours. We assumed that this was normal and that our product was just being used more (which it was), and that this was a natural burden on the load on our servers. The approach we were going to take was to continue scaling horizontally.</p>
+
+<p>Two weeks ago however, we noticed huge daily load spikes (up to 1000% of our capacity) during peak hours. We got alert SMS'es of Redis that couldn't handle the amount of requests, and saw Kibana logs of very slow user requests to certain routes, effectively rendering our application unusable at times. It was "all hands on deck" immediately, and we started digging. Before we could find out what was happening it stopped again, and the load dropped to what we assumed was "normal load". We found, also using Kibana, that there was a huge amount of calls to our <code>/find</code> endpoint, and so we decided to implement a <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis/">rate limiter</a> on those, to prevent our app from going down, and buy us some time to look for the actual issue. However, we couldn't see why that endpoint was hit so hard.</p>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/kibana.png" alt="Kibana showing a lot of requests for one user in a short time frame" /></p>
+
+<h2 id="%F0%9F%90%9B%F0%9F%95%B5%EF%B8%8F%E2%80%8D%E2%99%82%EF%B8%8F--bug-hunting">🐛🕵️‍♂️  Bug Hunting</h2>
+
+<p>A few days later, when we were hit with a huge amount of calls again (this time, they were ratelimited and not producing those huge loads on our servers, but we could see them in the logs and in Kibana), we noticed that most of them were coming from only a limited number of customers. We tried to work in our app as they would do, but couldn't reproduce it. After some time however, we noticed in the network tab of the browser we were working in, that the same call to the <code>/find</code> endpoint was done multiple times simultaneously! Bingo!</p>
+
+<p>Or not Bingo? The code seemed to be fine: When we mount our inbox's react component, we use <code>Sonora.on(eventname, callback)</code> to bind a callback to a given websocket eventname (Sonora is an abstraction around <a href="https://socket.io/">socket.io</a>). When we unmount the react component again, we call <code>Sonora.off(eventname, callback)</code> to stop listening for those events. When such an event comes in, we would potentially need more info from the backend and a call to the <code>/find</code> endpoint is issued. It definitely looked like we didn't unregister the callbacks when unmounting that component, given how we saw multiple calls being made simultaneously in the console's network tab, whenever a websocket message came in.</p>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/performance-tab.png" alt="Browser's performance tab showing lots of calls to the find endpoint" /></p>
+
+<p>While everything was looking okay in the consuming code of the Sonora <code>.on()</code> and <code>.off()</code> methods, we concluded that something must've been wrong in the wrapper around socket.io itself. When looking inside the <code>.on()</code> method, we found out that there was a debugging statement added like this:</p>
+
+<pre><code class="javascript">const Sonora = {
+    // ...
+
+    on: (event, callback) =&gt; {
+        socket.on(
+            event,
+            () =&gt; {
+                console.log('some debugging here');
+
+                callback.apply(this, arguments);
+            }
+        );
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>As you can see, we wrapped the actual callback inside an anonymous function, and passed that on to Socket.io's <code>.on()</code> handler. Now, when calling <code>.off()</code>, we sent along the original callback which didn't match the wrapped one, and nothing was removed. Since it's possible to have multiple callbacks for each incoming event, this resulted in the same callback being added time after time and not being removed. So we had basically made all our clients do <em>loads</em> of unnecessary calls to <code>/find</code> by adding a debugging statement! And believe it or not, this debugging statement was there for a while! (Thanks git blame!)</p>
+
+<h2 id="%F0%9F%94%A8%F0%9F%91%A9%E2%80%8D%F0%9F%94%A7-fixing-it">🔨👩‍🔧 Fixing it</h2>
+
+<p>The fix was easy enough: don't add that anonymous function.</p>
+
+<p>The load on our servers dropped immediately when we put that small change into production, and not only during peak hours. It seemed that we had been on a tipping point. A few more users online at any given time, a few more open tabs with our application running in them. The servers constantly running at semi-high loads. And then we went over it. 🔥</p>
+
+<p><img src="/images/2019-10-02-a-tale-of-a-small-javascript-bug/loads-dropping.png" alt="Graph displaying the huge drop in load on our servers" /></p>
+
+<p>Along the way we did some other optimisations:</p>
+
+<ul>
+<li>we implemented a rate limiter on the <code>/find</code> endpoint</li>
+<li>we disallowed to register exactly the same callback twice for the same event using <code>Sonora.on()</code></li>
+<li>we fixed a second bug in <code>Sonora.off()</code> where we didn't remove the correct callbacks sometimes</li>
+</ul>
+
+<h2 id="%F0%9F%98%87%F0%9F%92%AD-and-they-lived-happily-ever-after">😇💭 And they lived happily ever after</h2>
+
+<p>This was the tale of the small JavaScript bug bringing down the huge web application, a modern David and Goliath if you will. Frontend debugging <em>tricks</em> can take down your application! Every change is important, certainly changes that happen in code that's used very frequently. Some changes that look inconspicuous can over time become real bottlenecks. Tools like Kibana and the browser profiler &amp; network tabs really helped us a great deal finding the issue, so don't forget what you have at your disposal.</p>
+
+<p>We hope you enjoyed reading about our failures! Happy debugging! 👋</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Error: Internal Rate Limit Reached]]></title>
+            <link href="/blog/2018/09/11/error-internal-rate-limit-reached"/>
+            <updated>2018-09-11T10:00:00+00:00</updated>
+            <id>/blog/2018/09/11/error-internal-rate-limit-reached</id>
+            <content type="html"><![CDATA[<p>A while ago we wrote about <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">building a sliding window rate limiter with redis</a>. We needed this rate limiter for counting the amount of API calls we did to the <a href="https://www.instagram.com/developer/">Instagram API</a>. This has been working great for us. You might have heard of the deprecation of the Instagram API. Facebook introduced a <a href="https://developers.facebook.com/docs/instagram-api">new instagram API</a> as part of the Facebook graph API.</p>
+
+<p>The new Instagram API uses the same <a href="https://developers.facebook.com/docs/graph-api/advanced/rate-limiting">rate limit measures</a> as the Facebook graph API (depends on the active users of your application). Our integration with the new Instagram API uses the same sliding window rate limiter. If our internal rate limit is reached we throw an exception: "Internal rate limit reached". This exception triggers a timeout, the timeout increases when the exception is thrown again.</p>
+
+<p>When we deployed our integration we noticed that when an access token reached the internal rate limit, the tasks refused to do any calls to the Instagram API, even when it was allowed again, because our rate limiter was still holding them back. This resulted in data delays, not good!</p>
+
+<p>If a combustion engine gets excessive fuel in the combustion chamber, the engine becomes flooded. You'll need to release the throttle to stop the flooding. This is exactly what's happening in our rate limiter.</p>
+
+<p>Each time we do an API call, the following commands are sent to Redis (<a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">We explained this in our previous blogpost</a>):</p>
+
+<pre><code>&gt; MULTI
+&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
+&gt; ZRANGE $accessToken 0 -1
+&gt; ZADD $accessToken $now $now
+&gt; EXPIRE $accessToken $slidingWindow
+&gt; EXEC
+</code></pre>
+
+<p>Do you see why the rate limiter gets "flooded"?</p>
+
+<p>If you are thinking about the <code>ZADD</code> command, you're right!</p>
+
+<p>Even when we're not allowed to do an API call we still add a timestamp. We knew this and we agreed that this was okay for our use case. However, we're using a lower rate limit (compared to the old Instagram API), which resulted in a lot of internal rate limit reached exceptions for busy Instagram accounts.</p>
+
+<p>How can we solve this? It's important that we execute <code>ZRANGE</code> and <code>ZADD</code> in the same transaction. We want to avoid race conditions because the tasks that do these API calls are distributed. How can we check the result of <code>ZRANGE</code> before doing the <code>ZADD</code> command in the same transaction? <a href="https://github.com/itamarhaber">Itamar Haber</a> from <a href="https://redislabs.com/">Redis Labs</a> wrote a comment on our <a href="/blog/2017/05/02/sliding-window-rate-limiter-redis">previous blogpost</a> suggesting to <a href="https://gist.github.com/itamarhaber/254bac4283d1675c5a5569639b0322aa">use a Lua script</a> (Thanks, Itamar!). Using a Lua script we can execute Redis commands conditionally in an atomic way.</p>
+
+<p>This is what we came up with:</p>
+
+<pre><code class="lua">local token = KEYS[1]
+local now = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local limit = tonumber(ARGV[3])
+
+local clearBefore = now - window
+redis.call('ZREMRANGEBYSCORE', token, 0, clearBefore)
+
+local amount = redis.call('ZCARD', token)
+if amount &lt; limit then
+    redis.call('ZADD', token, now, now)
+end
+redis.call('EXPIRE', token, window)
+
+return limit - amount
+</code></pre>
+
+<p>Let's break it down (Yeah, yeah 🎶):</p>
+
+<ol>
+<li>Assign the script arguments to variables.</li>
+<li>Call <code>ZREMRANGEBYSCORE</code> to cleanup timestamps before the window.</li>
+<li>Instead of <code>ZRANGE</code> we'll use <code>ZCARD</code> to know how many calls we already did.</li>
+<li>Call <code>ZADD</code> when we've not reached the limit yet.</li>
+<li>Call <code>EXPIRE</code> to make sure the sorted set, that holds the timestamps, gets cleaned up after the window has passed.</li>
+</ol>
+
+<p>In PHP we can evaluate the script using <a href="https://github.com/phpredis/phpredis">https://github.com/phpredis/phpredis</a>:</p>
+
+<pre><code class="php">$this-&gt;redis-&gt;eval($script, [$key, $now, $window, $limit], 1);
+</code></pre>
+
+<p>This works great. Our tasks are now doing as much API calls as possible without flooding the rate limiter. 👏😎</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Building a sliding window rate limiter with Redis]]></title>
+            <link href="/blog/2017/05/02/sliding-window-rate-limiter-redis"/>
+            <updated>2017-05-02T14:00:00+00:00</updated>
+            <id>/blog/2017/05/02/sliding-window-rate-limiter-redis</id>
+            <content type="html"><![CDATA[<p>For our Instagram crawler we needed a system to keep track of the amount of API calls we did to prevent us from hitting the rate limits. We could of course perform our HTTP requests without checking rate limits upfront, and wait until we get a <code>429 OAuthRateLimitException</code> from Instagram, but that would exhaust our tokens and block us from talking efficiently to their API.</p>
+
+<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/429.jpg" alt="Too many cats" /></p>
+
+<blockquote>
+  <p>All rate limits on the Instagram Platform are controlled separately for each access token, and on a sliding 1-hour window.</p>
+  
+  <p><a href="https://www.instagram.com/developer/limits">Instagram API rate Limits</a></p>
+</blockquote>
+
+<p>We're allowed to do 5000 API calls per access token each hour.</p>
+
+<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/slidingwindow.png" alt="Sliding window ratelimiting visualisation" /></p>
+
+<p>Every point on the axis represents an API call. The sliding window is an hour in this case. Every time we do an API call we add the timestamp (in microseconds) of the API call to a list. In pseudocode:</p>
+
+<pre><code class="js">timestamps.push(Date.now());
+</code></pre>
+
+<p>When we're about to do an API call in our crawler we need to check if we're allowed to do one:</p>
+
+<ol>
+<li>How many calls did we do in the last hour?</li>
+</ol>
+
+<pre><code class="js">callsInTheLastHour = timestamps.filter(timestamp =&gt; timestamp &gt; now - slidingWindow);
+count = callsInTheLastHour.length
+</code></pre>
+
+<ol start="2">
+<li>How many can we still do?</li>
+</ol>
+
+<p>After we calculated the amount of API calls we did in the last hour we can calculate the remaining API calls:</p>
+
+<pre><code class="js">remaining = maxCallsPerHour - count;
+</code></pre>
+
+<p>Let's say we did <code>4413</code> API calls in the last hour then we're allowed to do <code>587</code> more at this moment.</p>
+
+<p>Great, we got our algorithm. Now we need some kind of database to store a list of timestamps grouped per access token. Maybe we could use MySQL or PostgreSQL? Yes, we could but then we would need a system that periodically removes outdated timestamps since neither MySQL or PostgreSQL allow us to set a time to life on a row. What about <a href="http://memcached.org/">Memcached</a>? Yes, that's also an option. Sadly Memcached doesn't have the concept of an array or list (we could serialize an array using our favourite programming language). We can do better. What about <a href="https://redis.io/">Redis</a>? Yes, I like where this is going. Redis is a key/value store that supports lists, sets, sorted sets and more.</p>
+
+<p>We're ready to translate our algorithm to Redis commands. Assuming you already have Redis installed, start a server: <code>$ redis-server</code>. If you're on a mac, you can just <code>$ brew install redis</code> to get it.</p>
+
+<p>We're going to use a <a href="https://redis.io/commands/#sorted_set">sorted set</a> to hold our timestamps because it fits our needs.</p>
+
+<pre><code>&gt; MULTI
+&gt; ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)
+&gt; ZRANGE $accessToken 0 -1
+&gt; ZADD $accessToken $now $now
+&gt; EXPIRE $accessToken $slidingWindow
+&gt; EXEC
+</code></pre>
+
+<p>Let's break it down:</p>
+
+<ul>
+<li><code>MULTI</code> to mark the start of a transaction block. Subsequent commands will be queued for atomic execution using <code>EXEC</code>.</li>
+<li><code>ZREMRANGEBYSCORE $accessToken 0 ($now - $slidingWindow)</code> to remove API call timestamps that were done before the start of the window.</li>
+<li><code>ZRANGE $accessToken 0 -1</code> to get a list of all API call timestamps that happened during the window.</li>
+<li><code>ZADD $accessToken $now $now</code> to add a log for the current API call that we're about to do.</li>
+<li><code>EXPIRE $accessToken $slidingWindow</code> to reset the expiry date for this sorted set of timestamps (for the current OAuth Token).</li>
+<li><code>EXEC</code> will execute all previously queued commands and restore the connection state to normal.</li>
+</ul>
+
+<p>Instead of using the actual OAuth access tokens (and duplicating them to Redis), you might want to use an identifier or hash of the token instead as <code>$accessToken</code>. It serves as the key for our Redis sorted set. Also note that, in the same transaction as reading the list of timestamps, we <em>add</em> a new timestamp to the list (the <code>ZADD</code> command). We do this because this is being used in a distributed context (we have many workers performing API calls), and we don't want to write when we already exceeded our limits.</p>
+
+<p>In PHP this might look like this:</p>
+
+<pre><code class="php">// composer require predis/predis
+require_once __DIR__ . '/vendor/autoload.php';
+
+$maxCallsPerHour = 5000;
+$slidingWindow = 3600;
+
+$now = microtime(true);
+$accessToken = md5('access-token');
+
+$client = new Predis\Client();
+$client-&gt;multi();
+$client-&gt;zrangebyscore($accessToken, 0, $now - $slidingWindow);
+$client-&gt;zrange($accessToken, 0, -1);
+$client-&gt;zadd($accessToken, $now, $now);
+$client-&gt;expire($accessToken, $slidingWindow);
+$result = $client-&gt;exec();
+
+// The second command inside the transaction was ZRANGE,
+// which returns a list of timestamps within the last hour.
+$timestamps = $result[1];
+
+$remaining = max(0, $maxCallsPerHour - count($timestamps));
+
+if ($remaining &gt; 0) {
+    echo sprintf('%s: Allowed and %d remaining', $now, $remaining) . PHP_EOL;
+} else {
+    echo sprintf('%s: Not allowed', $now) . PHP_EOL;
+}
+</code></pre>
+
+<p>To conclude all of this, and to make this work within our codebase, we put this all nicely in a class, behind an interface <code>RateLimiter</code>:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace CXSocial\RateLimiter;
+
+interface RateLimiter
+{
+    /**
+     * Request the remaining ratelimit points
+     *
+     * @param RateLimitedResource $rateLimitedResource
+     *
+     * @throws SorryRateLimitUnavailable
+     *
+     * @return int
+     */
+    public function remaining(RateLimitedResource $rateLimitedResource);
+}
+</code></pre>
+
+<p>This allows us to write code that doesn't couple to implemention too much. This has been working like a charm for us! We're huge fans.</p>
+
+<p><img src="/images/2017-05-02-sliding-window-rate-limiter-redis/fan-limit.gif" alt="HUGE FAN" /></p>
+]]></content>
+        </entry>
+    </feed>

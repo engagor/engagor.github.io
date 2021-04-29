@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Git.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Star Vars, an intergalactic story of tiny code smells]]></title>
+            <link href="/blog/2017/09/01/star-vars"/>
+            <updated>2017-09-01T10:00:00+00:00</updated>
+            <id>/blog/2017/09/01/star-vars</id>
+            <content type="html"><![CDATA[<p>In this post, we'll look at a type of variables that I call Star Vars, they're stars and shouldn't be touched. In any case. Whatsoever. Just don't start editing these in your code, or you'll eventually break stuff, with 100% guarantee.</p>
+
+<h2 id="star-vars-i%3A-the-timestamp-menace">Star Vars I: The Timestamp Menace</h2>
+
+<p>Timestamps are nice: asking the Unix Epoch timestamp results in a number that's the same, independent of in which timezone you are. The secret to this, is that a moment in history was labeled as Unix Epoch, and the timestamp is just the number of seconds that has passed from that moment up until now.</p>
+
+<p>And that's where things start to get nasty: with the understanding of what the number means (the number of seconds passed since January 1st 1970), people start editing the number to get dates in the past or future. What they're almost never take in consideration is the fact that time isn't linear, dates aren't the same around the globe, there are leap seconds, leap years, etc. There are too many exceptions from the rule, to just start adding <code>60 * 60 * 24</code> seconds to a timestamp's value, to get the next day. Don't do it. Your language most probably has a <code>DateTime</code> package to do just that, with less mistakes.</p>
+
+<h2 id="star-vars-ii%3A-attack-of-the-%60%24_post%60">Star Vars II: Attack Of The <code>$_POST</code></h2>
+
+<p>When a HTTP request is made to your app, there are most likely <code>POST</code> or <code>GET</code> parameters being passed along. In PHP, and likely other languages, these are made available trough (global) variables, no different than other variables. Thus, they can be changed, or used in computations or output. Be very careful with that!</p>
+
+<p>Changing a global variable means that it will be changed everywhere, so you risk breaking functionality in other places when you change e.g. the <code>$_POST</code> variable. Optimally, you could reduce the risk by using the immutable datastructures that your PSR-7 framework makes available to you.</p>
+
+<p>Also, using user input in calculations and/or output might result in errors or major hacks of your software. Be very cautious! People might be able to steal your app's data, run arbitrary code on your server, or impersonate users.</p>
+
+<h2 id="star-vars-iii%3A-events-of-the-sith">Star Vars III: Events Of The Sith</h2>
+
+<p>Since forever now, people use event dispatching and event sourcing as a way to let systems know about state changes, or even build their state from scratch based on events only. These <em>events</em> are nothing more than a "record" of something that has happened (in the past complete sense). Something that has happened will never change anymore, so the variables holding events should never be changed. Events are <em>immutable</em>. If you do change them, you change history, which I assume you aren't enabled to do.</p>
+
+<h2 id="star-vars-iv%3A-a-new-%60%24row%60">Star Vars IV: A New <code>$row</code></h2>
+
+<p>Here's the classic "naming things" exercise. We all know it's hard, but it's also very important. Take your time, give variables an appropriate name. I'm not touching your <code>$row</code> because I don't know what it is.</p>
+
+<h2 id="star-vars-v%3A-the-query-strikes-back">Star Vars V: The Query Strikes Back</h2>
+
+<p>Whether you're using an ORM or not, you might write the occasional database query from time to time. I find myself still writing my own queries for the sake of simplicity, inside the database specific implementation of e.g. a repository. Sometimes, for instance when you need "filter" functionality over a huge number of entities based on their various properties, it's tempting to write a query in a very generic way so that reusable parts of the query get concatenated into one final query. I find this a very dangerous practice, all the while not providing much benefit over writing the same query a few times with minor changes. Since the repository implementation we're doing this in is the only place in our codebase that knows about the database, we shouldn't care too much about duplication here.</p>
+
+<h2 id="star-vars-vi%3A-return-of-the-id">Star Vars VI: Return Of The ID</h2>
+
+<p>Making assumptions about the form of variables can be quite dangerous. Let's say that you expect a string to be in place, but what you get is an empty string. Is that valid? Now, think of identifiers of different objects. Sometimes, people use incremental numeric values (more often than not generated by the database) as identifiers for their objects, e.g. the <code>Person</code> with id <code>1337</code> is a cool guy. Already I can think of multiple cases of unexpected values for numerical ids, like <code>0</code>, <code>-1</code>, <code>false</code>, <code>null</code>, <code>''</code>, <code>foo</code>... If we then make the assumption that we'll save them as an integer in the database, we'll shoot ourselves in the foot by saving an object with id <code>'arrow'</code> or <code>'knee'</code>. Or what if the id is a numerical value that is too big to fit inside an integer?</p>
+
+<p>How about string representations, do you ask? For instance, post ids on the Facebook API have ids in the form of <code>{page id}_{post id}</code>. Now that you know this, given a post with an id, could you tell me the page id? Yes, but... what if Facebook decides to change their <em>naming scheme</em> for new posts (which they actually do from time to time)? From now on posts are called <code>pid_{random number}</code>. Now if we had logic in our software that depended on the implicit knowledge of the id was being made of two parts, it will break for those new posts.</p>
+
+<p>The moral of the story is: ids are black boxes, they could contain anything, and we shouldn't make assumptions about them, break them up into meaningful parts, or save them as anything else than strings inside the database.</p>
+
+<h2 id="star-vars-vii%3A-the-%60git-push---force%60-awakens">Star Vars VII: The <code>git push --force</code> Awakens</h2>
+
+<p>Even though <code>git</code> isn't a variable in the context of this blog post, I wanted to put this one in: <code>git push --force</code> is evil. The only reason why you would want to do this, is to change <em>public history</em>, which is something that can't be done. For more about that, scroll up to the Star Vars III section, or read <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">this blog post about git</a>.</p>
+
+<h2 id="star-vars-viii%3A-the-last-url">Star Vars VIII: The Last URL</h2>
+
+<p>The last, but not least, "star var" is the URL. Now, we all know and understand the most basic building blocks of URLs, like the scheme, tld, and query. But actually, the standard for URLs is quite complicated, and there could be many moving parts. People don't always include the scheme (e.g. the <code>https://</code> part), or the TLD is longer than 3 characters. Therefor, parsing an URL, or changing anything meaningful of it could be very error-prone. Have a look at <a href="https://daringfireball.net/2010/07/improved_regex_for_matching_urls">this regular expression to parse an URL</a>. As you can see, it's not as simple as you think. In fact, most languages have <a href="https://secure.php.net/manual/en/function.parse-url.php">built-in functionality</a> for this, as well as <a href="http://uri.thephpleague.com/">great packages</a>. As a side-note, the same goes for e-mail addresses, telephone numbers, and many other things.</p>
+
+<p>That's it for now! Keep in mind that a lot of these problems can be solved by either using established packages, built-in language features, or <a href="https://martinfowler.com/bliki/ValueObject.html">Value Objects</a> (or a mixture of several of those). May the force be with you!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Bugfixing with Git Bisect]]></title>
+            <link href="/blog/2017/05/08/bugfixing-with-git-bisect"/>
+            <updated>2017-05-08T10:00:00+00:00</updated>
+            <id>/blog/2017/05/08/bugfixing-with-git-bisect</id>
+            <content type="html"><![CDATA[<p>Lately, we've deployed code that broke features, that were surely working in the past. Since we're quite heavy committers, things can get lost in our <code>git log</code> quite easily. That makes it harder to go back in history and find out what exactly caused the failure to happen. We simply would have to look through too many commits. That's where <code>git bisect</code> comes in!</p>
+
+<p>The <code>git bisect</code> command provides us with a "binary search" over the commit history: we tell it when things were good for sure, and when they were bad, and bisect will jump to the commit that's in the middle between those two commits. We then test if things work as expected. If it was good at that point we know all history before that point was good, and we move on the the other half of history and apply the same process of dividing it in two and seeing if things work as expected. We do that until we arrive at a point where we know which commit broke things. That's where we need to look. The cool thing is that we can sift through a huge amount of commits in very few steps, and locate the problem quickly. Let's see how that works in practice:</p>
+
+<ol>
+<li><p>Use <code>git log</code> to find out the commit hash for a commit where we know that things worked. Let's assume for now that the current <code>HEAD</code> we're at is at a point where things fail.</p>
+
+<p><img src="/images/2017-05-08-bugfixing-with-git-bisect/1.png" alt="Screenshot of a git log history" /></p></li>
+<li><p>Let's start the bisect session and tell git which points were good and bad:</p>
+
+<pre><code class="sh">git bisect start
+git bisect good {the commit hash where it was good}
+git bisect bad
+</code></pre>
+
+<p>As you can see, I didn't specify a commit hash for the <code>git bisect bad</code> command. Bisect assumes that we mean <code>HEAD</code> if we don't specify a commit. Since the current commit is bad, and <code>HEAD</code> always points to the currently checked out commit, we can leave this blank.</p>
+
+<p><img src="/images/2017-05-08-bugfixing-with-git-bisect/2.png" alt="Screenshot of the first steps of a git bisect session" /></p></li>
+<li><p>Now git will checkout a commit in the middle between our <code>good</code> and <code>bad</code> indications. Just do what you have to do to check if things work or not, e.g. run a unit test, or do some manual checks. Then pass that info on to git with <code>git bisect good</code> if things work, and <code>git bisect bad</code> if they don't.</p>
+
+<p><img src="/images/2017-05-08-bugfixing-with-git-bisect/3.png" alt="Screenshot of a git bisect bad" /></p></li>
+<li><p>Repeat <em>step 3</em> until git knows which commit went bad. It will indicate the process at every step. When it's done, git will show you the exact commit where things went from <code>good</code> to <code>bad</code>, using <code>git show</code> behind the scenes. You then know where to look to fix your problem.</p>
+
+<p><img src="/images/2017-05-08-bugfixing-with-git-bisect/4.png" alt="Screenshot of the result of a bisect session: 1 commit" /></p></li>
+</ol>
+
+<p>To go back to master, do a simple <code>git bisect reset</code>. Congratulations! You've used <code>git bisect</code> to locate a problem in your commit history! Now, there are some more things to know:</p>
+
+<h3 id="when-something-goes-wrong">When something goes wrong</h3>
+
+<p>What if you did something wrong? You typed <code>git bisect bad</code> when everything was fine and you should've typed <code>git bisect good</code>? No worries! Bisect has a secret weapon: <code>git bisect log</code>, which lets you dump the history of this bisect session to a file. You can then remove the faulty step from the file with a text editor, and replay the entire session without that bad step.</p>
+
+<ol>
+<li><p>Save your session to a file:</p>
+
+<pre><code class="sh">git bisect log &gt; {filename}
+</code></pre></li>
+<li><p>Remove the faulty line from the file using your favorite text editor:</p>
+
+<pre><code class="sh">vim {filename}
+</code></pre></li>
+<li><p>Reset your <code>bisect</code> session:</p>
+
+<pre><code class="sh">git bisect reset
+</code></pre></li>
+<li><p>Replay the correct steps:</p>
+
+<pre><code class="sh">git bisect replay {filename}
+</code></pre></li>
+<li><p>Do the rest of the bisect steps to find out where things went wrong. You can remove the replay file:</p>
+
+<pre><code class="sh">rm {filename}
+</code></pre></li>
+</ol>
+
+<h3 id="automating-the-steps-using-a-script-or-test">Automating the steps using a script or test</h3>
+
+<p>You can automate the recursive steps of telling git that a revision is good or bad, by a simple bash script or unix command that returns a <code>0</code> status code on success, and <code>1</code> on failure. That way, if you have a testsuite, you can use that to really quickly find out where things went wrong by adding a test to it (the code is obviously not tested well or it wouldn't have happened so long ago), and using that test as the command. Let's see how that works:</p>
+
+<pre><code class="sh">git bisect start
+git bisect good {the commit hash where it was good}
+git bisect bad
+git bisect run {path to the script to run}
+</code></pre>
+
+<p>Don't forget to end your session with a <code>git bisect reset</code> when you found the offending commit.</p>
+
+<h3 id="fantastic-on-fridays">Fantastic On Fridays</h3>
+
+<p>So next time a nasty bug report comes in on a Friday -you're about to leave for a great weekend with your mates- and there were a thousand commits pushed to production that day by your team, don't dispair! Fire up <code>git bisect</code> and find where you need to be in a few minutes time, revert the commit, and enjoy your weekend!</p>
+
+<p>Happy bughunting!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Emoji as conversation enhancement]]></title>
+            <link href="/blog/2017/04/06/emoji-conversations"/>
+            <updated>2017-04-06T16:15:00+00:00</updated>
+            <id>/blog/2017/04/06/emoji-conversations</id>
+            <content type="html"><![CDATA[<p>At Clarabrige Engage, we use emoji extensively. 💰💭 We believe they are an enrichment of ongoing conversations, and can be used to express things that can't be expressed in a textual representation. Let's see how and where we use them 👌</p>
+
+<h2 id="slack">Slack</h2>
+
+<p>Our main communication form is chat. We use Slack and we just love the integration of emoji in their application! They're everywhere! 😻</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/1.png" alt="emoji in between text in slack" /></p>
+
+<p>Also, the "reactions" are quite handy to not mess up conversation flow with emoji only.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/2.png" alt="emoji reactions in slack" /></p>
+
+<p>In full conversation, it looks a bit like this:</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/3.png" alt="mixture of reactions in slack" /></p>
+
+<h2 id="github">GitHub</h2>
+
+<p>Of course, our conversations in Issues and Pull Requests on github resemble those on Slack...</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/4.png" alt="github reviews with emoji" /></p>
+
+<p>And in our commits, we use the <a href="http://gitmoji.carloscuesta.me/">gitmoji</a> way of prefixing commit messages with one or more semi-standardized emoji, to make it <strong>much clearer</strong> what the commit is about.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/5.png" alt="gitmoji in commit messages" /></p>
+
+<h2 id="emoji-news">Emoji-news</h2>
+
+<p>To top it off, there's a dedicated channel on our company chat for <strong>emoji-only</strong> conversation. It's called <code>#emoji-news</code>.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/6.png" alt="emoji news, conversations with emoji only" /></p>
+
+<p>The great thing about all this, is that emoji really have positive vibes about them, and they work in an inspiring, encouraging way in conversations. They make you laugh, or they express a feeling that could be very difficult to express in text only. They provide context to what was said. They can be combined to create whole stories in just a few images. They work cross-language. They can be abused. It's just fantastic 😏. We are so into it, that we added 100's of our own custom emoji to slack, which in turn add much more specific things that we could express (you can find some of them in the screenshots above). If you're looking for custom emoji, <a href="http://slackmojis.com">Slackmojis</a> is a great place to start looking.</p>
+
+<p><img src="/images/2017-04-06-emoji-conversations/7.png" alt="a small part of our custom emoji on slack" /></p>
+
+<p>Do you use emoji differently? Do you have tips for us? Let us know 📯</p>
+
+<p>Have a great day! ☕️</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[How to edit a commit message]]></title>
+            <link href="/blog/2017/04/03/how-to-edit-commit-description"/>
+            <updated>2017-04-03T10:00:00+00:00</updated>
+            <id>/blog/2017/04/03/how-to-edit-commit-description</id>
+            <content type="html"><![CDATA[<p>We use GitHub for hosting the code, and issue tracker behind Clarabrige Engage. As you may already know, you can close issues automatically by adding <code>Closes #issue</code> to a commit message and merging it in the master branch. This is great because I always forget to close the fixed issue (it's also great for cross-linking between issues and commits).</p>
+
+<p>But what if you forgot to add <code>Closes #issue</code> to your commit? Let me teach you a trick to edit a commit message.</p>
+
+<p>Let's make a new directory to test it.</p>
+
+<pre><code class="sh">$ mkdir demo-git-edit
+$ cd demo-git-edit
+$ git init
+Initialized empty Git repository in /Users/hansott/Code/demo-git-edit/.git/
+</code></pre>
+
+<p>Okay great. We've got our repository ready. Let's add a file.</p>
+
+<pre><code class="sh">$ touch app.js
+</code></pre>
+
+<p>Then add the following contents:</p>
+
+<pre><code class="js">throw new Error('This is a bug!');
+</code></pre>
+
+<pre><code class="sh">$ git add app.js
+$ git commit -m "Add bug"
+[master (root-commit) 308c96d] Add bug
+ 1 file changed, 1 insertion(+)
+ create mode 100644 app.js
+</code></pre>
+
+<p>Let's fix the bug by removing it.</p>
+
+<pre><code class="sh">$ echo &gt; app.js
+$ git diff
+diff --git a/app.js b/app.js
+index 128b630..8b13789 100644
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-throw new Error('This is a bug!');
++
+$ git add app.js
+$ git commit -m "Fixed bug"
+$ git log
+* 83ac3a3 Fixed bug
+* 308c96d Add bug
+</code></pre>
+
+<p>There you go. We forgot <code>Closes #issue</code>. What can we do about it? It's important that you don't push (otherwise you'll have to use <code>--force</code> and you should <strong>never</strong> do that).</p>
+
+<p>If you want to edit your last commit you can use:</p>
+
+<pre><code class="sh">$ git commit --amend -m "Fixed bug" -m "Closes #issue"
+[master f27a1ca] Fixed bug
+ Date: Wed Feb 1 12:31:29 2017 +0100
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre>
+
+<p>You should consider committing with <code>$ git commit --amend</code>. It opens a proper text editor (like <a href="http://vim.sourceforge.net/">vim</a>) to write a comprehensive message (instead of using <code>-m "message"</code>). Did you notice I used <code>-m</code> twice? You can read about it in <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">Some tips for a better Git history</a>.</p>
+
+<pre><code class="sh">$ git show f27a1ca
+ommit f27a1caac3ee33ac3b0ef81040cd2c2f877f13f4
+Author: Hans Ott &lt;hans.ott@clarabridge.be&gt;
+Date:   Wed Feb 1 12:31:29 2017 +0100
+
+    Fixed bug
+
+    Closes #issue
+
+diff --git a/app.js b/app.js
+index 128b630..8b13789 100644
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-throw new Error('This is a bug!');
++
+</code></pre>
+
+<p>Hooray! We did it. What if we added other commits before we realised we forgot? <a href="https://git-scm.com/book/tr/v2/Customizing-Git-Git-Configuration">I'll assume you got a decent text editor configured for git</a>.</p>
+
+<pre><code class="sh">$ git log
+* 889da98 Add leftpad
+* b1b364c Add library
+* 05e664c Fixed bug
+* 308c96d Add bug
+</code></pre>
+
+<p>We added 2 commits after our bug fix commit. Since <code>$ git commit --amend</code> can only change the last commit, we can't use it. Luckily, we know the secret behind the curtain: it's doing a git rebase of the last commit. Let's use git rebase for great good! Again, be careful, this won't work if you already pushed your work (you can inspect with <code>$ git log --decorate</code>).</p>
+
+<pre><code class="sh">$ git rebase -i 308c96d  # use the commit JUST before the bug fix commit
+</code></pre>
+
+<pre><code>.g/r/git-rebase-todo
+pick 05e664c Fixed bug
+pick b1b364c Add library
+pick 889da98 Add leftpad
+
+# Rebase 308c96d..889da98 onto 308c96d (3 commands)
+#
+# Commands:
+# p, pick = use commit
+# r, reword = use commit, but edit the commit message
+# e, edit = use commit, but stop for amending
+# s, squash = use commit, but meld into previous commit
+# f, fixup = like "squash", but discard this commit's log message
+# x, exec = run command (the rest of the line) using shell
+# d, drop = remove commit
+#
+# These lines can be re-ordered; they are executed from top to  bottom.
+#
+# If you remove a line here THAT COMMIT WILL BE LOST.
+#
+# However, if you remove everything, the rebase will be aborted.
+#
+# Note that empty commits are commented out
+</code></pre>
+
+<p>You'll have to replace <code>pick</code> before <code>05e664c Fixed bug</code> with <code>reword</code> and save it. Git will show the commit(s) you selected so you can edit it and save it.</p>
+
+<pre><code>.g/COMMIT_EDITMSG
+Fixed bug
+
+Closes #issue
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date: Wed Feb 1 12:31:29 2017 +0100
+#
+# interactive rebase in progress; onto 308c96d
+# Last command done (1 command done):
+#    reword 05e664c Fixed bug
+# Next commands to do (2 remaining commands):
+#    pick b1b364c Add library
+#    pick 889da98 Add leftpad
+# You are currently editing a commit while rebasing branch 'master' on '308c96d'.
+#
+# Changes to be committed:
+#       modified:   app.js
+</code></pre>
+
+<pre><code class="sh">$ git rebase -i 308c96d
+[detached HEAD 4225a9a] Fixed bug
+ Date: Wed Feb 1 12:31:29 2017 +0100
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Successfully rebased and updated refs/heads/master.
+</code></pre>
+
+<pre><code class="sh">$ git show 308c96d
+commit 4225a9a3eb74b42772297a2f4b67b58696e11410
+Author: Hans Ott &lt;hans.ott@clarabridge.be&gt;
+Date:   Wed Feb 1 12:31:29 2017 +0100
+
+    Fixed bug
+
+    Closes #issue
+
+diff --git a/app.js b/app.js
+index 128b630..8b13789 100644
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-throw new Error('This is a bug!');
++
+</code></pre>
+
+<p>Hooray! We did it again. Now pat yourself on the back.</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Some tips for a better Git history]]></title>
+            <link href="/blog/2017/01/24/some-tips-for-a-better-git-history"/>
+            <updated>2017-01-24T15:00:00+00:00</updated>
+            <id>/blog/2017/01/24/some-tips-for-a-better-git-history</id>
+            <content type="html"><![CDATA[<p>We're all heavy Git users in the Clarabrige Engage development team. Honestly, we couldn't survive without it, as some of us are located across the planet, and we also use GitHub as our primary source of information, even when talking to other teams like the "Customer Support" team. Here's some small tips we learned along the way, when it comes to keeping your Git history clean.</p>
+
+<h2 id="%60git-log%60-like-a-boss"><code>git log</code> like a boss</h2>
+
+<p>I personally like to see everything there is to see about my git history. That's why I have an alias for <code>git log</code> that upgrades it with two default flags:</p>
+
+<pre><code class="sh">git log --decorate --name-status
+</code></pre>
+
+<p>The <code>--decorate</code> flag shows ref names next to commits, meaning that you can see where <code>HEAD</code> points, and where your current (and remote) branches are pointing.</p>
+
+<p>The <code>--name-status</code> flag activates the functionality to display which files were changed in that commit, below your commit message. This is great to see what changed in a commit, at first glance.</p>
+
+<h2 id="writing-proper-commit-messages">Writing proper commit messages</h2>
+
+<p>Another great tip, and maybe the best thing you'll take away from this blog post, actually comes from <a href="http://chris.beams.io/posts/git-commit/">another blogpost</a> which talks about writing great <code>git commit</code> messages. If you haven't read that post, go read it now, it's awesome. The main things I took away from it are these:</p>
+
+<ul>
+<li>use a proper text editor (like Vim) for writing your commit messages</li>
+<li>write a commit subject as the first line, which complete this sentence:
+<code>if applied, this commit will...</code></li>
+<li>keep a blank line between the subject and what follows</li>
+<li><strong>always</strong> write a commit body with <strong>what</strong> changed, and <strong>why</strong> you changed it.</li>
+</ul>
+
+<p>If you're too stubborn to write your commit messages using a decent text editor, here's a trick for you: you can use the <code>-m</code> flag on your command line more than once, to create paragraphs, e.g.:</p>
+
+<pre><code class="sh">git commit \
+-m "Add a second Hyperdrive as a backup" \
+-m "When being followed by an imperial fighter, we want to be able to jump to hyperspace even though our first drive fails." \
+-m "We're afraid this might cause some more radiation than expected."
+</code></pre>
+
+<p>But still, really consider using a text editor.</p>
+
+<h2 id="distributed-versioning">Distributed versioning</h2>
+
+<p>Git is a distributed versioning system, which means that it's designed to work offline, without a connection to the remote. We might as well exploit that to have great git history.</p>
+
+<ul>
+<li><code>git checkout</code> your own feature branch to work on something</li>
+<li>don't <code>push</code> or <code>pull</code> while working on your feature. This gives you the advantage that you can <code>amend</code> your commit messages if you made a mistake, or that you can even <code>rebase</code> or <code>squash</code> your commits for clarity.</li>
+<li>when you're done, push your branch. If you're working alone on your feature branch, this will work fine and you're done. If there are other people working on the same branch, don't panic and proceed to the next step</li>
+<li><code>git pull --rebase origin {branch-name}</code> and then push</li>
+</ul>
+
+<p>As I mentioned before, <strong>not</strong> pushing or pulling, and still being able to work is a great feature of git. It means that you can work offline and do everything as if you were the only developer working on a project. You can undo mistakes you made in git, say, you forgot to include a file in a commit. Just <code>git commit --amend</code> it to your liking. Just don't go around and change parts of history that were already pushed.</p>
+
+<p>Now the <code>--rebase</code> part in the <code>git pull</code> step is where it gets interesting. What this does, is undo everything you did since the last time you pulled the branch. Then it pulls from the remote, so that it's a fast-forward without conflicts with 100% certainty. And then it will apply your commits to that. This means that if you changed something, and someone else changed the same thing, you will have a rebase conflict. Which is great! You can now just fix your own conflict, and the history will still be linear! This also means that you will have to fix your own conflicts from now, instead of fixing other people's conflicts. Go on and push your branch when your done.</p>
+
+<h2 id="merging-master-in-your-feature-branch">Merging master in your feature branch</h2>
+
+<p>In analogy with what I said before, you can look at your feature branch as an "isolated" place where you can work on your feature in separation of everything that happens in other branches. Just do what you wanted to do, and never merge any branch into it, or at least minimize the amount of times you merge in case you really really have to.</p>
+
+<p>The advantage this gives you, is great linear history in your feature branch, which <strong>only</strong> applies to that feature, which makes it easy to review or merge into other branches. This is even more true if you use the <code>git pull --rebase</code> feature from the previous tip.</p>
+
+<p>Now, when your feature is ready and there are merge conflicts between your feature branch, and the branch you want to merge it into, e.g. <code>master</code>, you can solve that easily. Merge master in your branch once, and fix your own conflicts. Then merge your branch into master. There are some rebase tricks you can do here to keep linear history too, but I prefer to still merge branches when a feature is done.</p>
+
+<h2 id="further-reading">Further Reading</h2>
+
+<ul>
+<li><a href="http://chris.beams.io/posts/git-commit/">How to Write a Git Commit Message</a></li>
+<li><a href="https://git-scm.com/book/en/v2/Distributed-Git-Distributed-Workflows">GitBook chapter on Distributed Workflows</a></li>
+<li><a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful Git branching model</a></li>
+</ul>
+
+<p>That's it! Enjoy your clean git logs!</p>
+]]></content>
+        </entry>
+    </feed>

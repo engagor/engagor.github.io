@@ -1,0 +1,1198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Domain Driven Design.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Implementation Details]]></title>
+            <link href="/blog/2019/01/28/lambda-implementation-details"/>
+            <updated>2019-01-28T14:30:00+00:00</updated>
+            <id>/blog/2019/01/28/lambda-implementation-details</id>
+            <content type="html"><![CDATA[<p><strong>This is the sixth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%F0%9F%A4%94-how-do-you-hide-your-internals%3F">🤔 How do you hide your internals?</h2>
+
+<p>In OOP, we're used to hiding the implementation details of our classes by using interfaces. We can just define a contract that the rest of the application needs to adhere to, and keep the knowledge of the internals completely separate from the rest of the system. Let's look at a simple interface:</p>
+
+<pre><code class="php">&lt;?php
+
+namespace Dns;
+
+interface Client
+{
+    public function resolve(Request $request): Response;
+}
+</code></pre>
+
+<p>As a consumer of this interface, we actually know everything we need to know to start programming. We'll inject the class we're making with a <code>DNS\Client</code> instance later, the actual implementation of it doesn't concern us right now. We have enough information to create our application knowing that we can send the client a <code>Request</code> and get a <code>Response</code> back. The internals of the <code>Dns\Client</code> can be changed at will, without altering our program.</p>
+
+<p>For me, this was the biggest breakthrough of learning an Object Oriented language, the moment when using interfaces as contracts clicked. That's why, when I started to dive into Functional Programming languages, I wasn't really happy with what I saw. Where were the interfaces at?</p>
+
+<h2 id="%F0%9F%98%85-exporting-from-modules-as-interface">😅 Exporting from modules as interface</h2>
+
+<p>The first Functional Programming language I learnt was <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">Scheme</a>. It was great! When you start learning it, you start to see the recursion patterns, see that syntax is only so important as the language makes it, and countless other nice things (programming with continuations, anyone?). What bothered me was that lists are used as the main data structure everywhere! You'll sometimes find libraries that do something like this:</p>
+
+<pre><code class="scheme">(define address
+  (list "Toon Daelman" "FooBarStreet 42" "9000 Ghent" "Belgium"))
+</code></pre>
+
+<p>Yes, that's a workable data structure, but it's not ideal... To get a person's country from their address, you need to do something like this:</p>
+
+<pre><code class="scheme">(list-ref address 3)
+</code></pre>
+
+<p>Which means, from the <code>address</code> list, take the <code>3rd</code> (zero-based) index. That's not very readable at all, and it doesn't hide any of the details of our data structure. If we want to change it, every function interacting with this data structure will need to change as well.</p>
+
+<p>Luckily, the problem was me. I didn't look far enough, and most people working with lisps have other ways of hiding their internals, for instance:</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (list name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (list-ref address 3)))
+)
+</code></pre>
+
+<p>This is a scheme module, that exports two functions <code>address</code> and <code>country</code>. It uses the base library <code>scheme</code>. It defines a function <code>address</code>, that acts like a constructor and returns a black box object, that you can deconstruct using separate functions. In this case we only have a <code>country</code> function that takes an <code>address</code> and returns its <code>country</code>. Consuming modules of this <code>address</code> module need only now the constructor and the other functions, not that the underlying object is still a list!</p>
+
+<p>And this lets us change the implementation as well!</p>
+
+<pre><code class="scheme">(module address (address country)
+  (import scheme)
+
+  (define address
+    (lambda (name line1 line2 country)
+      (vector name line1 line2 country)))
+
+  (define country
+    (lambda (address)
+      (vector-ref address 3)))
+)
+</code></pre>
+
+<p>We're now using <code>vector</code>s as the datatype for <code>address</code> instead of <code>list</code>s, but the <code>address</code> constructor and the <code>country</code> getter function are still called the same and behave exactly the same. We could use the records features as well, still keeping the same public interface...</p>
+
+<h2 id="%F0%9F%8E%A9-types">🎩 Types</h2>
+
+<p>The second Functional Programming language I started to look into was <a href="https://en.wikipedia.org/wiki/Haskell_(programming_language)">Haskell</a>. It immediately blew my mind with its type system. Let's check out this piece of code:</p>
+
+<pre><code class="haskell">type AddressLine = String
+type Country = String
+
+data Address = Address
+  { name :: String
+  , line1 :: AddressLine
+  , line2 :: AddressLine
+  , country :: Country
+  } deriving (Show)
+
+countryFrom :: Address -&gt; Country
+countryFrom = country
+</code></pre>
+
+<p>We define two type aliasses <code>AddressLine</code> and <code>Country</code>. Then we say that an <code>Address</code> consists of a <code>name</code>, a <code>line1</code> which is an <code>AddressLine</code>, a <code>line2</code> (also an <code>AddressLine</code>) and a <code>country</code> of the type <code>Country</code>. Then we define a function called <code>countryFrom</code> that takes an <code>Address</code> and returns a <code>Country</code>, which is implemented by just saying it's equal to <code>country</code>, the function that is automatically created to unwrap <code>Record</code>s.</p>
+
+<p>In fact, creating the <code>countryFrom</code> function was just done as an example to show off the type annotations in a situation analogous to the previous example in scheme. The type system in Haskell allows us to not only write the contract of a function, but it allows us to write abstractions as well! Check this out:</p>
+
+<pre><code class="haskell">head :: [a] -&gt; a
+</code></pre>
+
+<p>This is the type of the <code>head</code> function, which operates on lists. It takes a list of <code>a</code>s and returns an <code>a</code>. The <code>a</code> is a <em>type variable</em>, it substitutes for every type you can think of. This way, you can strictly type a function that can work with all sorts of types! Take for instance a list of <code>Address</code>es! Call <code>head</code> on that list, and you'll get the first <code>Address</code> of the list.</p>
+
+<p>🎩➡️🐰</p>
+
+<p>😍 I love this, it's like magic! And it goes even further. Let's say you want to be able to declare the function <code>==</code> which takes two arguments and checks if they're equal to each other. You would think that that would be easy using <em>type variables</em>, doing something like this:</p>
+
+<pre><code class="haskell">(==) :: a -&gt; a -&gt; Bool
+</code></pre>
+
+<p>Which means, a function <code>==</code> which takes two arguments of the same type (we use <code>a</code> for both arguments, which means we don't care which type it is, but it should be the same for both arguments) and returns a <code>Bool</code>. The problem is that there's no certainty that the type <code>a</code> has a concept of equality to it. It could be that we want to be able to define our own rules for equality on a type-by-type basis as well... That's why that signature <code>a -&gt; a -&gt; Bool</code> isn't enough.</p>
+
+<p>Haskell actually has another abstraction over their types to allow us to put the <code>a -&gt; a -&gt; Bool</code> in a context:</p>
+
+<pre><code class="haskell">class Eq a where
+  (==) :: a -&gt; a -&gt; Bool
+  x == y = not (x /= y)
+
+  (/=) :: a -&gt; a -&gt; Bool
+  x /= y = not (x == y)
+</code></pre>
+
+<p>This is a typeclass named <code>Eq</code> that defines equality for every type <code>a</code> that we say is part of the typeclass. It defines two functions, <code>==</code> and <code>/=</code>, which both take two arguments of the type <code>a</code> and return a <code>Bool</code>. What's also nice, is that they're both defined in terms of each other. <code>==</code> says that it's <code>not (/=)</code> and vice versa.</p>
+
+<p>Now, if we want to make our <code>Address</code> type part of the typeclass <code>Eq</code>, we can just implement the <code>==</code> function, and we get the other one for free because it's defined in terms of <code>==</code>. Let's look at an example:</p>
+
+<pre><code class="haskell">instance Eq Address where
+  x == y = sameAddressLines &amp;&amp; sameCountry
+    where sameAddressLines = (line1 x == line1 y) &amp;&amp; (line2 x == line2 y)
+          sameCountry = country x == country y
+</code></pre>
+
+<p>In this case, we say <code>Address</code>es are the same if their <code>AddressLine</code>s and <code>Country</code> are the same. We don't take <code>name</code> into consideration. Now we can <code>==</code> on <code>Address</code>es everywhere. If you don't need special rules for deriving equality for a given type, the Haskell compiler can derive it for your type using the <code>deriving (Eq)</code> statement.</p>
+
+<h2 id="%F0%9F%A4%93-what-can-we-learn-from-this%3F">🤓 What can we learn from this?</h2>
+
+<p>We've seen two ways of how implementation details can be hidden in a functional programming environment. When we're in Object Oriented environments we do almost the same things, but we use interfaces for them. And we use interfaces to describe contracts for many other things we want to do. That's why I'm sometimes confused when I stumble upon an interface: what's the primary reason for it to be here? Is it there to define a contract for external systems? Is it meant to hide implementation details or is it just part of a design pattern used in this package? Is it a marking interface used to indicate the type of the implementing class? Not every class needs to be implementing an interface... It already has one! All public methods of a concrete class can be seen as its public interface. And I think in most cases like the first example in scheme where we want to hide the internals of a datatype, a concrete class can be enough (think <code>ValueObject</code>s).</p>
+
+<p>I find that in Object Oriented Programming, thinking about types as you do when writing e.g. Haskell, tends to help when defining your interfaces effectively. One of the biggest differences is the manifestation of side-effects: In Haskell, there's a type for functions with side effects, while interfaces in Object Oriented languages mostly don't give you any insights into that (I've often thought about annotating side-effects in the docblocks of my interfaces).</p>
+
+<p>While PHP doesn't allow you to implement your own Equality rules for your classes, some Object Oriented languages do. Compare these examples:</p>
+
+<pre><code class="php">$foo == $bar;
+</code></pre>
+
+<pre><code class="php">$foo-&gt;equals($bar);
+</code></pre>
+
+<p>In the first example, we can't influence how PHP compares two instances of our class, while in the second one, we have complete control (even over the name of the method). It depends on taste what's best, certainly when your language allows you to overload <code>==</code> for your classes. Always try to make it as readable as possible!</p>
+
+<p>Wow, we made it through! Hope to see you in the next episode! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Lambda To The Rescue: Syntax]]></title>
+            <link href="/blog/2018/11/28/lambda-syntax"/>
+            <updated>2018-11-28T11:30:00+00:00</updated>
+            <id>/blog/2018/11/28/lambda-syntax</id>
+            <content type="html"><![CDATA[<p><strong>This is the fifth post in a series about using Functional Programming concepts to make your Object Oriented code more comprehensible. Start <a href="/blog/2018/03/02/lambda-lists-to-wrap-failure">here</a> if you want to read the whole thing.</strong></p>
+
+<h2 id="%E2%9C%A8-syntactic-sugar">✨ Syntactic Sugar</h2>
+
+<p>When I was first reading <a href="http://learnyouahaskell.com/">Learn You A Haskell For Great Good</a>, I came across the term <em>Syntactic Sugar</em> and I was confused... My background in OOP languages made me cringe a little when I read about how you can create your own syntax in Haskell using infix operators and DSLs. It even goes so far that some functional languages have almost no syntax at all! Let's look at an example of "sugar":</p>
+
+<pre><code class="haskell">map reverse
+    (filter (\x -&gt; length x &lt; 5)
+            ["foo", "bar", "baz", "qux", "ramsam"])
+</code></pre>
+
+<p>We're taking the list <code>["foo", "bar", "baz", "qux", "ramsam"]</code>, filtering out items that are 5 characters or longer, and reversing them all, one by one. The result is <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<p>We can make this a little bit more readable by using Haskell's <code>$</code> infix operator, which allows us to remove some of the parentheses by evaluating the expression on its righthand side first:</p>
+
+<pre><code class="haskell">map reverse $ filter (\x -&gt; length x &lt; 5) $ ["foo", "bar", "baz", "qux", "ramsam"]
+</code></pre>
+
+<p>Although the parentheses are gone, we still have to read from right to left if we want to know what exactly the result of this will be. We basically pipe the result of the expression on the right of the <code>$</code> to the expression on the left side of it. Some languages like F# have the <code>|&gt;</code> operator which allows you to pipe from left to right, so the exact opposite of the <code>$</code> operator. It's not idiomatic Haskell, but in some cases we might want to use it to create some clarity.</p>
+
+<p>Since we know <code>|&gt;</code> is the exact opposite of <code>$</code>, let's just try to write it ourselves. In Haskell, infix operators are just normal functions with two parameters. Here's an example:</p>
+
+<pre><code class="haskell">*repl &gt; 2 + 3
+5
+
+*repl &gt; (+) 2 3
+5
+</code></pre>
+
+<p>The function <code>(+)</code> can be used as a normal Haskell function, writing the function first and its arguments after it, or as an infix operator, without the parentheses. So we know <code>($)</code> is a function taking two parameters, and we have <code>flip</code> which takes a function with two parameters, and flips the order of them!</p>
+
+<pre><code class="haskell">(|&gt;) = flip ($)
+</code></pre>
+
+<p>Easy! Let's now write the original example using <code>(|&gt;)</code>:</p>
+
+<pre><code class="haskell">["foo", "bar", "baz", "qux", "ramsam"]
+  |&gt; filter (\x -&gt; length x &lt; 5)
+  |&gt; map reverse
+</code></pre>
+
+<p>We created our own syntactic sugar! We can now read this left to right, or top to bottom as you will. The result of the first expression you read will be "piped" to the next as the last parameter! We get the exact same result <code>["oof", "rab", "zab", "xuq"]</code>.</p>
+
+<h2 id="%F0%9F%92%AC-domain-language">💬 Domain Language</h2>
+
+<p>As you saw in the last example, we can create our own infix functions in Haskell. This can be very useful to create more readable code, using the language of the domain. Let's see a typical example of a function that doesn't do that:</p>
+
+<pre><code class="haskell">changeAddress :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>Now when we use this function in the classical way, it looks like this:</p>
+
+<pre><code class="haskell">let abbeyRoad3 = "3 Abbey Road, London NW8 9AY, UK"
+let updatedClient = changeAddress client abbeyRoad3
+</code></pre>
+
+<p>which doesn't read very well... What if we could use an infix here?</p>
+
+<pre><code class="haskell">let updatedClient = client `changedAddressTo` abbeyRoad3
+</code></pre>
+
+<p>Using backticks we can use a function as an infix operator. The only thing we needed to change was the name of the function, and now this looks like a sentence!</p>
+
+<p><code>client changedAddressTo abbeyRoad3</code></p>
+
+<p>This is now the function type:</p>
+
+<pre><code class="haskell">changedAddressTo :: Client -&gt; Address -&gt; Client
+</code></pre>
+
+<p>So a simple changed lead to a better understanding of the code.</p>
+
+<h2 id="%F0%9F%93%89-the-absolute-minimum">📉 The Absolute Minimum</h2>
+
+<p>In the previous examples, you could see how we can mold the existing syntax to our likings, and use that to create very understandable code. Now let's see what happens when you take a language that has almost no syntax at all, like <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">scheme</a>. Literally, the only syntax in scheme is <code>(</code> and <code>)</code>. The rest are functions. Let's check out some code:</p>
+
+<pre><code class="scheme">(define sum
+  (lambda (list)
+    (cond
+      ((null? list) 0)
+      (else (+ (car list) (sum (cdr list)))))))
+</code></pre>
+
+<p>As you can see, there are lots of <code>(</code>s and <code>)</code>s. Basically, every <code>()</code> combo is a function call.</p>
+
+<ul>
+<li><code>(define name body)</code> defines a variable. In this case, it's called <code>sum</code>.</li>
+<li><code>(lambda (arguments) body)</code> defines a function. In this case, it has an argument called <code>list</code>.</li>
+<li><code>(cond (condition result1) (else result2))</code> creates a conditional. If the <code>condition</code> is <code>#t</code> (true), we return <code>result1</code>, else <code>result2</code>.</li>
+<li><code>(null? list)</code> checks if a list is empty.</li>
+<li><code>(+ a b)</code> returns the sum of two numbers.</li>
+<li><code>(car list)</code> returns the first item of a list (the <code>head</code> of the list).</li>
+<li><code>(sum list)</code> is the recursive call to our own defined function.</li>
+<li><code>(cdr list)</code> returns a list without its <code>head</code> (the <code>tail</code> of the list).</li>
+</ul>
+
+<p>Almost all of the above functions can be defined in <code>scheme</code> itself. That's why you'll find a lot of <code>scheme</code> parsers or environments written in <code>scheme</code>. Even the datatype of a list can be written as a function! And it doesn't end there! Scheme has support for macros which will let you manipulate your own code!</p>
+
+<h2 id="%F0%9F%A4%B7%E2%80%8D%E2%99%82%EF%B8%8F-what%27s-the-point%3F">🤷‍♂️ What's the point?</h2>
+
+<p>My point isn't that you should try to minimize the amount of syntax to have a good language, but I'm always looking for better ways to write stuff. This means that languages where you can create your own syntax have a high appeal to me. I love to read code that tells a story, so that my brain can try and understand the problem &amp; the solution at hand, instead of the code. I think a lot of functional programming languages have strong support for writing code like this, compared to most OOP languages.</p>
+
+<p>That doesn't mean we can't apply a lot of this in our day-to-day OOP codebases. See what you can do to make your code more meaningful. Can you give your classes, functions and variables better names? How can you lower the cognitive overhead needed to understand the code? How can we bring developer time down? Experimenting with this is something we can do in all languages, but it gets easier if we try and look around to the other languages and ecosystems around us! Don't get stuck in the idioms of the language you're spending the most time with, try stuff, look around, conquer the world!</p>
+
+<p>It's also worth mentioning that there are whole communities around "designing software according to the domain" and "using the language of the domain". If you want to learn more, check out <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>! I've been going to the <a href="https://dddeurope.com/">DDD Europe Conference</a> and <a href="https://www.meetup.com/dddbelgium/">DDD Belgium meetups</a> for a few years now, and I must say, a lof of DDD people are trying functional languages!</p>
+
+<p>That concludes this post. See you in the <a href="/blog/2019/01/28/lambda-implementation-details">next Lambda To The Rescue post</a>! Happy programming y'aλλ! 🖖</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Some insights regarding Value Objects]]></title>
+            <link href="/blog/2018/01/22/some-insights-regarding-value-objects"/>
+            <updated>2018-01-22T15:00:00+00:00</updated>
+            <id>/blog/2018/01/22/some-insights-regarding-value-objects</id>
+            <content type="html"><![CDATA[<p>We've been using Value Objects more and more over the years, and although there's a lot of info out there, there are some things that we found particularly interesting to talk about in a blog post.</p>
+
+<h2 id="what%27s-a-value-object%3F">What's a Value Object?</h2>
+
+<p>Value Objects are simply put <em>objects that represent a value</em>, i.e. objects that don't have an identity except for the value they represent. Very frequently used examples are <code>Money</code> (if someone owes me €5 and they pay me €2 + €2 + €1 I'm happy) and <code>DateTime</code>, but there are lots of things that would qualify. For instance, combined values like a <code>TimeSlot</code> which comprises of two <code>DateTime</code> objects <code>start</code> and <code>end</code>, which is equal to another <code>TimeSlot</code> object if both <code>start</code> and <code>end</code> for both <code>TimeSlot</code> objects are equal. Or points in a 2D plane with <code>x</code> and <code>y</code> coordinates, where -you guessed it- two points are equal if both points have the same <code>x</code> and <code>y</code> coordinates.</p>
+
+<p>A lot of people wonder why they should use Value Objects, instead of passing around primitive values. Let's take some user input in the form of a telephone number, and treat it as a <code>String</code>. We want to pass it around in our code. Somewhere in our code there's a function that expects a telephone number as a parameter. How can it be sure that we passed a telephone number? It can't... Since we're just passing around a <code>String</code>, it needs to do some checks: Does the string look like a telephone number? Does it have a valid country code? etc. The next function that takes a telephone number as a parameter needs to do these checks again. There are some rules about what makes a valid telephone number, which can't be encapsulated in the <code>String</code> representation. If we make a specialized object to represent that phone number, we we can check these rules upon creation of the object, and thus prevent invalid state before it occurs. If some part of our code now gets that <code>PhoneNumber</code> object, it can be sure that it's a valid phone number.</p>
+
+<h2 id="yes%2C-value-objects-should-be-immutable">Yes, Value Objects should be immutable</h2>
+
+<p>Earlier we said that <code>DateTime</code> is a Value Object. Since a <code>DateTime</code> is just a value, once it is instantiated it should represent that value. Let's check something out:</p>
+
+<pre><code class="php">$noon1 = new DateTime('today noon');
+$noon2 = new DateTime('today noon');
+var_dump($noon1 == $noon2); // bool(true)
+
+$noon3 = $noon1-&gt;modify('+ 2 hours');
+
+var_dump($noon1 == $noon2); // bool(false)
+</code></pre>
+
+<p>What happened? I instantiated two <code>DateTime</code> objects that were equal to each other, representing "today at noon". I created a third <code>DateTime</code> object that should represent "today, two hours later than noon". After that, one of the objects that represented "noon" a second ago doesn't anymore. It's like saying: "here you have a 3", and when you start calculating with it, it changed to a 4. This essentially teleported us to another universe where 3 means 4 suddenly.</p>
+
+<p>The reason this happened is because of the fact that the <code>-&gt;modify()</code> call mutates the <code>DateTime</code> object. If we prevent our objects from being changed (make them immutable), they will become a lot safer to work with. In this regard, you should probably always use <a href="https://secure.php.net/manual/en/class.datetimeimmutable.php"><code>DateTimeImmutable</code></a>.</p>
+
+<h2 id="how-to-introduce-a-value-object%3F">How to introduce a Value Object?</h2>
+
+<p>Let's say we have some code that takes a user's <a href="https://help.twitter.com/en/managing-your-account/twitter-username-rules">Twitter handle</a> to perform some operations:</p>
+
+<pre><code class="php">final class Twitter
+{
+    public function publicTimelineFor(string $handle)
+    {
+        $this-&gt;assertValidTwitterHandle($handle);
+
+        // ... fetch &amp; return timeline
+    }
+
+    public function tweepsFollowing(string $handle)
+    {
+        $this-&gt;assertValidTwitterHandle($handle);
+
+        // ... fetch &amp; return followers
+    }
+
+    /**
+     * @param string $handle
+     *
+     * @throws InvalidArgumentException when not valid
+     */
+    private function assertValidTwitterHandle(string $handle)
+    {
+        // check the rules here, throw exception if not valid
+    }
+}
+</code></pre>
+
+<p>The <code>assertValidTwitterHandle()</code> must happen in every call that uses the concept of a Twitter handle, but it's so easy to forget when you write a new function! Also, it's impossible to know if a given string has been approved in a previous call. If you now call <code>publicTimelineFor($handle)</code> and <code>tweepsFollowing($handle)</code> in succession for the same <code>$handle</code>, you're basically repeating yourself for no reason. Let's refactor this!</p>
+
+<p>The first thing that you want to do is make sure you get your code under test (it should already be that way 😘). What I like to do in this case, is at least have some tests for what a "valid Twitter handle" means. Since I'll be working towards an object that can only represent a valid Twitter handle, I'll make the <code>private</code> assertion <code>public</code>, write some unit tests against the assertion, and be done with it. We'll change the test later on.</p>
+
+<pre><code class="php">class TwitterHandleTest extends \PHPUnit_Framework_TestCase
+{
+    public function setUp()
+    {
+        $this-&gt;twitter = new Twitter();
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_it_throws_when_longer_than_16_chars()
+    {
+        $this-&gt;twitter-&gt;assertValidTwitterHandle('@VeryVeryVeryLongHandleThatShouldThrow');
+    }
+
+    // Tests for other rules go here too
+    // - handle is a string and should start with '@'
+    // - handle contains only uppercase chars, lowercase chars, digits and underscores
+    // - make sure to provide some happy path cases as well
+    // - you can of course use data providers in your tests to test multiple examples per test
+}
+</code></pre>
+
+<p>Then create a very basic class for our Value Object:</p>
+
+<pre><code class="php">final class TwitterHandle
+{
+    private $handle;
+
+    public function __construct(string $handle)
+    {
+        $this-&gt;assertValidTwitterHandle($handle);
+
+        $this-&gt;handle = $handle;
+    }
+
+    private function assertValidTwitterHandle(string $handle)
+    {
+        // check the rules here, throw exception if not valid
+    }
+
+    public function __toString(): string
+    {
+        return $this-&gt;handle;
+    }
+}
+</code></pre>
+
+<p>As you can see I created a basic class with the Twitter handle as a string as a constructor parameter. If we use the class as a string, it will cast to the exact Twitter handle as a string that we got as input. This is a temporary measure. I then just moved the <code>assertValidTwitterHandle()</code> method from the <code>Twitter</code> class to <code>TwitterHandle</code>, and made it private. I can fix my tests by just using the constructor of the <code>TwitterHandle</code> class as entry point:</p>
+
+<pre><code class="php">/**
+ * @expectedException InvalidArgumentException
+ */
+public function test_it_throws_when_longer_than_16_chars()
+{
+    new TwitterHandle('@VeryVeryVeryLongHandleThatShouldThrow');
+}
+</code></pre>
+
+<p>The code that used to work with handlers in the string form can now easily be changed to accept our object:</p>
+
+<pre><code class="php">public function publicTimelineFor(TwitterHandle $handle)
+{
+    // ... fetch &amp; return timeline
+}
+</code></pre>
+
+<p>As you can see, we just typehint on the Value Object in the function definition, and since the <code>__toString()</code> method is defined to return the same string as we had before, everything just keeps working. With the one perk that the check for valid handles is gone from all our functions! We don't need it anymore, since it's now impossible to pass an invalid handle to them! Now you just need to handle the case of the invalid Twitter handle the moment you get it from the user.</p>
+
+<p>As a final measure, I make sure that the output from the <code>__toString()</code> method can always be parsed back into the same Value Object again, by just giving it to the constructor. In this case that means that I need to return the complete value that the object was instantiated with (which is already the case). If you're tempted to use the <code>__toString()</code> method for other presentational purposes, <a href="http://verraes.net/2013/02/2013-02-16-casting-value_objects/#1-dont-use-_tostring-for-presentation">you're advised to create a specific function for that</a>.</p>
+
+<h2 id="comparing-value-objects">Comparing Value Objects</h2>
+
+<p>Let's say we want to represent points in a <code>x</code> by <code>y</code> two-dimentional plane using a <code>Point</code> Value Object. We've got something like this:</p>
+
+<pre><code class="php">final class Point
+{
+    private $x;
+    private $y;
+
+    public function __construct(int $x, int $y)
+    {
+        $this-&gt;x = $x;
+        $this-&gt;y = $y;
+    }
+}
+</code></pre>
+
+<p>Comparing two of these <code>Point</code>s for equality is easy. We can just use PHP's built-in <code>==</code>, which will compare the objects by the values of their properties (exactly what we want for now).</p>
+
+<pre><code class="php">$c1 = new Point(10, 20);
+$c2 = new Point(10, 30);
+$c3 = new Point(10, 20);
+
+var_dump($c1 == $c2); // false
+var_dump($c1 == $c3); // true
+</code></pre>
+
+<p>This gets more complicated when we want to e.g. calculate the distance between two <code>Point</code>s. Aren't those <code>x</code> and <code>y</code> properties private to the object?</p>
+
+<pre><code class="php">final class Point
+{
+    private $x;
+    private $y;
+
+    public function __construct(int $x, int $y)
+    {
+        $this-&gt;x = $x;
+        $this-&gt;y = $y;
+    }
+
+    public function distanceTo(Point $other): float
+    {
+        return sqrt(pow($this-&gt;x - $other-&gt;x, 2) + pow($this-&gt;y - $other-&gt;y, 2));
+    }
+}
+</code></pre>
+
+<p>Yes. But since these are two objects of the same type, they can access each other private properties! The code above just works! Be careful though, that you don't change any properties (and therefore make the objects mutable...).</p>
+
+<h2 id="nested-value-objects">Nested Value Objects</h2>
+
+<p>With the <code>Point</code> Value Object that we defined above, we can go a little bit further and represent other things in 2D planes, e.g. line segments, which are defined by two points A and B:</p>
+
+<pre><code class="php">final class LineSegment
+{
+    private $a;
+    private $b;
+
+    public function __construct(Point $a, Point $b)
+    {
+        $this-&gt;a = $a;
+        $this-&gt;b = $b;
+    }
+}
+</code></pre>
+
+<p>As you can see, we just created a Value Object that encapsulates two other Value Objects. This is great, we can successfully represent a <code>LineSegment</code> with this, but there's a problem with this:</p>
+
+<p>The math (the domain in this case) tells us that two line segments are equal if they have the same delimiting points. In our case, we called them <code>$a</code> and <code>$b</code>, but actually, the order is not important. This means the <code>==</code> check I described above won't work like this:</p>
+
+<pre><code class="php">$pointA = new Point(0, 0);
+$pointB = new Point(5, 5);
+
+$line1 = new LineSegment($pointA, $pointB);
+$line2 = new LineSegment($pointB, $pointA);
+
+var_dump($line1 == $line2); // false
+</code></pre>
+
+<p>We can solve that problem using an <code>equals()</code> method:</p>
+
+<pre><code class="php">final class LineSegment
+{
+    private $a;
+    private $b;
+
+    public function __construct(Point $a, Point $b)
+    {
+        $this-&gt;a = $a;
+        $this-&gt;b = $b;
+    }
+
+    public function equals(LineSegment $other): bool
+    {
+        return ($this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b)
+            || ($this-&gt;a == $other-&gt;b &amp;&amp; $this-&gt;b == $other-&gt;a);
+    }
+}
+</code></pre>
+
+<p>This can now be used to compare lines, but the <code>==</code> still gives wrong results. This is the point where I tell you <code>==</code> is not the best thing to use with Objects in PHP. You cannot override it, or make it work in all cases. It actually breaks encapsulation and checks private properties of objects. But we still want to make it work so that if it gets used instead of the <code>equals()</code> method, nothing breaks. We can then use a rule in our static analysis tools to check for <code>==</code> used with our object. We can make the <code>==</code> work using a fixed order in which point A and B get assigned inside <code>LineSegment</code>'s constructor:</p>
+
+<pre><code class="php">final class LineSegment
+{
+    // ...
+
+    public function __construct(Point $a, Point $b)
+    {
+        $this-&gt;a = $a;
+        $this-&gt;b = $b;
+
+        if ($a-&gt;greaterThan($b)) {
+            $this-&gt;a = $b;
+            $this-&gt;b = $a;
+        }
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>Our <code>Point</code> objects now need the <code>greaterThan()</code> method, which can be implemented a bit like this:</p>
+
+<pre><code class="php">final class Point
+{
+    // ...
+
+    public function greaterThan(Point $other): bool
+    {
+        if ($this-&gt;x == $other-&gt;x) {
+            return $this-&gt;y &gt; $other-&gt;y;
+        }
+
+        return $this-&gt;x &gt; $other-&gt;x;
+    }
+}
+</code></pre>
+
+<p>Now we can simplify <code>LineSegment</code>'s <code>equals()</code> method, since <code>$a</code> and <code>$b</code> will be assigned in order:</p>
+
+<pre><code class="php">final class LineSegment
+{
+    // ...
+
+    public function equals(LineSegment $other): bool
+    {
+        return $this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>Even though we don't want people to use <code>==</code> with our <code>LineSegment</code> Value Object, we made it work. Like this, we can prevent unexpected errors in our code. The final code looks like this:</p>
+
+<pre><code class="php">final class Point
+{
+    private $x;
+    private $y;
+
+    public function __construct(int $x, int $y)
+    {
+        $this-&gt;x = $x;
+        $this-&gt;y = $y;
+    }
+
+    public function distanceTo(Point $other): float
+    {
+        return sqrt(pow($this-&gt;x - $other-&gt;x, 2) + pow($this-&gt;y - $other-&gt;y, 2));
+    }
+
+    public function greaterThan(Point $other): bool
+    {
+        if ($this-&gt;x == $other-&gt;x) {
+            return $this-&gt;y &gt; $other-&gt;y;
+        }
+
+        return $this-&gt;x &gt; $other-&gt;x;
+    }
+}
+
+final class LineSegment
+{
+    private $a;
+    private $b;
+
+    public function __construct(Point $a, Point $b)
+    {
+        $this-&gt;a = $a;
+        $this-&gt;b = $b;
+
+        if ($a-&gt;greaterThan($b)) {
+            $this-&gt;a = $b;
+            $this-&gt;b = $a;
+        }
+    }
+
+    public function equals(LineSegment $other): bool
+    {
+        return $this-&gt;a == $other-&gt;a &amp;&amp; $this-&gt;b == $other-&gt;b;
+    }
+}
+</code></pre>
+
+<p>If we wanted to represent the nested Value Objects as a string, e.g. to be able to save them in a field in the database, we could just make the <code>Point</code> represent itself as <code>(x, y)</code> and the <code>LineSegment</code> as <code>[(Xa, Ya), (Xb, Yb)]</code> by letting the <code>LineSegment</code>'s <code>__toString</code> method call that of the nested <code>Point</code> objects. For parsing the string representation back into a <code>LineSegment</code>, we'll need a <code>fromString()</code> <a href="http://verraes.net/2014/06/named-constructors-in-php/">alternative constructor</a> that can parse those strings and instantiate the correct objects for them, but I'll leave that as an exercise for the reader!</p>
+
+<p>So, these were our take-aways after introducing Value Objects into our codebase. Did we forget something?</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Our Favorite Content Of 2017]]></title>
+            <link href="/blog/2017/12/22/our-favorite-content-of-2017"/>
+            <updated>2017-12-22T14:30:00+00:00</updated>
+            <id>/blog/2017/12/22/our-favorite-content-of-2017</id>
+            <content type="html"><![CDATA[<p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. We asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
+
+<h1 id="people-%26-community">People &amp; Community</h1>
+
+<p><img src="https://media.giphy.com/media/pTY9EtkiakcU/giphy.gif" alt="The Blind" /></p>
+
+<h3 id="in-the-kingdom-of-the-blind"><a href="https://bridgetkromhout.com/blog/in-the-kingdom-of-the-blind/">In The Kingdom Of The Blind</a></h3>
+
+<blockquote>
+  <p>As you can imagine, there are plenty of reasons that under-represented people in tech aren't going to jump the second your event's CFP opens. But submissions will pour in nonetheless... from the folks whose (devrel/marketing/field engineer) vendor job includes public speaking (and on-the-job time to fine-tune their abstracts). And spoiler alert, many of them will fall into the majority cis het white male demographic.</p>
+</blockquote>
+
+<p>Ursula recommends this for the great ideas on how to improve diversity at conferences, and an excellent candid overview of the reasons why underrepresented minorities do not speak at or attend tech conferences as often.</p>
+
+<h3 id="we-fired-our-top-talent.-best-decision-we-ever-made."><a href="https://medium.freecodecamp.org/we-fired-our-top-talent-best-decision-we-ever-made-4c0a99728fde">We fired our top talent. Best decision we ever made.</a></h3>
+
+<blockquote>
+  <p>Your team's strength is not a function of the talent of individual members. It's a function of their collaboration, tenacity, and mutual respect.</p>
+</blockquote>
+
+<p>Hans likes this because when there's a smart guy around, you'll find it tempting to just go ask him instead of trying to do the research yourself and learn something new. He doesn't like developers who think that they know everything. They don't. In fact, you'll never know everything. Sharing knowledge and working together as a team is something we should focus on instead. Each person has their own strengths.</p>
+
+<h3 id="the-myth-of-the-%22cool-tech-girl%22"><a href="https://code.likeagirl.io/the-myth-of-the-cool-tech-girl-7868fa63769b">The myth of the "cool tech girl"</a></h3>
+
+<blockquote>
+  <p>Don't reward good behaviour with scotch, don't tap kegs at 12pm, and don't host video game or ping pong tournaments. Don't call your employees "rockstars". Shine a harsh light on some of your internal slack channels. If your company doesn't perpetuate the kind of culture that makes women feel like they need to be 'one of the boys', they won't need the coping mechanism of the "cool tech girl".</p>
+</blockquote>
+
+<p>Ursula has seen this type of behaviour from women in tech in many countries. "I would almost go as far as to say that if you don't fit into the 'cool tech girl' box, it's difficult to survive. As a woman in tech I think you have a responsibility to speak up for diversity in the industry. It's really hard, and it's great to hear viewpoints that identify that."</p>
+
+<h1 id="engineering">Engineering</h1>
+
+<p><img src="https://pbs.twimg.com/media/C3G2KYAWYAEj9km.jpg" alt="Stickies on the wall kind of engineering" /></p>
+
+<h3 id="transactions-redefined"><a href="https://www.youtube.com/watch?v=NqKNqIsB8_k">Transactions Redefined</a></h3>
+
+<blockquote>
+  <p>Event Storming is my pizza, you can add your toppings, as long as it's not database tables or pineapple</p>
+</blockquote>
+
+<p>Toon recommends this because Alberto Brandolini is a great speaker, and his vision on Domain Driven Design and software development in general is really clear and deep. He goes a long way to understand the business, and the problems associated with the business. He goes out of his way to find out how he can solve them.</p>
+
+<h3 id="modern-software-over-engineering-mistakes"><a href="https://medium.com/@rdsubhas/10-modern-software-engineering-mistakes-bc67fbef4fc8">Modern Software Over-Engineering Mistakes</a></h3>
+
+<blockquote>
+  <p>Duplication is better than the wrong abstraction</p>
+</blockquote>
+
+<p>Jurriaan likes this because too much of technical literature is about how you should start doing things, and how everything you’ve done in the past is probably wrong. This article captures the essence of trying to architect real-life development projects.</p>
+
+<h3 id="kubernetes-at-github"><a href="https://githubengineering.com/kubernetes-at-github/">Kubernetes at Github</a></h3>
+
+<blockquote>
+  <p>With a self-service application provisioning workflow in place, SRE can devote more of our time to delivering infrastructure products to the rest of the engineering organisation in support of our best practices, building toward a faster and more resilient GitHub experience for everyone.</p>
+</blockquote>
+
+<p>Jeffry liked this because everybody and their dog are rethinking how to do platform now that the technology to do so has matured. This write-up from Github offers a great look into the decision making and preparation that goes into gradually building up confidence. He gives the author additional points for sprinkling snippets of inspiration throughout the post: e.g. chatops-rpc to make our hubot do more than offer drunk commentary, Kelsey Hightower's "Kubernetes the hard way" which he has set his mind to working through over the holidays, flipper and mission control bar and simulating kernel panics with sysrq-trigger.</p>
+
+<h1 id="think-differently">Think Differently</h1>
+
+<p><img src="https://media.giphy.com/media/ximCDHoBlx4UU/giphy.gif" alt="Excel on mobile, epic experience" /></p>
+
+<h3 id="exploring-time"><a href="https://www.youtube.com/watch?v=Zm95cYAtAa8">Exploring Time</a></h3>
+
+<blockquote>
+  <p>It’s impossible to know if this talk started on time</p>
+</blockquote>
+
+<p>Toon recommends this because Eric Evans uses his own Domain Driven Design to explore better ways to think about time. Very inspiring. He shows how "generic" subdomains of software development are not generally "solved problems", and how you can make a difference there, as a programmer.</p>
+
+<h3 id="clojure-for-the-brave-and-true"><a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a></h3>
+
+<blockquote>
+  <p>Humor has a certain relationship to seriousness. It is appropriate to joke about serious things, but only after the right amount of time has passed. For example, it took years for me to be able to crack a smile when I remember my favorite uncle’s last words: "Hold my beer".</p>
+  
+  <p>I'm so proud of you, little teapot. You've run your first Clojure program! Not only that, but you've become acquainted with the REPL, one of the most important tools for developing Clojure software. Amazing!</p>
+</blockquote>
+
+<p>Niek thinks this book is a hilarious and down-to-earth explanation of yet another programming language to learn. Clojure is a Lisp dialect and will melt your brain with its elegance!</p>
+
+<h3 id="you-suck-at-excel"><a href="https://www.youtube.com/watch?v=0nbkaYsR94c">You Suck At Excel</a></h3>
+
+<blockquote>
+  <p>This material is -I guess- kinda like basic to intermediate, but for you all it's going to be stupid hard, so try paying attention and don't slow me down.</p>
+</blockquote>
+
+<p>Toon enjoyed this because this guy solves real world problems for people using Excel. "I learned a 100 things from seeing him work like this." He knows Excel inside out.</p>
+
+<h3 id="lemme-tell-you-about-the-most-successful-program-i-ever-wrote"><a href="https://twitter.com/revin/status/940700486117634050">Lemme tell you about the most successful program I ever wrote</a></h3>
+
+<h6 id="twitter-thread">(twitter thread)</h6>
+
+<blockquote>
+  <p>It was the first time I genuinely understood that users don't care how something is implemented; they care how it makes them feel</p>
+</blockquote>
+
+<p>Hans thinks we put so much effort in making our application code clean and future-proof while just a tiny poorly written program (that works) can make someone really happy. Software can seem magical for some people.</p>
+
+<h1 id="big-data">Big Data</h1>
+
+<p><img src="https://media.giphy.com/media/xydGi3nSTlkqs/giphy.gif" alt="Ben Stiller as Big Data" /></p>
+
+<h3 id="wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen%3F"><a href="https://medium.com/@ransbottyn/wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen-e25a703668b4">Wat als Tomorrowland alles met je data en privacy zou mogen doen?</a></h3>
+
+<blockquote>
+  <p>Zo'n bracelet (gelinkt aan je identiteitsbewijs trouwens) is dus een mes dat aan twee kanten snijdt: handig, maar misschien ook de reden waarom u de volgende keer net iets minder "gewenst" bent.</p>
+</blockquote>
+
+<p>Jasper likes this because it's incredible how much data a festival organizer track and save about you with just a bracelet, and also, what they (can possibly) do with it.</p>
+
+<h3 id="deep-learning-for-chatbots"><a href="http://www.wildml.com/2016/07/deep-learning-for-chatbots-2-retrieval-based-model-tensorflow/">Deep Learning for Chatbots</a></h3>
+
+<blockquote>
+  <p>Generative models are an active area of research, but we’re not quite there yet. If you want to build a conversational agent today your best bet is most likely a retrieval-based model.</p>
+</blockquote>
+
+<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for Clarabrige Engage.</p>
+
+<p>Those were our highlights for 2017, let us know if we missed something!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Refactoring to Collections]]></title>
+            <link href="/blog/2017/11/15/refactoring-to-collections"/>
+            <updated>2017-11-15T10:00:00+00:00</updated>
+            <id>/blog/2017/11/15/refactoring-to-collections</id>
+            <content type="html"><![CDATA[<p>How many times have you seen code like this?</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Our office is very close to a <a href="http://simon-says.be/">great coffee bar</a>, and people are going there from time to time to get coffee for everyone in the office. Keeping track of who's going for coffee and who wants which coffee can be daunting, which is why I'm making this app. Let's take a closer look at that piece of code.</p>
+
+<p>We're manually traversing an array of <code>CoffeeRun</code> objects that we got out of the Repository to filter out those who are open for orders. If we find one, we add it to a new array. This way we build a list of <code>CoffeeRuns</code> that are still accepting orders.</p>
+
+<h2 id="to-iterator-or-not%2C-that%27s-the-question">To Iterator or not, that's the question</h2>
+
+<p>Now, there's nothing very wrong with this, but it could be made a whole lot better, I think. Let's say that the Repository contains 1000 <code>CoffeeRun</code>s. We're now forcing the Repository to return an array of 1000 <code>CoffeeRun</code> objects when we call <code>getAll()</code>. That's not great. But let's think about it... The Repository already represents a list of all <code>CoffeeRun</code> objects. Why can't we just iterate over it? Something like this:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository;
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>Having a repository we can iterate over like that would already be a first step. We could implement the <code>Iterator</code> interface within the Repository, and have this functionality immediately. But that would leave the foreach out there, and that would also present a problem for our dependency injection: the class where this <code>displayCoffeeRunsOpenForOrders</code> is a controller, and it has the Repository injected in its constructor, like this:</p>
+
+<pre><code class="php">public function __construct(CoffeeRunsRepository $repository)
+{
+    $this-&gt;coffeeRunsRepository = $repository;
+}
+</code></pre>
+
+<p>If we'd count on the fact that the Repository is now an <code>Iterator</code>, we should either typehint on it, but then we lose our typehint for <code>CoffeeRunsRepository</code>, which we don't want. Or we could make the <code>CoffeeRunsRepository</code> interface extend the <code>Iterator</code> interface, but then we get a really big interface we need to implement for every implementation of the Repository. Both of which are annoying to say the least.</p>
+
+<h2 id="think-solidly-different">Think SOLIDly Different</h2>
+
+<p>Let's try something completely different. In fact, the <code>foreach</code> in that method, is blocking progress for us right now; Let's extract that whole block to a method. This is what was in the controller before the extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    $coffeeRuns = $this-&gt;coffeeRunsRepository-&gt;getAll();
+    $openForOrders = array();
+
+    foreach ($coffeeRuns as $coffeeRun) {
+        if ($coffeeRun-&gt;ordersCanBeMade()) {
+            $openForOrders[] = $coffeeRun;
+        }
+    }
+
+    return $openForOrders;
+}
+</code></pre>
+
+<p>In the Repository we added a new method <code>openForOrders()</code>, and we kept the same implementation as before, which now resides in the implementation of that method:</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    // ...
+
+    /**
+     * @return CoffeeRun[] A list of CoffeeRuns open for orders
+     */
+    public function openForOrders();
+
+    // ...
+}
+</code></pre>
+
+<pre><code class="php">final class CoffeeRunsRepositoryInMemory implements CoffeeRunsRepository
+{
+    // ...
+
+    public function openForOrders()
+    {
+        $coffeeRuns = $this-&gt;getAll();
+        $openForOrders = array();
+
+        foreach ($coffeeRuns as $coffeeRun) {
+            if ($coffeeRun-&gt;ordersCanBeMade()) {
+                $openForOrders[] = $coffeeRun;
+            }
+        }
+
+        return $openForOrders;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>This is what's left in the controller after extraction:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeRunsRepository-&gt;openForOrders();
+}
+</code></pre>
+
+<p>I don't like the <code>Repository</code> word in there, while we're thinking about the Repository as just being a Collection. Let's rename the variable in our controller. Notice how well this reads:</p>
+
+<pre><code class="php">public function displayCoffeeRunsOpenForOrders()
+{
+    return $this-&gt;coffeeruns-&gt;openForOrders();
+}
+</code></pre>
+
+<p>"Return CoffeeRuns that are Open For Orders". I like it. What's even better, is that the filtering of the Collection is now happening in the object that worries about the Collection, namely the Repository. This means that the specific implementations can optimize for their own benifits. E.g. the database implementation of the Repository can use a specific <code>WHERE</code> query so that it doesn't need to filter <code>CoffeeRun</code>s in PHP, and as a result of that it doesn't need to load a whole list of <code>CoffeeRun</code> objects into memory.</p>
+
+<h2 id="bump-your-head-twice">Bump your head twice</h2>
+
+<p>What if we want a second method in our controller that displays all CoffeeRuns that are open for orders, and will happen before noon? The <code>openForOrders()</code> method won't be enough. We could use it, and then use a <code>foreach</code> as in the first example of the blog post, but then we're back to square one. We could also make it a Repository method, and that would be okay, but only if we don't have to do it too many times. Let's look for a different solution.</p>
+
+<p>It looks like we now have two problems:</p>
+
+<ol>
+<li>We want to encapsulate the "looping over a list and picking out specific items"</li>
+<li>We want to combine several of these actions on a list, or at least do them in succession</li>
+</ol>
+
+<p>The problems always come up when we're talking to the Repository. We made two changes to it, that were both half solutions. The Repository has too many responsibilities (Storage and Collection). What would happen if we'd return an object representing a list of CoffeeRun objects from the Repository, and use that to iterate over? The Repository only takes care of the storage, and the Collection object takes care of the Collection stuff.</p>
+
+<p>What we want to do is "filter" CoffeeRuns so that we get CoffeeRuns that are open for orders, and then filter those again so that we get those open for orders that are happening before noon. In pseudo code:</p>
+
+<pre><code class="php">coffeeRuns = repository.getAll
+coffeeRuns
+    .thatAre(openForOrders)
+    .thatAre(happeningBeforeNoon)
+</code></pre>
+
+<p>If we can express <code>openForOrders</code> and <code>happeningBeforeNoon</code> as functions that take a <code>CoffeeRun</code> object and return a boolean (we'll call them predicates), then the <code>thatAre()</code> implementation could be very generic! Let's check it out:</p>
+
+<pre><code class="php">$openForOrders = function (CoffeeRun $coffeeRun)
+{
+    return $coffeeRun-&gt;ordersCanBeMade();
+};
+
+$noon = new DateTime('today noon');
+$happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+{
+    return $coffeeRun-&gt;getDate() &lt; $noon;
+};
+</code></pre>
+
+<p>Now we'll create the <code>CoffeeRuns</code> Collection object, with a <code>thatAre</code> method:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param callable function that takes a CoffeeRun and returns a boolean
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(callable $matchingPredicate);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>Let's create a naïve <code>array</code> based implementation of it:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                $matchingPredicate
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>Right now, we can have our <code>CoffeeRunsRepository</code> return a <code>CoffeeRuns</code> Collection object for the <code>getAll()</code> method instead of <code>CoffeeRun[]</code> (an array of CoffeeRun) objects, and remove the specific methods we created, like <code>openForOrders()</code>.</p>
+
+<pre><code class="php">interface CoffeeRunsRepository
+{
+    /**
+     * @return CoffeeRuns A collection of CoffeeRuns
+     */
+    public function getAll();
+}
+</code></pre>
+
+<p>In the controller, we now get this:</p>
+
+<pre><code class="php">final class CoffeeController
+{
+    private $coffeeRuns;
+    private $openForOrders;
+    private $happeningBeforeNoon;
+
+    public function __construct(CoffeeRunsRepository $repository)
+    {
+        $this-&gt;coffeeRuns = $repository;
+
+        $this-&gt;openForOrders = function (CoffeeRun $coffeeRun)
+        {
+            return $coffeeRun-&gt;ordersCanBeMade();
+        };
+
+        $noon = new DateTime('today noon');
+        $this-&gt;happeningBeforeNoon = function (CoffeeRun $coffeeRun) use ($noon)
+        {
+            return $coffeeRun-&gt;getDate() &lt; $noon;
+        };
+    }
+
+    public function displayCoffeeRunsOpenForOrders()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+
+    public function displayCoffeeRunsOpenForOrdersAndBeforeNoon()
+    {
+        $coffeeRuns =
+            $this-&gt;coffeeRuns-&gt;getAll()
+            -&gt;thatAre($this-&gt;openForOrders)
+            -&gt;thatAre($this-&gt;happeningBeforeNoon);
+
+        return $coffeeRuns-&gt;asArray();
+    }
+}
+</code></pre>
+
+<p>As you can see, the individual methods got very readable. The operations on the Collections are encapsulated. I extracted the <code>$openForOrders</code> and <code>$happeningBeforeNoon</code> predicates to class variables, because I didn't like the duplication in both controller methods, however, I'm not satisfied with their presence in the constructor. We could create a <code>Predicate</code> interface and make the <code>thatAre()</code> method accept <code>Predicate</code> instances. As a result our controller would just do something like <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>. But let's leave it like this for now. I've got some critical questions coming in:</p>
+
+<h2 id="wait-a-minute%21-you-didn%27t-solve-the-memory-problem%21">Wait a minute! You didn't solve the memory problem!</h2>
+
+<p>Exactly. Let's do that right now.</p>
+
+<pre><code class="php">final class CoffeeRunsWithIterator implements CoffeeRuns
+{
+    private $coffeeRuns;
+    private $predicates;
+
+    public function __construct(Iterator $coffeeRuns, array $predicates = array())
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+        $this-&gt;predicates = $predicates;
+    }
+
+    public function thatAre(callable $matchingPredicate)
+    {
+        $predicates = $this-&gt;predicates;
+        $predicates[] = $matchingPredicate;
+
+        return new static(
+            $this-&gt;coffeeRuns,
+            $predicates
+        );
+    }
+
+    public function asArray()
+    {
+        $collectionAsArray = array();
+
+        foreach ($this-&gt;coffeeRuns as $coffeeRun) {
+            foreach ($this-&gt;predicates as $predicate) {
+                if (call_user_func($predicate, $coffeeRun) !== true) {
+                    continue 2;
+                }
+            }
+
+            $collectionAsArray[] = $coffeeRun;
+        }
+
+        return $collectionAsArray;
+    }
+}
+</code></pre>
+
+<p>This is an implementation of the <code>CoffeeRuns</code> Collection interface that takes an <code>Iterator</code>. Whenever the <code>thatAre()</code> method gets called with a predicate, we don't do anything, except for creating a new instance of the Collection class with the same <code>Iterator</code> in it, but with the predicate added to the list of predicates that must be matched for each element in the Collection. It's only at the last step, when we try to extract the contents of the collection, that we run the <code>Iterator</code> and check every value against the given predicates. We still need to run the predicates against the whole collection, but because they are within an <code>Iterator</code>, the <code>Iterator</code> can e.g. get them from the database one by one. That's an implementation detail of the Repository.</p>
+
+<h2 id="what-if-we-want-to-be-able-to-use-mysql-%60where%60-statements-in-our-repositories%3F">What if we want to be able to use MySQL <code>WHERE</code> statements in our Repositories?</h2>
+
+<p>Let's say that we want to create a MySQL implementation of the Repository. We don't really want to write a query that will get the whole list of CoffeeRuns, even though we worked with an <code>Iterator</code> before (and thus preserving memory issues), so just passing closures to the <code>thatAre()</code> method will not help us a whole lot to write efficient queries. To improve on that, we could start passing our predicates as objects instead of closures, like this:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>A predicate could look something like this:</p>
+
+<pre><code class="php">interface Predicate
+{
+    /**
+     * @param CoffeeRun the CoffeeRun we want to check
+     *
+     * @return bool if the Predicate is satisfied by given CoffeeRun
+     */
+    public function isSatisfiedBy(CoffeeRun $coffeeRun);
+}
+</code></pre>
+
+<p>And to get the same functionality as before we can implement it like this:</p>
+
+<pre><code class="php">final class OpenForOrders implements Predicate
+{
+    public function isSatisfiedBy(CoffeeRun $coffeeRun)
+    {
+        return $coffeeRun-&gt;ordersCanBeMade();
+    }
+}
+</code></pre>
+
+<p>When we have this in place, implementing a repository that can translate these predicates to the correct <code>WHERE</code> statements is pretty much trivial: without doing an actual query, the Repository returns a <code>CoffeeRuns</code> collection object that can be filtered using <code>Predicate</code>s and when that is done, the query can be built by translating the Predicates to the appropriate <code>WHERE</code> statements. Now the <code>Predicate</code> object can still be used to check if a given <code>CoffeeRun</code> satisfies the rule encapsulated within it, but within the Repository, a more efficient way is used against the whole database table full of CoffeeRuns. Eric Evans calls this concept <code>Specification</code>, and you can read all about it in his great book <a href="http://dddcommunity.org/book/evans_2003/">Domain Driven Design</a>.</p>
+
+<h2 id="doing-something-with-all-objects-in-our-collection">Doing something with all objects in our collection</h2>
+
+<p>Let's say we want people to <code>stopOrdering()</code> for all <code>CoffeeRun</code>s that are happening before noon.</p>
+
+<pre><code class="php">$stopOrdering = function (CoffeeRun $coffeeRun)
+{
+    $coffeeRun-&gt;stopOrdering();
+
+    return $coffeeRun;
+};
+
+$coffeeRuns = $repository-&gt;getAll();
+$stoppedOrderingForTheseRuns = $coffeeRuns
+    -&gt;thatAre($happeningBeforeNoon)
+    -&gt;updateEach($stopOrdering);
+</code></pre>
+
+<p>Let's add it to the Collection interface:</p>
+
+<pre><code class="php">interface CoffeeRuns
+{
+    /**
+     * @param Predicate that CoffeeRuns need to satisfy
+     *
+     * @return CoffeeRuns that match the predicate
+     */
+    public function thatAre(Predicate $matching);
+
+    /**
+     * @param callable function that takes a CoffeeRun and returns an updated one
+     *
+     * @return CoffeeRuns that got updated
+     */
+    public function updateEach(callable $update);
+
+    /**
+     * @return CoffeeRun[] An array of CoffeeRuns
+     */
+    public function asArray();
+}
+</code></pre>
+
+<p>The implementation for the <code>CoffeeRunsArray</code> could be something like this:</p>
+
+<pre><code class="php">final class CoffeeRunsArray implements CoffeeRuns
+{
+    private $coffeeRuns;
+
+    public function __construct(array $coffeeRuns)
+    {
+        $this-&gt;coffeeRuns = $coffeeRuns;
+    }
+
+    public function thatAre(Predicate $predicate)
+    {
+        return new static(
+            array_filter(
+                $this-&gt;coffeeRuns,
+                function (CoffeeRun $run) use ($predicate) {
+                    return $predicate-&gt;isSatisfiedBy($run);
+                }
+            )
+        );
+    }
+
+    public function updateEach(callable $update)
+    {
+        return new static(
+            array_map(
+                $update,
+                $this-&gt;coffeeRuns
+            )
+        );
+    }
+
+    public function asArray()
+    {
+        $this-&gt;coffeeRuns;
+    }
+}
+</code></pre>
+
+<p>As you can see, the implementation is trivial in this case, but again it provides us with a powerful abstraction. The code that operates on the Collection doesn't have to know anything about how the Collection is implemented, it just knows about the methods we provided for interacting with it. For those that are into functional programming, we just implemented <code>filter</code> and <code>map</code> here.</p>
+
+<p>I hope you see the value in this. For pieces of code where a lot of actions need to happen on Collections of objects, this might be the way to go. Since the code doesn't have to know anything about the implementation of the Collection, you can change it at any time. For instance, when you start out, you can just use a simple <code>Array</code> implementation, and swap it out for an <code>Iterator</code> later on when you notice memory consumption going up. It can also make things pretty readable, as demonstrated above with the <code>$coffeeRuns-&gt;thatAre(new OpenForOrders());</code>.</p>
+
+<p>You can also choose to go A LOT further, or less far into this, as you desire. Good luck on your explorations!</p>
+
+<p>PS: I gave a talk on this subject at the <a href="http://php.gent/">PHP.GENT meetup</a>, you can find the slides <a href="https://speakerdeck.com/turanct/the-language-of-collections">here</a>.</p>
+]]></content>
+        </entry>
+    </feed>

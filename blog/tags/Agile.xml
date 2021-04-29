@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Agile.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Our Favorite Content Of 2018]]></title>
+            <link href="/blog/2019/01/04/our-favorite-content-of-2018"/>
+            <updated>2019-01-04T13:00:00+00:00</updated>
+            <id>/blog/2019/01/04/our-favorite-content-of-2018</id>
+            <content type="html"><![CDATA[<p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. Like <a href="/blog/2017/12/22/our-favorite-content-of-2017">last year</a>, we asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
+
+<h1 id="people">People</h1>
+
+<h3 id="the-art-of-job-interviewing"><a href="https://www.artofwork.co/job-interviewing">The Art of Job Interviewing</a></h3>
+
+<p>Toon thinks this is the most complete and thought-through blogpost about interviewing people that you can find, and there are a lot of good ideas to try out in your company!</p>
+
+<h3 id="when-no-gender-fits"><a href="https://uxplanet.org/when-no-gender-fits-33301c3cab53">When No Gender Fits</a></h3>
+
+<p>Jurriaan has been working towards gender neutral design of our application, which is why this blogpost comes up. We often don't even see the way we're biased, and this blogpost shows us where to look.</p>
+
+<h3 id="our-first-year-of-growth"><a href="https://medium.com/women-code-be/our-first-year-of-growth-6384eba5a3e2">Our First Year Of Growth</a></h3>
+
+<p>Ursula has told us a few times about women.code(be), and this blogpost is a nice read about what they did in 2018!</p>
+
+<h1 id="agile-%26-pair-programming">Agile &amp; Pair Programming</h1>
+
+<h3 id="alan-cooper-thread-on-agile-%26-pair-programming"><a href="https://twitter.com/MrAlanCooper/status/1060553914209071106">Alan Cooper thread on Agile &amp; Pair Programming</a></h3>
+
+<p>We were really into pair programming the last months of the year, and found this thread really inspiring!</p>
+
+<h3 id="how-to-keep-pair-programming-digestible"><a href="https://madewithlove.be/how-to-keep-pair-programming-digestible/">How To Keep Pair Programming Digestible</a></h3>
+
+<p>This is a fine blogpost with some tips that helped us to keep our sanity this year, during the <a href="/blog/2018/12/07/one-month-of-pairing">pair programming by default</a> experiment.</p>
+
+<h1 id="software-design">Software Design</h1>
+
+<h3 id="extremely-defensive-php"><a href="https://www.youtube.com/watch?v=Gl9td0zGLhw">Extremely Defensive PHP</a></h3>
+
+<p>Jasper saw this talk by Marco Pivetta, and although Marco has been giving this talk for some years now, on multiple conferences, it's still a great talk to see!</p>
+
+<h3 id="game-devs-vs-c%2B%2B"><a href="https://twitter.com/aras_p/status/1076947443823136768">Game Devs vs C++</a></h3>
+
+<p>Jeffry was reading a lot of <a href="https://twitter.com/aras_p/status/1076947443823136768">twitter<sup>1</sup></a> <a href="http://aras-p.info/blog/2018/12/28/Modern-C-Lamentations/">threads<sup>2</sup></a> <a href="https://twitter.com/SebAaltonen/status/1080069784644059139">about<sup>3</sup></a> <a href="https://twitter.com/lucasmeijer/status/1080782217092030464">this<sup>4</sup></a> over Christmas. Check them out!</p>
+
+<h3 id="overreacted"><a href="https://overreacted.io/">Overreacted</a></h3>
+
+<p>Anthony recommends this blog about mostly React stuff! Great content, good examples... What else do you want?</p>
+
+<h1 id="frameworks">Frameworks</h1>
+
+<h3 id="stop-learning-frameworks"><a href="https://sizovs.net/2018/12/17/stop-learning-frameworks/">Stop Learning Frameworks</a></h3>
+
+<p>Jurriaan liked this blog post. We're developers, software engineers, programmers. We're not only specialized in a framework! What we study is the way of solving problems, and frameworks are merely tools for our craft. This is valuable advice that has been given to us over the years, and people new to development tend to forget.</p>
+
+<h3 id="the-end-of-silex"><a href="https://symfony.com/blog/the-end-of-silex">The End Of Silex</a></h3>
+
+<p>We're sad to see our favorite "framework as a library" go, but it's safe to say that it served its purpose incredibly well. Thanks Silex!</p>
+
+<h3 id="tailwind-css"><a href="https://tailwindcss.com/">Tailwind CSS</a></h3>
+
+<p>Tailwind CSS has been hot news in the frontend community, which is why Thomas wanted to share this link. A new CSS Framework? Again? Yes, and this time, the design principles used are a little different than before. Check it out!</p>
+
+<h1 id="social-media">Social Media</h1>
+
+<h3 id="bbc-thread-on-social-media-mining-to-solve-war-crimes"><a href="https://twitter.com/BBCAfrica/status/1044186344153583616">BBC thread on Social Media Mining To Solve War Crimes</a></h3>
+
+<p>The way BBC reporters used social media and readily available tools like Google Maps to investigate this War Crime is really impressive. The power of social media is confirmed yet again.</p>
+
+<h3 id="thread-about-repeal-the-8th"><a href="https://threadreaderapp.com/thread/1000701354204069888.html">Thread about Repeal The 8th</a></h3>
+
+<p>Ursula thinks this is a fascinating read about how social media was used for the "repeal the 8th campaign" in Ireland. It compares to how Trump used social media too... Relevant to the times!</p>
+
+<h3 id="the-most-sophisticated-piece-of-code-ever-written"><a href="https://www.quora.com/What-is-the-most-sophisticated-piece-of-software-code-ever-written/answer/John-Byrd-2">The Most Sophisticated Piece Of Code Ever Written</a></h3>
+
+<p>Plugged by Toon, this is a lengthy explanation of why Stuxnet might be the most advanced piece of code ever written. Even if you don't agree, it's a very nice read!</p>
+
+<p>Those were some of our highlights for 2018, have a great 2019!</p>
+]]></content>
+        </entry>
+    </feed>

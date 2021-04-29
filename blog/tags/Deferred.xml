@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Deferred.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[When too many API calls are breaking your app]]></title>
+            <link href="/blog/2017/11/02/javascript-deferred"/>
+            <updated>2017-11-02T10:00:00+00:00</updated>
+            <id>/blog/2017/11/02/javascript-deferred</id>
+            <content type="html"><![CDATA[<p>A few weeks ago, I was confronted with a strange issue regarding the "followers" component we have in our inbox.
+It's a cool feature that gives you the possibility to check which connected Twitter account is following or followed by another Twitter account. Most accounts or users don't have that many connected Twitter profiles but of course there are always some exceptions. One of our customers had more than 100 connected profiles. The process to check the relationship between the profiles is rather easy. We do a call to the back-end for every profile. In the back-end we do an API call to Twitter to fetch the relationship details. So you can imagine it takes some time if we have to do this for many profiles. In the front-end the component became very slow and it looked like the component crashed.</p>
+
+<p><img src="/images/2017-11-02-javascript-deferred/followers.png" alt="Clarabrige Engage followers dropdown in inbox" /></p>
+
+<p>After finding out what the problem is, the next step is of course solving it. I started with checking the back-end for some improvements. Instead of calling Twitter's API for every single profile, I checked if we could ask for multiple relations at once. Sadly this wasn't the case. So this trail was a dead end.</p>
+
+<p>If we can't change the API, we could try to avoid using the API as much as possible. By caching the result for some time, we could avoid requesting the same data multiple times as this also improves speed. This wasn't a good option either because the received data was already cached by us in the back-end.</p>
+
+<p>The only thing I could still think of was trying to reduce the calls to the Twitter API or to our own API. Changing the back-end would be a lot of work because the endpoint is used in a lot of places in the front-end. So the only option I wanted to consider was making a change in the one place where we had the problem. In the inbox we loop over the profiles and do a seperate call for every profile. For every call to our API, we wait until we have the response before doing a new call. So instead of doing synchronous calls, we should consider doing the calls asynchronously.</p>
+
+<p>Not knowing if this was possible in JavaScript, I started searching and fell upon the <code>Promise</code> object, which does exactly what we need. However, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">the documentation for Promise on MDN</a> quickly revealed that it's not supported by some browsers we still have to support. After some more digging around the internet, we stumbled upon the <code>Deferred</code> object in jQuery which does almost the same, and works in most browsers. From its documentation:</p>
+
+<blockquote>
+  <p>It can register multiple callbacks into callback queues, invoke callback queues, and relay the success or failure state of any synchronous or asynchronous function</p>
+</blockquote>
+
+<p>So what we actually have to do is start all the calls to the back-end at once. Once we did that we create a new <code>Deferred</code> object. When all the <code>combinedCalls</code> are done, we can start updating our component. It only has to do one big update and it doesn't take that much time because the calls are all fired at the same time instead of one by one.</p>
+
+<pre><code class="js">var profileIds = this.profileIds;
+
+var calls = _.map(services, function (service) {
+    var url = '/twitter/relation?accounts='+ service.id +'&amp;users=' + profileIds;
+
+    return $.get(url);
+});
+
+var combinedResult = $.Deferred();
+
+var combinedCalls = $.when.apply($, calls);
+
+combinedCalls.done(function() {
+
+    var resultsOfDefferedAjaxCalls = _.toArray(arguments).slice(0, calls.length);
+
+    var relations = _.map(resultsOfDefferedAjaxCalls, function(ajaxResult) {
+        return ajaxResult.result.data;
+    });
+
+    combinedResult.resolve(relations);
+});
+
+combinedCalls.fail(function() {
+    // Combine args so that we can pass reason for
+    // failure to reject()
+    combinedResult.reject();
+});
+
+return combinedResult.promise();
+</code></pre>
+
+<p>So with some small changes we improved a lot on the loading time of the dropdown. The next problem was that some calls could take some time and if there is one slow call, all the other calls have to wait till the slowest call is finished. So I had to find another solution for this new problem. So instead of just calling the endpoint I added a callback function to the call.</p>
+
+<pre><code class="js">var calls = _.map(services, function (service) {
+    var url = '/twitter/relation?accounts='+ service.id +'&amp;users=' + profileIds;
+
+    var onGoingCall = $.get(url);
+
+    onGoingCall.done(callback);
+
+    return onGoingCall;
+});
+</code></pre>
+
+<p>The moment the call is finished, the callback is triggered and the component will update. You don't have to worry about slow calls because the component will update as soon as possible and the customer can see that data is loading and updating.</p>
+
+<p>That's how we fixed this for now, hopefully we can move to the more modern approach of using <code>Promise</code> in the near future!</p>
+]]></content>
+        </entry>
+    </feed>

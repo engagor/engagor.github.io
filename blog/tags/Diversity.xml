@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/Diversity.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Clarabridge Your Future]]></title>
+            <link href="/blog/2021/04/29/clarabridge-your-future"/>
+            <updated>2021-04-29T14:30:12+00:00</updated>
+            <id>/blog/2021/04/29/clarabridge-your-future</id>
+            <content type="html"><![CDATA[<p>At Clarabridge, we are committed to cultivating a diverse community. For that reason, we wholeheartedly support the mission of <a href="https://hackyourfuture.be/">HackYourFuture Belgium</a>, the coding school for refugees and newcomers in Belgium.</p>
+
+<p>In April the Clarabridge frontend development team supported students from HackYourFuture in their quest to learn <a href="https://reactjs.org/">React</a>. A band of volunteer Clarabridge frontend developers <a href="https://www.linkedin.com/in/thomasvankerckvoorde/">Thomas</a>, <a href="https://www.linkedin.com/in/c%C3%A9dric-d-hooge-243729134/">Cédric</a>, <a href="https://www.linkedin.com/in/ben-serlippens/">Ben</a>, <a href="https://www.linkedin.com/in/jens-de-vlieger-32352b1b9/">Jens</a> and <a href="https://www.linkedin.com/in/albertcasadessus/">Albert</a> helped out the students with software bugs, questions, and advice throughout the week.</p>
+
+<h2 id="%F0%9F%91%A8%F0%9F%8F%BD%E2%80%8D%F0%9F%8E%93-clarabridge-learned">👨🏽‍🎓 Clarabridge learned</h2>
+
+<blockquote>
+  <p>"When one teaches, two learn." - Robert Heinlein</p>
+</blockquote>
+
+<p>At the start, we mainly expected questions or struggles with the higher-level concepts. Although we sometimes struggled with higher-level concepts, students hit a wall more often on practical problems. They had an old software version installed, a rogue plugin in the editor introducing issues, or trouble understanding a vague error message. 
+We will take this insight into account throughout what we develop as a team and don't assume a thing is "easy". We don't want to make something for experts but for everyone.</p>
+
+<p>Controlled failure is a good thing. Failure and problems are a way for people to learn and understand how to improve things. Don't try to achieve perfection but go for progression over time. A practical example here is not to force a concept like Redux on students without showing them the difficulty of state management in React first. Failing to manage the lifecycle of an app correctly is a great learning opportunity.</p>
+
+<p>Mentoring is a skill a lot of developers like to learn, but how do you get started? A project like this, with short-term one-on-one coaching, is excellent. It is a safe space with a limited scope. How do I motivate someone? How do I explain a concept in layman's terms? These skills need practice, and this was an excellent opportunity for us to practice.</p>
+
+<h2 id="%F0%9F%92%B0-students-benefited">💰 Students benefited</h2>
+
+<p>By getting to know people within the industry, students can grow their network. After this short term project is over, the connection remains, and students know who to reach out to for career advice or questions. 
+Many students took the opportunity to ask questions like, "What should I learn after React?", "What are essential skills to have if I want to do what you do?".</p>
+
+<p>Most of the Clarabridge developers did pair-programming sessions together with the students. Most of them expressed that it was very insightful seeing how experienced developers tackle a problem, seeing that we use StackOverflow for many things. It puts things into perspective and shows them that what they are learning is valuable.</p>
+
+<h2 id="%F0%9F%A4%9D-conclusion">🤝 Conclusion</h2>
+
+<p>The Clarabridge development considers this experiment a great success, and we are looking forward to collaborating with HackYourFuture Belgium again to do more pro bono mentoring for these talented newcomers who are finding their way into the tech world. To the students, may we meet again!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Teaching Kids to Build &amp; Program a Drawing Robot]]></title>
+            <link href="/blog/2019/10/04/teaching-kids-to-build-and-program-a-drawing-robot"/>
+            <updated>2019-10-04T11:02:01+00:00</updated>
+            <id>/blog/2019/10/04/teaching-kids-to-build-and-program-a-drawing-robot</id>
+            <content type="html"><![CDATA[<p>Starting tomorrow until October 20th, it's <a href="https://codeweek.eu/">EU Code Week 2019</a>; that time of year to get young adults excited about programming.<br />
+Just as last year, several members of our team are taking part in one of the initiatives for that European Code Week; we'll be giving a workshop to 11 year olds by building a little robot with them next Thursday.<br />
+This blog post puts a spotlight on these initiatives and explains how you can help.</p>
+
+<h2 id="%F0%9F%87%AA%F0%9F%87%BA-european-code-week">🇪🇺 European Code Week</h2>
+
+<p>During 15 days <a href="https://codeweek.eu/events">hundreds of activities</a> happen all over Europe that want to celebrate creativity, problem solving and collaboration through programming and other tech activities.</p>
+
+<p>You probably need little convincing that digital literacy is super important in today's world. Getting young adults interested in programming is one way of driving that.</p>
+
+<blockquote>
+  <p>"It's about Pia, who felt like she had to study law, even though she always enjoyed maths and playing with computers. It's about Alice, who dreams about making robots because her parents don't allow her to have a cat." - <a href="https://codeweek.eu/about">codeweek.eu/about</a></p>
+</blockquote>
+
+<p>The initiative started in 2013 and had grown to 44000 activities reaching 2.7 million people all over Europe by last year, all run by volunteers. The EU Code Week includes a.o. well-known initiatives like CoderDojo.</p>
+
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/code-week-participation.png" alt="Code Week Participants" /></p>
+
+<h2 id="%F0%9F%A4%96-wegostem">🤖 WeGoSTEM</h2>
+
+<p>One of the other organisations taking part in the EU Code Weeks since a few years, has its roots in the hometown of Clarabridge Engage: WeGoSTEM.<br />
+<em>(STEM is short for Science, Technology, Engineering &amp; Mathematics, an acronym often used in education to refer to these fields, as part of a curriculum that is interdisciplinary &amp; using an applied approach.)</em></p>
+
+<p>WeGoSTEM's mission is to organise a fun workshop in as many schools as possible (mainly in Brussels &amp; Flanders) to give as many 11 to 12 year olds as possible a first introduction to programming. Here's the robot we're building:</p>
+
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/drawing.png" alt="The Drawing Bot In Action" /></p>
+
+<p>WeGoSTEM is a project of the NGO's <a href="https://dwengo.org/">Dwengo</a> &amp; <a href="http://www.shegoesict.be/">SheGoesICT</a>. Dwengo is organising teaching activities for people who want to experiment with micro-controllers, all around the world, and more specifically in socially-disadvantaged countries. SheGoesICT has as clear goal to advocate gender diversity in IT companies in Belgium.</p>
+
+<p>The NGO's behind WeGoSTEM have diversity and inclusion in their DNA, so it's no wonder that also in the workshops they give, they focus first and foremost on reaching as many girls as boys, and focus on giving workshops in schools with many children from disadvantaged groups and rural schools. 
+<em>(In 2018, 29% of the children who participated in WeGoSTEM had a special socio-economic status (SES), while the average is only 20%.)</em></p>
+
+<p>I've joined a few workshops that teached programming concepts to kids on Wednesday afternoons or during weekends, but there's no denying these are too often an affair for boys, and for kids from economically advantaged parents. For me personally, WeGoSTEM’s focus on inclusion, is a very big motivation to volunteer for this project.</p>
+
+<p>By the end of the workshop the main goal is to have given every single kid a fun experience. (Not about building the most complex robot, or have the most advanced programming sequence ...) The only goal is to play around with a micro-controller and use the basics of a visual programming language.</p>
+
+<h2 id="%E2%9C%8B-how-it-is-to-volunteer">✋ How it is to volunteer</h2>
+
+<p>So if you sign-up to volunteer, what actually happens? First, you indicate one or more dates you're available to give the workshop in a school, and area of preference. (This year, Jared and me are heading to a school in Bruges.)<br />
+There's also several training sessions around Belgium where the core team of WeGoSTEM explain the project, structure of a typical workshop, you get the time to build &amp; play with the robot yourself, and meet the other volunteers.</p>
+
+<p>When you visit the schools, you're a team of 3 coaches (of which almost always 1 has given the workshop previously).</p>
+
+<ul>
+<li>🗣 The workshop starts with a little chat with the class to see what they know and like and find exciting about robots. <em>(Ideal place to test our dad-jokes about mowing robots ☺️.)</em></li>
+<li>🎨 In a next exercise it's about trying to show kids what it is to program: one volunteer kid instructs the rest of the class to make a certain drawing. At this point it often shows the importance of clear instructions.</li>
+<li>🔩 And then of course: building the robot (with Knex-like blocks) and a Dwenguino-board (a pre-assembled Arduino with several sensors).</li>
+<li>💻 Once the whole robot is build you help the kids to program the robot with Blockly. Blockly is Google technology that you can use &amp; embed in other projects. (You can play with an online simulator of the Dwenguino/Blockly software over here: <a href="https://dwengo.org/dwenguinoblockly/">dwengo.org/dwenguinoblockly</a>.)</li>
+<li>😄 By the end of the workshop the goal is to send every kid home with a smile and a drawing.</li>
+</ul>
+
+<p>Oh, and in the afternoon, you do it all over again, for another class.</p>
+
+<p>The whole experience - standing in front of a class room and having kids so eager to experiment with programming - is absolutely wonderful. And also quite exhausting (no need to convince me of the importance of good teachers, after only a single day in their shoes 😅.)</p>
+
+<p>Maybe you helped inspire a kid to choose an education path focusing on STEM? Maybe you gave the teacher of that class the empowerment &amp; tools to incorporate programming in some of their lessons? Maybe you helped show policy makers the importance of digital literacy and drive change?</p>
+
+<p><img src="/images/2019-10-04-teaching-kids-to-build-and-program-a-drawing-robot/class.png" alt="A class with all their drawings ..." /></p>
+
+<p>WeGoSTEM is 100% supported by volunteers in all participating countries. Workshops for the code week start next week, but there's definitely some free spots for coaches still. If you want to participate, check out the dedicated websites: <a href="https://wegostem.be/">WeGoSTEM Belgium</a> and <a href="https://wegostem.gr/">WeGoSTEM Greece</a>.<br />
+After the Code Week, all volunteers can also always use the workshop materials needed to give an extra sessions in a school where you have a friend, kid or nephew or niece, so if you want to help us host a workshop, do let us know ...</p>
+
+<p>Although the costs to run this project are very low (probably among the lowest euro-per-kid for STEM projects in Belgium), they can always use some extra help. WeGoSTEM is working with several partners that donate money, laptops, or help source volunteers amongst their employees.</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Our Favorite Content Of 2018]]></title>
+            <link href="/blog/2019/01/04/our-favorite-content-of-2018"/>
+            <updated>2019-01-04T13:00:00+00:00</updated>
+            <id>/blog/2019/01/04/our-favorite-content-of-2018</id>
+            <content type="html"><![CDATA[<p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. Like <a href="/blog/2017/12/22/our-favorite-content-of-2017">last year</a>, we asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
+
+<h1 id="people">People</h1>
+
+<h3 id="the-art-of-job-interviewing"><a href="https://www.artofwork.co/job-interviewing">The Art of Job Interviewing</a></h3>
+
+<p>Toon thinks this is the most complete and thought-through blogpost about interviewing people that you can find, and there are a lot of good ideas to try out in your company!</p>
+
+<h3 id="when-no-gender-fits"><a href="https://uxplanet.org/when-no-gender-fits-33301c3cab53">When No Gender Fits</a></h3>
+
+<p>Jurriaan has been working towards gender neutral design of our application, which is why this blogpost comes up. We often don't even see the way we're biased, and this blogpost shows us where to look.</p>
+
+<h3 id="our-first-year-of-growth"><a href="https://medium.com/women-code-be/our-first-year-of-growth-6384eba5a3e2">Our First Year Of Growth</a></h3>
+
+<p>Ursula has told us a few times about women.code(be), and this blogpost is a nice read about what they did in 2018!</p>
+
+<h1 id="agile-%26-pair-programming">Agile &amp; Pair Programming</h1>
+
+<h3 id="alan-cooper-thread-on-agile-%26-pair-programming"><a href="https://twitter.com/MrAlanCooper/status/1060553914209071106">Alan Cooper thread on Agile &amp; Pair Programming</a></h3>
+
+<p>We were really into pair programming the last months of the year, and found this thread really inspiring!</p>
+
+<h3 id="how-to-keep-pair-programming-digestible"><a href="https://madewithlove.be/how-to-keep-pair-programming-digestible/">How To Keep Pair Programming Digestible</a></h3>
+
+<p>This is a fine blogpost with some tips that helped us to keep our sanity this year, during the <a href="/blog/2018/12/07/one-month-of-pairing">pair programming by default</a> experiment.</p>
+
+<h1 id="software-design">Software Design</h1>
+
+<h3 id="extremely-defensive-php"><a href="https://www.youtube.com/watch?v=Gl9td0zGLhw">Extremely Defensive PHP</a></h3>
+
+<p>Jasper saw this talk by Marco Pivetta, and although Marco has been giving this talk for some years now, on multiple conferences, it's still a great talk to see!</p>
+
+<h3 id="game-devs-vs-c%2B%2B"><a href="https://twitter.com/aras_p/status/1076947443823136768">Game Devs vs C++</a></h3>
+
+<p>Jeffry was reading a lot of <a href="https://twitter.com/aras_p/status/1076947443823136768">twitter<sup>1</sup></a> <a href="http://aras-p.info/blog/2018/12/28/Modern-C-Lamentations/">threads<sup>2</sup></a> <a href="https://twitter.com/SebAaltonen/status/1080069784644059139">about<sup>3</sup></a> <a href="https://twitter.com/lucasmeijer/status/1080782217092030464">this<sup>4</sup></a> over Christmas. Check them out!</p>
+
+<h3 id="overreacted"><a href="https://overreacted.io/">Overreacted</a></h3>
+
+<p>Anthony recommends this blog about mostly React stuff! Great content, good examples... What else do you want?</p>
+
+<h1 id="frameworks">Frameworks</h1>
+
+<h3 id="stop-learning-frameworks"><a href="https://sizovs.net/2018/12/17/stop-learning-frameworks/">Stop Learning Frameworks</a></h3>
+
+<p>Jurriaan liked this blog post. We're developers, software engineers, programmers. We're not only specialized in a framework! What we study is the way of solving problems, and frameworks are merely tools for our craft. This is valuable advice that has been given to us over the years, and people new to development tend to forget.</p>
+
+<h3 id="the-end-of-silex"><a href="https://symfony.com/blog/the-end-of-silex">The End Of Silex</a></h3>
+
+<p>We're sad to see our favorite "framework as a library" go, but it's safe to say that it served its purpose incredibly well. Thanks Silex!</p>
+
+<h3 id="tailwind-css"><a href="https://tailwindcss.com/">Tailwind CSS</a></h3>
+
+<p>Tailwind CSS has been hot news in the frontend community, which is why Thomas wanted to share this link. A new CSS Framework? Again? Yes, and this time, the design principles used are a little different than before. Check it out!</p>
+
+<h1 id="social-media">Social Media</h1>
+
+<h3 id="bbc-thread-on-social-media-mining-to-solve-war-crimes"><a href="https://twitter.com/BBCAfrica/status/1044186344153583616">BBC thread on Social Media Mining To Solve War Crimes</a></h3>
+
+<p>The way BBC reporters used social media and readily available tools like Google Maps to investigate this War Crime is really impressive. The power of social media is confirmed yet again.</p>
+
+<h3 id="thread-about-repeal-the-8th"><a href="https://threadreaderapp.com/thread/1000701354204069888.html">Thread about Repeal The 8th</a></h3>
+
+<p>Ursula thinks this is a fascinating read about how social media was used for the "repeal the 8th campaign" in Ireland. It compares to how Trump used social media too... Relevant to the times!</p>
+
+<h3 id="the-most-sophisticated-piece-of-code-ever-written"><a href="https://www.quora.com/What-is-the-most-sophisticated-piece-of-software-code-ever-written/answer/John-Byrd-2">The Most Sophisticated Piece Of Code Ever Written</a></h3>
+
+<p>Plugged by Toon, this is a lengthy explanation of why Stuxnet might be the most advanced piece of code ever written. Even if you don't agree, it's a very nice read!</p>
+
+<p>Those were some of our highlights for 2018, have a great 2019!</p>
+]]></content>
+        </entry>
+            <entry>
+            <title type="html"><![CDATA[Our Favorite Content Of 2017]]></title>
+            <link href="/blog/2017/12/22/our-favorite-content-of-2017"/>
+            <updated>2017-12-22T14:30:00+00:00</updated>
+            <id>/blog/2017/12/22/our-favorite-content-of-2017</id>
+            <content type="html"><![CDATA[<p>As a team, we consume A LOT of blog posts, YouTube videos, podcasts, and tweets about software development and related topics each year. We asked everyone in the team to share their favorite stuff that they found online, so that you can read it too. Here we go!</p>
+
+<h1 id="people-%26-community">People &amp; Community</h1>
+
+<p><img src="https://media.giphy.com/media/pTY9EtkiakcU/giphy.gif" alt="The Blind" /></p>
+
+<h3 id="in-the-kingdom-of-the-blind"><a href="https://bridgetkromhout.com/blog/in-the-kingdom-of-the-blind/">In The Kingdom Of The Blind</a></h3>
+
+<blockquote>
+  <p>As you can imagine, there are plenty of reasons that under-represented people in tech aren't going to jump the second your event's CFP opens. But submissions will pour in nonetheless... from the folks whose (devrel/marketing/field engineer) vendor job includes public speaking (and on-the-job time to fine-tune their abstracts). And spoiler alert, many of them will fall into the majority cis het white male demographic.</p>
+</blockquote>
+
+<p>Ursula recommends this for the great ideas on how to improve diversity at conferences, and an excellent candid overview of the reasons why underrepresented minorities do not speak at or attend tech conferences as often.</p>
+
+<h3 id="we-fired-our-top-talent.-best-decision-we-ever-made."><a href="https://medium.freecodecamp.org/we-fired-our-top-talent-best-decision-we-ever-made-4c0a99728fde">We fired our top talent. Best decision we ever made.</a></h3>
+
+<blockquote>
+  <p>Your team's strength is not a function of the talent of individual members. It's a function of their collaboration, tenacity, and mutual respect.</p>
+</blockquote>
+
+<p>Hans likes this because when there's a smart guy around, you'll find it tempting to just go ask him instead of trying to do the research yourself and learn something new. He doesn't like developers who think that they know everything. They don't. In fact, you'll never know everything. Sharing knowledge and working together as a team is something we should focus on instead. Each person has their own strengths.</p>
+
+<h3 id="the-myth-of-the-%22cool-tech-girl%22"><a href="https://code.likeagirl.io/the-myth-of-the-cool-tech-girl-7868fa63769b">The myth of the "cool tech girl"</a></h3>
+
+<blockquote>
+  <p>Don't reward good behaviour with scotch, don't tap kegs at 12pm, and don't host video game or ping pong tournaments. Don't call your employees "rockstars". Shine a harsh light on some of your internal slack channels. If your company doesn't perpetuate the kind of culture that makes women feel like they need to be 'one of the boys', they won't need the coping mechanism of the "cool tech girl".</p>
+</blockquote>
+
+<p>Ursula has seen this type of behaviour from women in tech in many countries. "I would almost go as far as to say that if you don't fit into the 'cool tech girl' box, it's difficult to survive. As a woman in tech I think you have a responsibility to speak up for diversity in the industry. It's really hard, and it's great to hear viewpoints that identify that."</p>
+
+<h1 id="engineering">Engineering</h1>
+
+<p><img src="https://pbs.twimg.com/media/C3G2KYAWYAEj9km.jpg" alt="Stickies on the wall kind of engineering" /></p>
+
+<h3 id="transactions-redefined"><a href="https://www.youtube.com/watch?v=NqKNqIsB8_k">Transactions Redefined</a></h3>
+
+<blockquote>
+  <p>Event Storming is my pizza, you can add your toppings, as long as it's not database tables or pineapple</p>
+</blockquote>
+
+<p>Toon recommends this because Alberto Brandolini is a great speaker, and his vision on Domain Driven Design and software development in general is really clear and deep. He goes a long way to understand the business, and the problems associated with the business. He goes out of his way to find out how he can solve them.</p>
+
+<h3 id="modern-software-over-engineering-mistakes"><a href="https://medium.com/@rdsubhas/10-modern-software-engineering-mistakes-bc67fbef4fc8">Modern Software Over-Engineering Mistakes</a></h3>
+
+<blockquote>
+  <p>Duplication is better than the wrong abstraction</p>
+</blockquote>
+
+<p>Jurriaan likes this because too much of technical literature is about how you should start doing things, and how everything you’ve done in the past is probably wrong. This article captures the essence of trying to architect real-life development projects.</p>
+
+<h3 id="kubernetes-at-github"><a href="https://githubengineering.com/kubernetes-at-github/">Kubernetes at Github</a></h3>
+
+<blockquote>
+  <p>With a self-service application provisioning workflow in place, SRE can devote more of our time to delivering infrastructure products to the rest of the engineering organisation in support of our best practices, building toward a faster and more resilient GitHub experience for everyone.</p>
+</blockquote>
+
+<p>Jeffry liked this because everybody and their dog are rethinking how to do platform now that the technology to do so has matured. This write-up from Github offers a great look into the decision making and preparation that goes into gradually building up confidence. He gives the author additional points for sprinkling snippets of inspiration throughout the post: e.g. chatops-rpc to make our hubot do more than offer drunk commentary, Kelsey Hightower's "Kubernetes the hard way" which he has set his mind to working through over the holidays, flipper and mission control bar and simulating kernel panics with sysrq-trigger.</p>
+
+<h1 id="think-differently">Think Differently</h1>
+
+<p><img src="https://media.giphy.com/media/ximCDHoBlx4UU/giphy.gif" alt="Excel on mobile, epic experience" /></p>
+
+<h3 id="exploring-time"><a href="https://www.youtube.com/watch?v=Zm95cYAtAa8">Exploring Time</a></h3>
+
+<blockquote>
+  <p>It’s impossible to know if this talk started on time</p>
+</blockquote>
+
+<p>Toon recommends this because Eric Evans uses his own Domain Driven Design to explore better ways to think about time. Very inspiring. He shows how "generic" subdomains of software development are not generally "solved problems", and how you can make a difference there, as a programmer.</p>
+
+<h3 id="clojure-for-the-brave-and-true"><a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a></h3>
+
+<blockquote>
+  <p>Humor has a certain relationship to seriousness. It is appropriate to joke about serious things, but only after the right amount of time has passed. For example, it took years for me to be able to crack a smile when I remember my favorite uncle’s last words: "Hold my beer".</p>
+  
+  <p>I'm so proud of you, little teapot. You've run your first Clojure program! Not only that, but you've become acquainted with the REPL, one of the most important tools for developing Clojure software. Amazing!</p>
+</blockquote>
+
+<p>Niek thinks this book is a hilarious and down-to-earth explanation of yet another programming language to learn. Clojure is a Lisp dialect and will melt your brain with its elegance!</p>
+
+<h3 id="you-suck-at-excel"><a href="https://www.youtube.com/watch?v=0nbkaYsR94c">You Suck At Excel</a></h3>
+
+<blockquote>
+  <p>This material is -I guess- kinda like basic to intermediate, but for you all it's going to be stupid hard, so try paying attention and don't slow me down.</p>
+</blockquote>
+
+<p>Toon enjoyed this because this guy solves real world problems for people using Excel. "I learned a 100 things from seeing him work like this." He knows Excel inside out.</p>
+
+<h3 id="lemme-tell-you-about-the-most-successful-program-i-ever-wrote"><a href="https://twitter.com/revin/status/940700486117634050">Lemme tell you about the most successful program I ever wrote</a></h3>
+
+<h6 id="twitter-thread">(twitter thread)</h6>
+
+<blockquote>
+  <p>It was the first time I genuinely understood that users don't care how something is implemented; they care how it makes them feel</p>
+</blockquote>
+
+<p>Hans thinks we put so much effort in making our application code clean and future-proof while just a tiny poorly written program (that works) can make someone really happy. Software can seem magical for some people.</p>
+
+<h1 id="big-data">Big Data</h1>
+
+<p><img src="https://media.giphy.com/media/xydGi3nSTlkqs/giphy.gif" alt="Ben Stiller as Big Data" /></p>
+
+<h3 id="wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen%3F"><a href="https://medium.com/@ransbottyn/wat-als-tomorrowland-alles-met-je-data-en-privacy-zou-mogen-doen-e25a703668b4">Wat als Tomorrowland alles met je data en privacy zou mogen doen?</a></h3>
+
+<blockquote>
+  <p>Zo'n bracelet (gelinkt aan je identiteitsbewijs trouwens) is dus een mes dat aan twee kanten snijdt: handig, maar misschien ook de reden waarom u de volgende keer net iets minder "gewenst" bent.</p>
+</blockquote>
+
+<p>Jasper likes this because it's incredible how much data a festival organizer track and save about you with just a bracelet, and also, what they (can possibly) do with it.</p>
+
+<h3 id="deep-learning-for-chatbots"><a href="http://www.wildml.com/2016/07/deep-learning-for-chatbots-2-retrieval-based-model-tensorflow/">Deep Learning for Chatbots</a></h3>
+
+<blockquote>
+  <p>Generative models are an active area of research, but we’re not quite there yet. If you want to build a conversational agent today your best bet is most likely a retrieval-based model.</p>
+</blockquote>
+
+<p>Niek checked this out because it was exactly the right content for his reply suggestions adventure, a feature he is working on for Clarabrige Engage.</p>
+
+<p>Those were our highlights for 2017, let us know if we missed something!</p>
+]]></content>
+        </entry>
+    </feed>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Clarabridge Engage Dev Blog]]></title>
+    <link href="/blog/tags/HackYourFuture.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2021-04-29T15:43:26+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Clarabridge Your Future]]></title>
+            <link href="/blog/2021/04/29/clarabridge-your-future"/>
+            <updated>2021-04-29T14:30:12+00:00</updated>
+            <id>/blog/2021/04/29/clarabridge-your-future</id>
+            <content type="html"><![CDATA[<p>At Clarabridge, we are committed to cultivating a diverse community. For that reason, we wholeheartedly support the mission of <a href="https://hackyourfuture.be/">HackYourFuture Belgium</a>, the coding school for refugees and newcomers in Belgium.</p>
+
+<p>In April the Clarabridge frontend development team supported students from HackYourFuture in their quest to learn <a href="https://reactjs.org/">React</a>. A band of volunteer Clarabridge frontend developers <a href="https://www.linkedin.com/in/thomasvankerckvoorde/">Thomas</a>, <a href="https://www.linkedin.com/in/c%C3%A9dric-d-hooge-243729134/">Cédric</a>, <a href="https://www.linkedin.com/in/ben-serlippens/">Ben</a>, <a href="https://www.linkedin.com/in/jens-de-vlieger-32352b1b9/">Jens</a> and <a href="https://www.linkedin.com/in/albertcasadessus/">Albert</a> helped out the students with software bugs, questions, and advice throughout the week.</p>
+
+<h2 id="%F0%9F%91%A8%F0%9F%8F%BD%E2%80%8D%F0%9F%8E%93-clarabridge-learned">👨🏽‍🎓 Clarabridge learned</h2>
+
+<blockquote>
+  <p>"When one teaches, two learn." - Robert Heinlein</p>
+</blockquote>
+
+<p>At the start, we mainly expected questions or struggles with the higher-level concepts. Although we sometimes struggled with higher-level concepts, students hit a wall more often on practical problems. They had an old software version installed, a rogue plugin in the editor introducing issues, or trouble understanding a vague error message. 
+We will take this insight into account throughout what we develop as a team and don't assume a thing is "easy". We don't want to make something for experts but for everyone.</p>
+
+<p>Controlled failure is a good thing. Failure and problems are a way for people to learn and understand how to improve things. Don't try to achieve perfection but go for progression over time. A practical example here is not to force a concept like Redux on students without showing them the difficulty of state management in React first. Failing to manage the lifecycle of an app correctly is a great learning opportunity.</p>
+
+<p>Mentoring is a skill a lot of developers like to learn, but how do you get started? A project like this, with short-term one-on-one coaching, is excellent. It is a safe space with a limited scope. How do I motivate someone? How do I explain a concept in layman's terms? These skills need practice, and this was an excellent opportunity for us to practice.</p>
+
+<h2 id="%F0%9F%92%B0-students-benefited">💰 Students benefited</h2>
+
+<p>By getting to know people within the industry, students can grow their network. After this short term project is over, the connection remains, and students know who to reach out to for career advice or questions. 
+Many students took the opportunity to ask questions like, "What should I learn after React?", "What are essential skills to have if I want to do what you do?".</p>
+
+<p>Most of the Clarabridge developers did pair-programming sessions together with the students. Most of them expressed that it was very insightful seeing how experienced developers tackle a problem, seeing that we use StackOverflow for many things. It puts things into perspective and shows them that what they are learning is valuable.</p>
+
+<h2 id="%F0%9F%A4%9D-conclusion">🤝 Conclusion</h2>
+
+<p>The Clarabridge development considers this experiment a great success, and we are looking forward to collaborating with HackYourFuture Belgium again to do more pro bono mentoring for these talented newcomers who are finding their way into the tech world. To the students, may we meet again!</p>
+]]></content>
+        </entry>
+    </feed>

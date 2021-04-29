@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home &mdash; Clarabridge Engage Dev Blog</title>
+        <meta charset="utf-8">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="image" content="/images/share-img.png">
+        <meta property="og:image" content="/images/share-img.png"/>
+        <meta name="twitter:image" content="/images/share-img.png"/>
+                    <meta name="robots" content="noindex, follow">
+                <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="/css/style.css" rel="stylesheet" type="text/css" />
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#445460">
+        <meta name="theme-color" content="#445460">
+
+        <link rel="stylesheet" href="/components/highlightjs/styles/hybrid.css" />
+        <link rel="stylesheet" href="https://app.engagor.com/global/icons/engagor-icons/engagor-icons.css" />
+
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Clarabridge Engage Dev Blog activity feed" />
+        <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+        </style>
+                                    </head>
+    <body>
+    <div class="navbar-sticky menu-toggle">
+        <header class="navbar-developers-bkgd ">
+            <nav class="navbar-developers-container container">
+                <a class="navbar-brand left" href="http://developers.engagor.com/">
+                    <img src="/images/developers-logo.png" height="40">
+                </a>
+                <ul class="navbar-developers">
+                    <li>
+                        <a href="https://developers.engagor.com/" class="primary">
+                            Clarabridge Development
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/" class="primary active">
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://developers.engagor.com/documentation" class="primary <!-- if Array === 'documentation' -->active<!-- endif -->">
+                            API Documentation
+                        </a>
+                    </li>
+                </ul>
+                <span class="dismiss en-icon en-icon-delete-3"></span>
+                <a class="dev-button developers-button button-nav" href="https://www.clarabridge.com/contact/">Say Hi!</a>
+                <button type="button" class="navbar-toggle">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </nav>
+        </header>
+    </div>
+    <header class="navbar-developers-bkgd navbar-developers-title ">
+            <nav class="navbar-developers-container container">
+                <div class="header-developers clear">
+                    <h2>Clarabridge Developers Blog</h2>
+                    <h1>
+                                                    <h1>Build products that connect <span class="highlight">consumer</span> questions with <span class="highlight">brand</span> answers.</h1>
+                                            </h1>
+                </div>
+            </nav>
+        </header>
+        <div class="clearfix dev-container">
+            <ul class="dev-sidebar-main left">
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog" class=>
+                         Posts Archive
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/categories" class="">
+                        Categories
+                    </a>
+                </li>
+                <li class="dev-sidebar-main-nav">
+                    <a href="/blog/tags" class="">
+                        Tags
+                    </a>
+                </li>
+                                            </ul>
+            <div class="right dev-content-block">
+                    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2017/09/01/star-vars">Star Vars, an intergalactic story of tiny code smells</a></h1>
+        </header>
+        <div>
+            <p>In this post, we'll look at a type of variables that I call Star Vars, they're stars and shouldn't be touched. In any case. Whatsoever. Just don't start editing these in your code, or you'll eventually break stuff, with 100% guarantee.</p>
+
+<h2 id="star-vars-i%3A-the-timestamp-menace">Star Vars I: The Timestamp Menace</h2>
+
+<p>Timestamps are nice: asking the Unix Epoch timestamp results in a number that's the same, independent of in which timezone you are. The secret to this, is that a moment in history was labeled as Unix Epoch, and the timestamp is just the number of seconds that has passed from that moment up until now.</p>
+
+<p>And that's where things start to get nasty: with the understanding of what the number means (the number of seconds passed since January 1st 1970), people start editing the number to get dates in the past or future. What they're almost never take in consideration is the fact that time isn't linear, dates aren't the same around the globe, there are leap seconds, leap years, etc. There are too many exceptions from the rule, to just start adding <code>60 * 60 * 24</code> seconds to a timestamp's value, to get the next day. Don't do it. Your language most probably has a <code>DateTime</code> package to do just that, with less mistakes.</p>
+
+<h2 id="star-vars-ii%3A-attack-of-the-%60%24_post%60">Star Vars II: Attack Of The <code>$_POST</code></h2>
+
+<p>When a HTTP request is made to your app, there are most likely <code>POST</code> or <code>GET</code> parameters being passed along. In PHP, and likely other languages, these are made available trough (global) variables, no different than other variables. Thus, they can be changed, or used in computations or output. Be very careful with that!</p>
+
+<p>Changing a global variable means that it will be changed everywhere, so you risk breaking functionality in other places when you change e.g. the <code>$_POST</code> variable. Optimally, you could reduce the risk by using the immutable datastructures that your PSR-7 framework makes available to you.</p>
+
+<p>Also, using user input in calculations and/or output might result in errors or major hacks of your software. Be very cautious! People might be able to steal your app's data, run arbitrary code on your server, or impersonate users.</p>
+
+<h2 id="star-vars-iii%3A-events-of-the-sith">Star Vars III: Events Of The Sith</h2>
+
+<p>Since forever now, people use event dispatching and event sourcing as a way to let systems know about state changes, or even build their state from scratch based on events only. These <em>events</em> are nothing more than a "record" of something that has happened (in the past complete sense). Something that has happened will never change anymore, so the variables holding events should never be changed. Events are <em>immutable</em>. If you do change them, you change history, which I assume you aren't enabled to do.</p>
+
+<h2 id="star-vars-iv%3A-a-new-%60%24row%60">Star Vars IV: A New <code>$row</code></h2>
+
+<p>Here's the classic "naming things" exercise. We all know it's hard, but it's also very important. Take your time, give variables an appropriate name. I'm not touching your <code>$row</code> because I don't know what it is.</p>
+
+<h2 id="star-vars-v%3A-the-query-strikes-back">Star Vars V: The Query Strikes Back</h2>
+
+<p>Whether you're using an ORM or not, you might write the occasional database query from time to time. I find myself still writing my own queries for the sake of simplicity, inside the database specific implementation of e.g. a repository. Sometimes, for instance when you need "filter" functionality over a huge number of entities based on their various properties, it's tempting to write a query in a very generic way so that reusable parts of the query get concatenated into one final query. I find this a very dangerous practice, all the while not providing much benefit over writing the same query a few times with minor changes. Since the repository implementation we're doing this in is the only place in our codebase that knows about the database, we shouldn't care too much about duplication here.</p>
+
+<h2 id="star-vars-vi%3A-return-of-the-id">Star Vars VI: Return Of The ID</h2>
+
+<p>Making assumptions about the form of variables can be quite dangerous. Let's say that you expect a string to be in place, but what you get is an empty string. Is that valid? Now, think of identifiers of different objects. Sometimes, people use incremental numeric values (more often than not generated by the database) as identifiers for their objects, e.g. the <code>Person</code> with id <code>1337</code> is a cool guy. Already I can think of multiple cases of unexpected values for numerical ids, like <code>0</code>, <code>-1</code>, <code>false</code>, <code>null</code>, <code>''</code>, <code>foo</code>... If we then make the assumption that we'll save them as an integer in the database, we'll shoot ourselves in the foot by saving an object with id <code>'arrow'</code> or <code>'knee'</code>. Or what if the id is a numerical value that is too big to fit inside an integer?</p>
+
+<p>How about string representations, do you ask? For instance, post ids on the Facebook API have ids in the form of <code>{page id}_{post id}</code>. Now that you know this, given a post with an id, could you tell me the page id? Yes, but... what if Facebook decides to change their <em>naming scheme</em> for new posts (which they actually do from time to time)? From now on posts are called <code>pid_{random number}</code>. Now if we had logic in our software that depended on the implicit knowledge of the id was being made of two parts, it will break for those new posts.</p>
+
+<p>The moral of the story is: ids are black boxes, they could contain anything, and we shouldn't make assumptions about them, break them up into meaningful parts, or save them as anything else than strings inside the database.</p>
+
+<h2 id="star-vars-vii%3A-the-%60git-push---force%60-awakens">Star Vars VII: The <code>git push --force</code> Awakens</h2>
+
+<p>Even though <code>git</code> isn't a variable in the context of this blog post, I wanted to put this one in: <code>git push --force</code> is evil. The only reason why you would want to do this, is to change <em>public history</em>, which is something that can't be done. For more about that, scroll up to the Star Vars III section, or read <a href="/blog/2017/01/24/some-tips-for-a-better-git-history/">this blog post about git</a>.</p>
+
+<h2 id="star-vars-viii%3A-the-last-url">Star Vars VIII: The Last URL</h2>
+
+<p>The last, but not least, "star var" is the URL. Now, we all know and understand the most basic building blocks of URLs, like the scheme, tld, and query. But actually, the standard for URLs is quite complicated, and there could be many moving parts. People don't always include the scheme (e.g. the <code>https://</code> part), or the TLD is longer than 3 characters. Therefor, parsing an URL, or changing anything meaningful of it could be very error-prone. Have a look at <a href="https://daringfireball.net/2010/07/improved_regex_for_matching_urls">this regular expression to parse an URL</a>. As you can see, it's not as simple as you think. In fact, most languages have <a href="https://secure.php.net/manual/en/function.parse-url.php">built-in functionality</a> for this, as well as <a href="http://uri.thephpleague.com/">great packages</a>. As a side-note, the same goes for e-mail addresses, telephone numbers, and many other things.</p>
+
+<p>That's it for now! Keep in mind that a lot of these problems can be solved by either using established packages, built-in language features, or <a href="https://martinfowler.com/bliki/ValueObject.html">Value Objects</a> (or a mixture of several of those). May the force be with you!</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Code%20Smells" class="tag">Code Smells</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Value%20Objects" class="tag">Value Objects</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Git" class="tag">Git</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2017/08/21/simple-rules-for-simpler-code">5 simple rules for simpler code</a></h1>
+        </header>
+        <div>
+            <p>We as developers care about simple code. Simple code makes it easier to read and debug code which will allow you to build new features and fix bugs faster.</p>
+
+<p>In this blogpost I would like to explain a few simple rules to get simpler code. The code examples will be written in PHP and are therefore more suited to procedural programming languages.</p>
+
+<h2 id="1.-avoid-else">1. Avoid else</h2>
+
+<p>This is probably my favourite rule. Avoiding else can drastically improve the readability of your code. For example:</p>
+
+<pre><code class="php">if ($isAllowedToReadAutomationRecipes) {
+  $automationRecipes = $this-&gt;repository-&gt;getByAccountId($accountId);
+} else {
+  $automationRecipes = [];
+}
+</code></pre>
+
+<p>You can almost always simplify this to:</p>
+
+<pre><code class="php">$automationRecipes = [];
+if ($isAllowedToReadAutomationRecipes) {
+  $automationRecipes = $this-&gt;repository-&gt;getByAccountId($accountId);
+}
+</code></pre>
+
+<p>Look ma, no else!</p>
+
+<h2 id="2.-use-early-returns">2. Use early returns</h2>
+
+<p>Early returns are a nice way to simplify code. Using early returns goes hand in hand with avoiding else. For example:</p>
+
+<pre><code class="php">class PostController
+{
+    public function delete()
+    {
+        $post = $this-&gt;repository-&gt;getById($postId);
+        if ($post) {
+            if ($isConfirmed) {
+                $user-&gt;deletePost($post);
+                $success = $this-&gt;repository-&gt;persist($post);
+                if ($success) {
+                    return $this-&gt;success('The post was successfully deleted');
+                } else {
+                    return $this-&gt;error('Something went wrong.');
+                }
+            } else {
+                return $this-&gt;confirm('Are you sure you want to delete this post?');
+            }
+        } else {
+            return $this-&gt;error('The post was not found.');
+        }
+    }
+}
+</code></pre>
+
+<p>It's really hard to see the flow of the code, don't you think? Let's refactor the example to use early returns:</p>
+
+<pre><code class="php">class PostController
+{
+    public function delete()
+    {
+        $post = $this-&gt;repository-&gt;getById($postId);
+        if ($post === null) {
+            return $this-&gt;error('The post was not found.');
+        }
+        if ($isConfirmed === false) {
+            return $this-&gt;confirm('Are you sure you want to delete this post?');
+        }
+
+        $user-&gt;deletePost($post);
+        $success = $this-&gt;repository-&gt;persist($post);
+        if ($success === false) {
+            return $this-&gt;error('Something went wrong. Try again.');
+        }
+
+        return $this-&gt;success('The post was successfully deleted');
+    }
+}
+</code></pre>
+
+<p>What do you prefer? I surely prefer the latter. Early returns keep the level of indentation low and make the happy path of the code visible.</p>
+
+<h2 id="3.-use-meaningful-variables-names">3. Use meaningful variables names</h2>
+
+<p>If you abbreviate the names of variables you probably don't have a good IDE (autocompletion). It might make sense to use abbreviations while writing some quick code but it will eventually shoot you in the back when you need to fix a bug. You'll lose valuable time by deciphering the code.</p>
+
+<h2 id="4.-avoid-code-comments">4. Avoid code comments</h2>
+
+<p>Each time you're commenting code you're failing to express yourself. This rule goes hand in hand with meaningful variable names. Code comments can get outdated and nothing is as damaging as lies and misinformation. The code is the only source of truth. If you find yourself writing a code comment think of ways to make it clear in the code by extracting variables and functions with meaningful names. Sometimes a well placed comment can be helpful. They'll likely explain the why while the code explains the what/how.</p>
+
+<h2 id="5.-follow-a-consistent-coding-standard">5. Follow a consistent coding standard</h2>
+
+<p>Following a consistent coding standard makes sure all code is formatted in the same way. Which makes it easier to read code because you expect it to be formatted in a specific way. For PHP this is <a href="http://www.php-fig.org/psr/psr-2/">PSR-2</a>. I don't like every rule in <a href="http://www.php-fig.org/psr/psr-2/">PSR-2</a> but it doesn't matter as long as everyone writes the same code. Please don't invent your own coding standard. It's a good practice to <a href="http://cs.sensiolabs.org/">lint and fix</a> coding style automatically.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hope these simple rules will inspire you to leave the campground cleaner than you found it. Which rules do you think are important? Leave a comment (on disqus they are allowed)! If you want to know more, <a href="https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882">Clean Code</a> is good read.</p>
+
+<p>"Avoiding else" is a rule from <a href="https://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf">Object Calisthenics</a>. If you want to become a better developer, read it.</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Object%20Calisthenics" class="tag">Object Calisthenics</a>                    </li>
+                            </ul>
+            </article>
+    <article>
+        <header class="page-header">
+            <h1><a href="/blog/2017/08/01/tips-for-better-phpunit-tests">Some tips for better PHPUnit tests</a></h1>
+        </header>
+        <div>
+            <p>Writing good unit tests can be a pain. When you write your tests superfluously, you're testing more than the single unit, and they start failing with reasons not related to the <em>Subject Under Test (SUT)</em>. Or your tests become unreadable, and you can't figure out what they were supposed to be testing. Or they test only the one situation where everything goes according to plan, and not possible errors. Of course we want to mitigate all that! Let's see some simple tips to keep your test suite clean and working all the time.</p>
+
+<h2 id="test-the-unhappy-path-first">Test the unhappy path first</h2>
+
+<p>You could've sworn that your test was complete, but there seem to be exceptional cases that you missed. When writing unit tests -and doing TDD in particular- thinking about what might go wrong is very important: how should your unit fail, and when? What should happen when it fails? Should it throw exceptions? If you start with this, you won't forget to do it, and you'll write more robust code as a side-effect.</p>
+
+<h2 id="assertions-have-a-structure">Assertions have a structure</h2>
+
+<p>You might not know it, but most PHPUnit assertions have their parameters in the same order. They almost always take <code>$expected</code> and <code>$actual</code> as first and second parameters respectively. The third (and optional) parameter is often <code>$message</code>, which is a specific message you can write to make PHPUnit rapport back to you with when something fails. This is important, because in case of failure, PHPUnit will report you that your assertion's actual value doesn't match what you expected (so order is significant here). Let's see some examples:</p>
+
+<pre><code class="php">$this-&gt;assertEquals($expected, $actual, $message);
+$this-&gt;assertSame($expected, $actual, $message);
+$this-&gt;assertTrue($condition, $message);
+</code></pre>
+
+<p>As you can see, the <code>assertTrue()</code> call misses an <code>$expected</code> part, as it's already made clear in the name of the assertion.</p>
+
+<h2 id="use-the-correct-assertion">Use the correct assertion</h2>
+
+<p>To me, the daddy of all assertions is <code>assertEquals</code>, it's the basis of a unit test. You assert that your <em>Subject Under Test</em> gives a return value that's equal to what you expect it to return. If you're in doubt about which assertion is the right one to use, always pick <code>assertEquals</code>. The added benifit you get, is that PHPUnit displays really nice diffs between the <code>$expected</code> and <code>$actual</code> values if they don't match. That's much less useful when you use <code>assertTrue</code>, and it can only tell you that <code>False</code> is not equal to <code>True</code>.</p>
+
+<p><img src="/images/2017-08-01-tips-for-better-phpunit-tests/phpunit-diff.png" alt="Diff that PHPUnit shows when expected is different than the actual value" /></p>
+
+<h2 id="pick-names-that-make-sense">Pick names that make sense</h2>
+
+<p>PHPUnit expects you to start the name of your test methods with <code>test</code>, so that you get names like <code>testItThrowsAnExceptionWhenNetworkIsDown()</code>. Although that name is quite descriptive (and it should be!) it doesn't read very well. We can, however, make much more readable function names using underscores. What do you think of <code>test_it_throws_an_exception_when_network_is_down()</code>? It might not fit your coding standard (i'm looking at you, PSR-2), but isn't readability worth the occasional exception to some rules that are meant for readability? Also note, that be reading the name of the test method like this, it's totally clear to me what that test does, and I don't have to go in and read the code if I don't need to change it.</p>
+
+<h2 id="data-providers-for-clear-failure-messages">Data Providers for clear failure messages</h2>
+
+<p>If you need to test the same method with a huge number of inputs and make the same assertion over and over again, you might be tempted to write your assertion inside a <code>foreach</code> loop or something similar.</p>
+
+<pre><code class="php">public function test_prices_cast_to_strings()
+{
+    $validPrices = array(
+        '$100' =&gt; new Price(10000),
+        '$10' =&gt; new Price(1000),
+        '$1' =&gt; new Price(100),
+        '$0.10' =&gt; new Price(10),
+        '$0.01' =&gt; new Price(1),
+    );
+
+    foreach ($validPrices as $expectedString =&gt; $price) {
+        $this-&gt;assertEquals($expectedString, (string) $price);
+    }
+}
+</code></pre>
+
+<p>The problem with this, is that all your assertions happen on the same line, and PHPUnit will rapport a failure in one of those assertions as a failure on that line. Then you'll have to play detective and start looking through your test data to see where things break. This is where PHPUnit Data Providers come in handy, check it out:</p>
+
+<pre><code class="php">/**
+ * @dataProvider validPrices
+ */
+public function test_prices_cast_to_strings($expectedString, $price)
+{
+    $this-&gt;assertEquals($expectedString, (string) $price);
+}
+
+public function validPrices()
+{
+    return array(
+        array('$100', new Price(10000)),
+        array('$10', new Price(1000)),
+        array('$1', new Price(100)),
+        array('$0.10', new Price(10)),
+        array('$0.01', new Price(1)),
+    );
+}
+</code></pre>
+
+<p>Now PHPUnit will tell you which input data made the test fail. Don't you think this also cleans up the test so much more? No more <code>foreach</code> that didn't add any meaning to the test! What's also good to know, is that the <code>@dataProvider</code> annotation also works in conjunction with the <code>@expectedException</code> annotation, so you can also easily test if your method throws exceptions for invalid input.</p>
+
+<pre><code class="php">/**
+ * @dataProvider invalidPrices
+ * @expectedException InvalidArgumentException
+ */
+public function test_prices_throw_when_built_from_non_integer_value($nonInteger)
+{
+    $price = new Price($nonInteger);
+}
+
+public function invalidPrices()
+{
+    return array(
+        array('foo'),
+        array(null),
+        array(true),
+        array(false),
+        array(0.01),
+        array('1'),
+    );
+}
+</code></pre>
+
+<h2 id="programming-against-interfaces">Programming against interfaces</h2>
+
+<p>When you're writing tests for a SOLID codebase, be it in a test-first fashion, or writing tests after the facts, you'll be glad you used interfaces for your <em>Subject Under Test</em>'s dependencies. Not only do they give you the obvious benefits of "being able to swap out dependencies with a totally different implementation" or "not caring about specifics, if you just adhere to the contract", but also this means that you can test your class without its dependencies! Look at this example, where <code>Bank</code> has two dependencies:</p>
+
+<pre><code class="php">&lt;?php
+
+final class Bank
+{
+    private $clock;
+    private $log;
+
+    public function __construct(Clock $clock, TransactionLog $log)
+    {
+        $this-&gt;clock = $clock;
+        $this-&gt;log = $log;
+    }
+
+    // ...
+}
+</code></pre>
+
+<p>Of course, <code>Bank</code> cannot operate without its dependencies, so in our test we'll have to instantiate it correctly, but we'll use test doubles, so that we can test <code>Bank</code> with e.g. a <code>Clock</code> that we control:</p>
+
+<pre><code class="php">$clock = $this-&gt;getMock('Clock');
+$clock
+    -&gt;method('getTime')
+    -&gt;willReturn(new DateTime('2017-07-15 10:00:00'));
+
+$log = $this-&gt;getMock('TransactionLog');
+
+$bank = new Bank($clock, $log);
+</code></pre>
+
+<p>Now that we know that <code>Clock</code> will always return a given time, we can make assertions that e.g. a <code>Bank</code> transaction was done at the time the clock returned, instead of taking a guess and using stuff like <code>time()</code> or <code>new DateTime('now')</code>. On the <code>TransactionLog</code>, we could assert that a certain method got called (because we expect a transaction to be made), and thus validate if the <code>Bank</code> communicates correctly with it:</p>
+
+<pre><code class="php">$now = new DateTime('2017-07-15 10:00:00');
+$clock = $this-&gt;getMock('Clock');
+$clock
+    -&gt;method('getTime')
+    -&gt;willReturn($now);
+
+$transaction = new Transaction('Toon', 'Hans', 100, $now);
+$log = $this-&gt;getMock('TransactionLog');
+$log
+    -&gt;expects($this-&gt;once())
+    -&gt;method('log')
+    -&gt;with($this-&gt;equalTo($transaction));
+
+$bank = new Bank($clock, $log);
+$bank-&gt;payment('Toon', 'Hans', 100);
+</code></pre>
+
+<p>On the last line we do the call that your code would actually do to make a bank transaction (this is example code, beware). This makes the <code>Bank</code> log a <code>Transaction</code> in the <code>TransactionLog</code>. Since we control the clock, we can assert on the correct time in the <code>Transaction</code>. Also note that this is a complete test. The rather invisible assertion is the <code>$this-&gt;equalTo()</code> call. We're asserting that <code>Bank</code> communicates correctly to the <code>TransactionLog</code>.</p>
+
+<h2 id="interface-discovery">Interface Discovery</h2>
+
+<p>When we're doing TDD, the PHPUnit test doubles can help us "discovering" what an interface must be, in order to have a dependency that properly supports our <em>Subject Under Test</em>. This works because PHPUnit's mocks will mock any non-existing interfaces. Let's say we want the bank to trigger a WebHook whenever a transaction was made, containing the transaction details.</p>
+
+<pre><code class="php">$clock = $this-&gt;getMock('Clock');
+$log = $this-&gt;getMock('TransactionLog');
+
+// The WebHooks interface doesn't exist yet
+$webhooks = $this-&gt;getMock('WebHooks');
+$webhooks
+    -&gt;expects($this-&gt;once())
+    -&gt;method('trigger')
+    -&gt;with($this-&gt;equalTo('{"transaction": {"from": "Toon", "to": "Hans", "amount": 100}}'));
+
+$bank = new Bank($clock, $log, $webhooks);
+$bank-&gt;payment('Toon', 'Hans', 100);
+</code></pre>
+
+<p>Without having an interface, we can already define what we want to see happening. Our test then fails, because the <code>trigger()</code> method didn't get called, so we can start implementing. When we're done, we'll see that our <code>Bank</code> class tests green, and we have discovered a very simple interface for the <code>WebHooks</code> that we can now create (see a whole blog post about this in the Further Reading section).</p>
+
+<pre><code class="php">&lt;?php
+
+interface WebHooks
+{
+    public function trigger($jsonContents);
+}
+</code></pre>
+
+<h2 id="further-reading">Further Reading</h2>
+
+<p>These were only a few of the things that you can do to make your testsuite better than it is right now! There are lots of ways to improve even further. My strategy is to not only refactor the code (when tests are green of course), but also the tests, to make them as comprehensive and robust as possible. Think about how you can make them easy to understand for the next person looking to improve or change them. Here's some more reading material that can help you out:</p>
+
+<ul>
+<li><a href="https://phpunit.de/manual/current/en/">The PHPUnit manual</a></li>
+<li><a href="https://github.com/mockery/mockery">Much nicer test doubles with Mockery</a></li>
+<li><a href="http://verraes.net/2011/03/interface-discovery-with-phpunit-mock-objects/">Interface Discovery with PHPUnit's Mock Objects</a></li>
+</ul>
+
+<p>That's it, enjoy writing better tests!</p>
+
+        </div>
+                    <h5 class="tags-title">Tags:</h5 class="tags">
+            <ul class="tags-list">
+                                    <li>
+                        <a href="/blog/tags/PHP" class="tag">PHP</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/Unit%20Tests" class="tag">Unit Tests</a>                    </li>
+                                    <li>
+                        <a href="/blog/tags/PHPUnit" class="tag">PHPUnit</a>                    </li>
+                            </ul>
+            </article>
+    <nav class="pager">
+        <a href="/page/12" class="left">Newer Posts</a>        <a href="/page/14" class="right">Older Posts</a>    </nav>
+            </div>
+        </div>
+        <footer class="dev-container">
+            <div class="dev-content-block">
+                <div class="left">
+                    &copy;2021 Clarabridge&reg;. All rights reserved.
+                </div>
+                <div class="right">
+                    <strong>Stay Connected</strong>
+                    <a href="https://twitter.com/clarabridgedev" target="blank"><span class="en-icon en-icon-twitter-square"></span></a>
+                    <a href="https://www.facebook.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-facebook-square"></span></a>
+                    <a href="https://www.instagram.com/clarabridgedev/" target="blank"><span class="en-icon en-icon-instagram"></span></a>
+                </div>
+            </div>
+        </footer>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/components/jquery/jquery.min.js"><\/script>')</script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        
+                
+        
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-105312561-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+                <script src="/components/highlightjs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+
+                    </body>
+</html>
